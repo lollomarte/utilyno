@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Convertitore Unità di Misura online gratuito — km, kg, °C | Utilyno</title>
+  <meta name="description" content="Converti unità di misura gratuitamente: lunghezza, peso, temperatura, area, volume. Km, miglia, kg, libbre, Celsius, Fahrenheit e molto altro.">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="canonical" href="https://utilyno.it/utilities/convertitore-unita/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg:#0a0a0a; --surface:#141414; --surface2:#1c1c1c; --border:rgba(255,255,255,0.08); --text:#f0f0f0; --text-muted:rgba(240,240,240,0.5); --text-dim:rgba(240,240,240,0.22); --mono:'DM Mono',monospace; --sans:'DM Sans',sans-serif; }
+    body { background:var(--bg); color:var(--text); font-family:var(--sans); -webkit-font-smoothing:antialiased; min-height:100dvh; display:flex; flex-direction:column; }
+    header { padding:1.25rem 2rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .logo { font-family:var(--mono); font-size:15px; color:var(--text); text-decoration:none; }
+    .logo span { color:var(--text-dim); }
+    .back { font-family:var(--mono); font-size:12px; color:var(--text-dim); text-decoration:none; transition:color 0.2s; }
+    .back:hover { color:var(--text-muted); }
+    main { max-width:560px; margin:0 auto; width:100%; padding:3rem 1.5rem 6rem; flex:1; }
+    .page-label { font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.75rem; }
+    h1 { font-size:clamp(26px,5vw,40px); font-weight:300; letter-spacing:-0.02em; margin-bottom:0.5rem; }
+    .page-sub { font-size:14px; color:var(--text-muted); font-weight:300; margin-bottom:2rem; }
+    .tabs { display:flex; gap:0; border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:2rem; flex-wrap:wrap; }
+    .tab { flex:1; min-width:80px; padding:0.6rem 0.5rem; font-family:var(--mono); font-size:11px; letter-spacing:0.05em; color:var(--text-dim); background:none; border:none; cursor:pointer; transition:all 0.2s; text-align:center; border-right:1px solid var(--border); }
+    .tab:last-child { border-right:none; }
+    .tab:hover { color:var(--text-muted); background:var(--surface); }
+    .tab.active { background:var(--surface); color:var(--text); }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:2rem; display:flex; flex-direction:column; gap:1.5rem; }
+    .field { display:flex; flex-direction:column; gap:0.5rem; }
+    label { font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:0.08em; text-transform:uppercase; }
+    input[type="number"] { background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-family:var(--mono); font-size:22px; font-weight:300; padding:0.85rem 1rem; width:100%; outline:none; transition:border-color 0.2s; -moz-appearance:textfield; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance:none; }
+    input[type="number"]:focus { border-color:rgba(255,255,255,0.2); }
+    select { background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-family:var(--mono); font-size:14px; padding:0.75rem 1rem; width:100%; outline:none; cursor:pointer; transition:border-color 0.2s; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.3)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 1rem center; padding-right:2.5rem; }
+    select:focus { border-color:rgba(255,255,255,0.2); }
+    .swap-btn { background:none; border:1px solid var(--border); color:var(--text-muted); font-family:var(--mono); font-size:18px; padding:0.6rem; border-radius:6px; cursor:pointer; align-self:center; width:44px; height:44px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+    .swap-btn:hover { border-color:rgba(255,255,255,0.25); color:var(--text); }
+    .result-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:1.25rem; }
+    .result-amount { font-family:var(--mono); font-size:32px; font-weight:300; color:var(--text); letter-spacing:-0.02em; }
+    footer { border-top:1px solid var(--border); padding:1.25rem 2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; }
+    .footer-copy { font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+    .footer-links { display:flex; gap:1.5rem; }
+    .footer-links a { font-family:var(--mono); font-size:11px; color:var(--text-dim); text-decoration:none; transition:color 0.2s; }
+    .footer-links a:hover { color:var(--text-muted); }
+    @media (max-width:600px) { header { padding:1rem; } main { padding:2rem 1rem 4rem; } .tab { font-size:10px; padding:0.5rem 0.3rem; } }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">utilyno<span>.it</span></a>
+    <a href="/utilities/" class="back">← utilities</a>
+  </header>
+  <main>
+    <div class="page-label">// conversione</div>
+    <h1>Convertitore unità</h1>
+    <p class="page-sub">Seleziona la categoria e converti istantaneamente.</p>
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-cat="lunghezza">Lunghezza</button>
+      <button class="tab" data-cat="peso">Peso</button>
+      <button class="tab" data-cat="temperatura">Temperatura</button>
+      <button class="tab" data-cat="area">Area</button>
+      <button class="tab" data-cat="volume">Volume</button>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label>Valore</label>
+        <input type="number" id="amount" value="1" step="any" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label>Da</label>
+        <select id="from"></select>
+      </div>
+      <button class="swap-btn" id="swap">⇅</button>
+      <div class="field">
+        <label>A</label>
+        <select id="to"></select>
+      </div>
+      <div class="result-box">
+        <div class="result-amount" id="result">—</div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="footer-copy">© 2025 Lorenzo Martegiani — P.IVA 17512421003</div>
+    <div class="footer-links">
+      <a href="/privacy/">privacy</a>
+      <a href="/cookie/">cookie</a>
+    </div>
+  </footer>
+  <script>
+    const UNITS = {
+      lunghezza: [
+        { k:'km', n:'Chilometro', f:1000 },
+        { k:'m', n:'Metro', f:1 },
+        { k:'cm', n:'Centimetro', f:0.01 },
+        { k:'mm', n:'Millimetro', f:0.001 },
+        { k:'mi', n:'Miglio', f:1609.344 },
+        { k:'yd', n:'Iarda', f:0.9144 },
+        { k:'ft', n:'Piede', f:0.3048 },
+        { k:'in', n:'Pollice', f:0.0254 },
+        { k:'nmi', n:'Miglio nautico', f:1852 }
+      ],
+      peso: [
+        { k:'t', n:'Tonnellata', f:1000 },
+        { k:'kg', n:'Chilogrammo', f:1 },
+        { k:'g', n:'Grammo', f:0.001 },
+        { k:'mg', n:'Milligrammo', f:0.000001 },
+        { k:'lb', n:'Libbra', f:0.453592 },
+        { k:'oz', n:'Oncia', f:0.0283495 },
+        { k:'st', n:'Stone', f:6.35029 }
+      ],
+      area: [
+        { k:'km2', n:'Chilometro²', f:1000000 },
+        { k:'m2', n:'Metro²', f:1 },
+        { k:'cm2', n:'Centimetro²', f:0.0001 },
+        { k:'ha', n:'Ettaro', f:10000 },
+        { k:'mi2', n:'Miglio²', f:2589988 },
+        { k:'yd2', n:'Iarda²', f:0.836127 },
+        { k:'ft2', n:'Piede²', f:0.0929 },
+        { k:'ac', n:'Acro', f:4046.86 }
+      ],
+      volume: [
+        { k:'m3', n:'Metro³', f:1000 },
+        { k:'l', n:'Litro', f:1 },
+        { k:'ml', n:'Millilitro', f:0.001 },
+        { k:'cl', n:'Centilitro', f:0.01 },
+        { k:'gal', n:'Gallone (US)', f:3.78541 },
+        { k:'qt', n:'Quarto (US)', f:0.946353 },
+        { k:'pt', n:'Pinta (US)', f:0.473176 },
+        { k:'fl oz', n:'Fl. oz (US)', f:0.0295735 },
+        { k:'tbsp', n:'Cucchiaio', f:0.0147868 },
+        { k:'tsp', n:'Cucchiaino', f:0.00492892 }
+      ]
+    };
+
+    let cat = 'lunghezza';
+
+    function populateSelects() {
+      const fromEl = document.getElementById('from');
+      const toEl = document.getElementById('to');
+      const prevFrom = fromEl.value, prevTo = toEl.value;
+      fromEl.innerHTML = ''; toEl.innerHTML = '';
+      const units = UNITS[cat] || [];
+      units.forEach(u => {
+        const o1 = document.createElement('option'); o1.value = u.k; o1.textContent = u.k + ' — ' + u.n; fromEl.appendChild(o1);
+        const o2 = o1.cloneNode(true); toEl.appendChild(o2);
+      });
+      if (units.find(u => u.k === prevFrom)) fromEl.value = prevFrom;
+      if (units.find(u => u.k === prevTo)) toEl.value = prevTo;
+      if (fromEl.value === toEl.value && units.length > 1) toEl.selectedIndex = 1;
+      convert();
+    }
+
+    function convert() {
+      const amount = parseFloat(document.getElementById('amount').value);
+      const fromKey = document.getElementById('from').value;
+      const toKey = document.getElementById('to').value;
+      const resultEl = document.getElementById('result');
+      if (isNaN(amount)) { resultEl.textContent = '—'; return; }
+      if (cat === 'temperatura') {
+        let celsius;
+        if (fromKey === 'C') celsius = amount;
+        else if (fromKey === 'F') celsius = (amount - 32) * 5/9;
+        else if (fromKey === 'K') celsius = amount - 273.15;
+        else if (fromKey === 'R') celsius = (amount - 491.67) * 5/9;
+        let result;
+        if (toKey === 'C') result = celsius;
+        else if (toKey === 'F') result = celsius * 9/5 + 32;
+        else if (toKey === 'K') result = celsius + 273.15;
+        else if (toKey === 'R') result = (celsius + 273.15) * 9/5;
+        const formatted = Number.isInteger(result) ? result : parseFloat(result.toFixed(4));
+        resultEl.textContent = formatted + ' ' + toKey;
+      } else {
+        const units = UNITS[cat];
+        const fromU = units.find(u => u.k === fromKey);
+        const toU = units.find(u => u.k === toKey);
+        if (!fromU || !toU) { resultEl.textContent = '—'; return; }
+        const base = amount * fromU.f;
+        const result = base / toU.f;
+        const formatted = result >= 1000 ? result.toLocaleString('it-IT', { maximumFractionDigits: 4 }) : parseFloat(result.toPrecision(6)).toString();
+        resultEl.textContent = formatted + ' ' + toKey;
+      }
+    }
+
+    document.getElementById('tabs').addEventListener('click', e => {
+      if (!e.target.dataset.cat) return;
+      cat = e.target.dataset.cat;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      if (cat === 'temperatura') {
+        const fromEl = document.getElementById('from'); const toEl = document.getElementById('to');
+        fromEl.innerHTML = ''; toEl.innerHTML = '';
+        [['C','Celsius'],['F','Fahrenheit'],['K','Kelvin'],['R','Rankine']].forEach(([k,n]) => {
+          const o1 = document.createElement('option'); o1.value=k; o1.textContent=k+' — '+n; fromEl.appendChild(o1);
+          const o2=o1.cloneNode(true); toEl.appendChild(o2);
+        });
+        fromEl.value='C'; toEl.value='F'; convert();
+      } else { populateSelects(); }
+    });
+
+    document.getElementById('swap').onclick = () => {
+      const f = document.getElementById('from'), t = document.getElementById('to');
+      const tmp = f.value; f.value = t.value; t.value = tmp; convert();
+    };
+
+    document.getElementById('from').onchange = document.getElementById('to').onchange = document.getElementById('amount').oninput = convert;
+    populateSelects();
+  </script>
+</body>
+</html>
