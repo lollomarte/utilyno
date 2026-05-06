@@ -396,7 +396,7 @@
       <div class="how-steps">
         <div class="how-step">
           <div class="step-num">1</div>
-          <div class="step-text">Appare un numero da <strong>1 a 8</strong> al centro dello schermo.</div>
+          <div class="step-text">Appare un numero da <strong>1 a 5</strong> al centro dello schermo.</div>
         </div>
         <div class="how-step">
           <div class="step-num">2</div>
@@ -491,7 +491,7 @@
 
     function nextRound() {
       round++;
-      target = Math.floor(Math.random() * 8) + 1;
+      target = Math.floor(Math.random() * 5) + 1;
       tapped = false;
 
       $('round-num').textContent = round;
