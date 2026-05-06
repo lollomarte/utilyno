@@ -20,10 +20,10 @@
       --surface: #141414;
       --surface2: #1e1e1e;
       --border: rgba(255,255,255,0.08);
-      --border-hover: rgba(255,255,255,0.16);
+      --border-hover: rgba(255,255,255,0.22);
       --text: #f0f0f0;
-      --text-muted: rgba(240,240,240,0.4);
-      --text-dim: rgba(240,240,240,0.2);
+      --text-muted: rgba(240,240,240,0.5);
+      --text-dim: rgba(240,240,240,0.25);
       --green: #4ade80;
       --green-dim: rgba(74,222,128,0.12);
       --red: #f87171;
@@ -60,7 +60,6 @@
       gap: 0;
     }
 
-    /* ── HEADER ── */
     .site-header {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -77,44 +76,41 @@
       font-family: var(--mono);
       font-size: 13px;
       font-weight: 400;
-      color: var(--text-muted);
+      color: var(--text-dim);
       text-decoration: none;
       letter-spacing: 0.05em;
     }
-
     .site-logo span { color: var(--text); }
 
     .help-btn {
       background: none;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255,255,255,0.2);
       color: var(--text-muted);
       font-family: var(--mono);
       font-size: 12px;
-      padding: 5px 12px;
+      padding: 5px 14px;
       border-radius: 20px;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .help-btn:hover { border-color: var(--border-hover); color: var(--text); }
+    .help-btn:hover { border-color: rgba(255,255,255,0.4); color: var(--text); }
 
-    /* ── SCREENS ── */
     .screen {
       display: none;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      gap: 2rem;
+      gap: 1.75rem;
       width: 100%;
-      animation: fadeUp 0.35s ease;
+      animation: fadeUp 0.3s ease;
     }
     .screen.active { display: flex; }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── START SCREEN ── */
     .game-title {
       font-family: var(--mono);
       font-size: clamp(42px, 12vw, 72px);
@@ -139,9 +135,10 @@
     }
     .best-score-display span { color: var(--amber); }
 
+    /* PULSANTE PRIMARIO — bianco pieno, testo scuro, sempre visibile */
     .btn-primary {
-      background: var(--text);
-      color: var(--bg);
+      background: #f0f0f0;
+      color: #0a0a0a;
       border: none;
       font-family: var(--mono);
       font-size: 14px;
@@ -152,13 +149,14 @@
       letter-spacing: 0.05em;
       transition: opacity 0.2s, transform 0.1s;
     }
-    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary:hover { opacity: 0.85; }
     .btn-primary:active { transform: scale(0.97); }
 
+    /* PULSANTE SECONDARIO — bordo bianco visibile, testo chiaro */
     .btn-secondary {
       background: none;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: rgba(240,240,240,0.7);
       font-family: var(--mono);
       font-size: 13px;
       padding: 10px 24px;
@@ -166,9 +164,8 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-secondary:hover { border-color: var(--border-hover); color: var(--text); }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.6); color: var(--text); }
 
-    /* ── GAME SCREEN ── */
     .round-info {
       font-family: var(--mono);
       font-size: 12px;
@@ -177,7 +174,15 @@
       display: flex;
       gap: 1.5rem;
     }
-    .round-info .hl { color: var(--text-muted); }
+    .round-info .hl { color: rgba(240,240,240,0.65); }
+
+    .streak-line {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--amber);
+      letter-spacing: 0.06em;
+      min-height: 18px;
+    }
 
     .tap-area {
       width: 100%;
@@ -201,8 +206,14 @@
       overflow: hidden;
     }
     .tap-area:active { background: var(--surface2); border-color: var(--border-hover); }
-    .tap-area.flash-ok { background: var(--green-dim); border-color: rgba(74,222,128,0.3); }
-    .tap-area.flash-fail { background: var(--red-dim); border-color: rgba(248,113,113,0.3); }
+    .tap-area.flash-ok { background: var(--green-dim); border-color: rgba(74,222,128,0.35); }
+    .tap-area.flash-fail { background: var(--red-dim); border-color: rgba(248,113,113,0.35); }
+    .tap-area.pulse-anim { animation: borderPulse 1.1s ease-in-out infinite; }
+
+    @keyframes borderPulse {
+      0%, 100% { border-color: rgba(255,255,255,0.08); }
+      50%       { border-color: rgba(255,255,255,0.22); }
+    }
 
     .target-number {
       font-family: var(--mono);
@@ -211,7 +222,7 @@
       color: var(--text);
       line-height: 1;
       letter-spacing: -0.04em;
-      transition: color 0.15s;
+      transition: transform 0.15s;
     }
 
     .tap-hint {
@@ -227,20 +238,11 @@
       font-size: 14px;
       min-height: 22px;
       letter-spacing: 0.02em;
-      transition: color 0.2s;
     }
-    .feedback-line.ok { color: var(--green); }
+    .feedback-line.ok   { color: var(--green); }
     .feedback-line.fail { color: var(--red); }
     .feedback-line.empty { color: transparent; }
 
-    .tol-line {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      letter-spacing: 0.05em;
-    }
-
-    /* ── OVER SCREEN ── */
     .over-score {
       font-family: var(--mono);
       font-size: clamp(64px, 20vw, 100px);
@@ -257,27 +259,15 @@
       text-transform: uppercase;
       margin-top: -1rem;
     }
-    .over-title {
-      font-size: 18px;
-      font-weight: 400;
-      color: var(--text);
-    }
-    .over-sub {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-    .over-best {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--amber);
-      letter-spacing: 0.06em;
-    }
+    .over-title { font-size: 18px; font-weight: 400; color: var(--text); }
+    .over-sub   { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+    .over-best  { font-family: var(--mono); font-size: 12px; color: var(--amber); letter-spacing: 0.06em; }
+
     .share-text {
       font-family: var(--mono);
       font-size: 12px;
       color: var(--text-dim);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255,255,255,0.15);
       border-radius: 4px;
       padding: 10px 16px;
       cursor: pointer;
@@ -286,17 +276,17 @@
       text-align: center;
       letter-spacing: 0.02em;
     }
-    .share-text:hover { border-color: var(--border-hover); color: var(--text-muted); }
-    .share-copied { color: var(--green) !important; border-color: rgba(74,222,128,0.3) !important; }
+    .share-text:hover { border-color: rgba(255,255,255,0.3); color: var(--text-muted); }
+    .share-copied { color: var(--green) !important; border-color: rgba(74,222,128,0.4) !important; }
+
     .btn-row { display: flex; gap: 10px; width: 100%; }
-    .btn-row .btn-primary { flex: 1; }
+    .btn-row .btn-primary  { flex: 1; }
     .btn-row .btn-secondary { flex: 1; }
 
-    /* ── HOW TO PLAY OVERLAY ── */
     #how-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.85);
+      background: rgba(0,0,0,0.88);
       z-index: 200;
       display: none;
       align-items: center;
@@ -308,8 +298,8 @@
     #how-overlay.open { display: flex; }
 
     .how-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: #1a1a1a;
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: 8px;
       padding: 2rem;
       max-width: 380px;
@@ -326,41 +316,25 @@
       color: var(--text);
       letter-spacing: 0.04em;
     }
-    .how-steps {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .how-step {
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-    }
+    .how-steps { display: flex; flex-direction: column; gap: 1rem; }
+    .how-step  { display: flex; gap: 14px; align-items: flex-start; }
     .step-num {
       font-family: var(--mono);
       font-size: 11px;
-      color: var(--text-dim);
-      background: var(--surface2);
+      color: rgba(240,240,240,0.4);
+      background: #252525;
       border-radius: 3px;
-      width: 22px;
-      height: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 1px;
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
     }
-    .step-text {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.55;
-    }
+    .step-text { font-size: 14px; color: var(--text-muted); line-height: 1.55; }
     .step-text strong { color: var(--text); font-weight: 500; }
     .how-note {
       font-family: var(--mono);
       font-size: 11px;
       color: var(--text-dim);
-      border-top: 1px solid var(--border);
+      border-top: 1px solid rgba(255,255,255,0.08);
       padding-top: 1rem;
       line-height: 1.6;
       letter-spacing: 0.02em;
@@ -376,7 +350,6 @@
 
   <div id="app">
 
-    <!-- START -->
     <div class="screen active" id="screen-start">
       <div class="game-title">tap<br>zero</div>
       <p class="game-tagline">Appare un numero. Tocca lo schermo dopo esattamente quei secondi. Niente aiuti — solo il tuo senso del tempo.</p>
@@ -385,12 +358,12 @@
       <button class="btn-secondary" onclick="toggleHow()">come si gioca</button>
     </div>
 
-    <!-- GAME -->
     <div class="screen" id="screen-game">
       <div class="round-info">
         <span>ROUND <span class="hl" id="round-num">1</span></span>
         <span>TOL <span class="hl" id="tol-val">±0.44s</span></span>
       </div>
+      <div class="streak-line" id="streak-line"></div>
       <div class="tap-area" id="tap-area">
         <div class="target-number" id="target-num">—</div>
         <div class="tap-hint">tocca qui</div>
@@ -398,7 +371,6 @@
       <div class="feedback-line empty" id="feedback"></div>
     </div>
 
-    <!-- GAME OVER -->
     <div class="screen" id="screen-over">
       <div>
         <div class="over-score" id="over-score">0</div>
@@ -418,7 +390,6 @@
 
   </div>
 
-  <!-- HOW TO PLAY -->
   <div id="how-overlay" onclick="closeHow(event)">
     <div class="how-card">
       <h2>// come si gioca</h2>
@@ -455,16 +426,45 @@
   <script>
     const $ = id => document.getElementById(id);
 
-    // ── STATE ──
-    let round = 0, target = 0, t0 = 0, tapped = false;
+    let round = 0, target = 0, t0 = 0, tapped = false, streak = 0;
     let best = parseInt(localStorage.getItem('tz_best') || '0');
 
-    // ── TOLERANCE ──
+    const AC = new (window.AudioContext || window.webkitAudioContext)();
+
+    function sound(type) {
+      try {
+        const o = AC.createOscillator(), g = AC.createGain();
+        o.connect(g); g.connect(AC.destination);
+        if (type === 'tick') {
+          o.type = 'sine'; o.frequency.value = 880;
+          g.gain.setValueAtTime(0.12, AC.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.07);
+          o.start(); o.stop(AC.currentTime + 0.07);
+        } else if (type === 'ok') {
+          o.type = 'sine'; o.frequency.value = 600;
+          o.frequency.linearRampToValueAtTime(900, AC.currentTime + 0.15);
+          g.gain.setValueAtTime(0.1, AC.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.2);
+          o.start(); o.stop(AC.currentTime + 0.2);
+        } else if (type === 'fail') {
+          o.type = 'sawtooth'; o.frequency.value = 200;
+          o.frequency.linearRampToValueAtTime(120, AC.currentTime + 0.3);
+          g.gain.setValueAtTime(0.08, AC.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.3);
+          o.start(); o.stop(AC.currentTime + 0.3);
+        } else if (type === 'start') {
+          o.type = 'sine'; o.frequency.value = 440;
+          g.gain.setValueAtTime(0.07, AC.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.12);
+          o.start(); o.stop(AC.currentTime + 0.12);
+        }
+      } catch(e) {}
+    }
+
     function tol(r) {
       return Math.max(0.12, 0.44 - Math.min(r - 1, 20) * 0.016);
     }
 
-    // ── SCREENS ──
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       $(id).classList.add('active');
@@ -482,9 +482,9 @@
       }
     }
 
-    // ── GAME ──
     function startGame() {
-      round = 0;
+      round = 0; streak = 0;
+      sound('start');
       showScreen('screen-game');
       nextRound();
     }
@@ -496,14 +496,22 @@
 
       $('round-num').textContent = round;
       $('tol-val').textContent = '±' + tol(round).toFixed(2) + 's';
-      $('target-num').textContent = target;
       $('feedback').className = 'feedback-line empty';
       $('feedback').textContent = '\u00a0';
 
+      const sl = $('streak-line');
+      sl.textContent = streak >= 3 ? '🔥 streak ' + streak : '';
+
       const area = $('tap-area');
-      area.className = 'tap-area';
+      area.className = 'tap-area pulse-anim';
       area.style.pointerEvents = 'auto';
 
+      const numEl = $('target-num');
+      const distort = round > 10 ? `rotate(${(Math.random() - 0.5) * 8}deg)` : '';
+      numEl.style.transform = distort;
+      numEl.textContent = target;
+
+      sound('tick');
       t0 = performance.now();
 
       area.onclick = onTap;
@@ -516,6 +524,9 @@
 
       const area = $('tap-area');
       area.style.pointerEvents = 'none';
+      area.classList.remove('pulse-anim');
+
+      sound('tick');
 
       const elapsed = (performance.now() - t0) / 1000;
       const diff = Math.abs(elapsed - target);
@@ -525,21 +536,23 @@
       if (diff <= t) {
         const pct = Math.round((1 - diff / t) * 100);
         area.classList.add('flash-ok');
+        sound('ok');
+        streak++;
         fb.className = 'feedback-line ok';
-        fb.textContent = `✓ ${elapsed.toFixed(2)}s — precisione ${pct}%`;
-        setTimeout(nextRound, 1100);
+        fb.textContent = '✓ ' + elapsed.toFixed(2) + 's — precisione ' + pct + '%';
+        setTimeout(nextRound, 600);
       } else {
         area.classList.add('flash-fail');
+        sound('fail');
+        streak = 0;
         fb.className = 'feedback-line fail';
-        fb.textContent = `✗ ${elapsed.toFixed(2)}s — volevi ${target}s (scarto ${diff.toFixed(2)}s)`;
-        setTimeout(gameOver, 1600);
+        fb.textContent = '✗ ' + elapsed.toFixed(2) + 's — volevi ' + target + 's (scarto ' + diff.toFixed(2) + 's)';
+        setTimeout(gameOver, 1500);
       }
     }
 
     function gameOver() {
       const completed = round - 1;
-
-      // save best
       if (completed > best) {
         best = completed;
         localStorage.setItem('tz_best', best);
@@ -563,16 +576,15 @@
       $('over-title').textContent = title[1];
       $('over-sub').textContent = title[2];
       $('over-best').textContent = completed >= best && completed > 0
-        ? `★ nuovo record: ${completed} round`
-        : best > 0 ? `record: ${best} round` : '';
+        ? '★ nuovo record: ' + completed + ' round'
+        : best > 0 ? 'record: ' + best + ' round' : '';
 
       showScreen('screen-over');
     }
 
-    // ── SHARE ──
     function copyShare() {
       const completed = parseInt($('over-score').textContent);
-      const text = `Ho completato ${completed} round su Tap Zero (utilyno.it) — ce la fai anche tu?`;
+      const text = 'Ho completato ' + completed + ' round su Tap Zero (utilyno.it) — ce la fai anche tu?';
       navigator.clipboard.writeText(text).then(() => {
         const btn = $('share-btn');
         btn.classList.add('share-copied');
@@ -586,16 +598,13 @@
       });
     }
 
-    // ── HOW TO PLAY ──
     function toggleHow() {
-      const o = $('how-overlay');
-      o.classList.toggle('open');
+      $('how-overlay').classList.toggle('open');
     }
     function closeHow(e) {
       if (e.target === $('how-overlay')) $('how-overlay').classList.remove('open');
     }
 
-    // ── INIT ──
     updateBestDisplay();
   </script>
 </body>
