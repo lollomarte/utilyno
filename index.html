@@ -70,6 +70,7 @@
   .rooms-list { display:flex; flex-direction:column; gap:10px; }
   .room-row { background:var(--card-bg); border:1px solid #ffffff10; border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:12px; min-height:58px; }
   .room-row.singola { border-color:var(--gold); background:#1a1500; }
+  .room-row.executive { border-color:var(--gold2); background:#12201a; border-width:2px; }
   .room-number { font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:900; color:var(--gold); min-width:28px; line-height:1; }
   .room-type { font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
   .room-occupants { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
@@ -176,12 +177,12 @@ const SINGOLA_COMMENTS = [
 ];
 
 const ROOMS = [
-  { id:1, type:"doppia", slots:2, occupants:[] },
-  { id:2, type:"doppia", slots:2, occupants:[] },
-  { id:3, type:"doppia", slots:2, occupants:[] },
-  { id:4, type:"doppia", slots:2, occupants:[] },
-  { id:5, type:"doppia", slots:2, occupants:[] },
-  { id:6, type:"singola", slots:1, occupants:[] },
+  { id:1, type:"basic", label:"Camera Basic Doppia 1", slots:2, occupants:[] },
+  { id:2, type:"basic", label:"Camera Basic Doppia 2", slots:2, occupants:[] },
+  { id:3, type:"basic", label:"Camera Basic Doppia 3", slots:2, occupants:[] },
+  { id:4, type:"basic", label:"Camera Basic Doppia 4", slots:2, occupants:[] },
+  { id:5, type:"executive", label:"Monolocale Matrimoniale Executive", slots:2, occupants:[] },
+  { id:6, type:"singola", label:"Monolocale Basic", slots:1, occupants:[] },
 ];
 
 let shuffledNames = [...ALL_NAMES].sort(() => Math.random() - 0.5);
@@ -214,15 +215,27 @@ function playReveal() {
     osc.start(t); osc.stop(t+0.35);
   });
 }
-function playPairFanfare() {
+function playTriumph() {
   const ctx = getAudioCtx();
-  [523,659,784,659,784,1047].forEach((freq,i) => {
+  // Fanfara trionfale: arpeggio ascendente + accordo finale
+  const melody = [392,523,659,784,1047,784,1047,1319];
+  melody.forEach((freq,i) => {
     const osc = ctx.createOscillator(), gain = ctx.createGain();
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = "square"; osc.frequency.value = freq;
-    const t = ctx.currentTime + i*0.1;
-    gain.gain.setValueAtTime(0,t); gain.gain.linearRampToValueAtTime(0.15,t+0.03); gain.gain.exponentialRampToValueAtTime(0.001,t+0.18);
-    osc.start(t); osc.stop(t+0.18);
+    osc.type = i<6 ? "triangle" : "square";
+    osc.frequency.value = freq;
+    const t = ctx.currentTime + i*0.13;
+    gain.gain.setValueAtTime(0,t); gain.gain.linearRampToValueAtTime(0.22,t+0.04); gain.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+    osc.start(t); osc.stop(t+0.35);
+  });
+  // Accordo finale
+  [523,659,784,1047].forEach(freq => {
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = "triangle"; osc.frequency.value = freq;
+    const t = ctx.currentTime + 1.1;
+    gain.gain.setValueAtTime(0,t); gain.gain.linearRampToValueAtTime(0.18,t+0.06); gain.gain.exponentialRampToValueAtTime(0.001,t+0.8);
+    osc.start(t); osc.stop(t+0.8);
   });
 }
 function playDramatic() {
@@ -253,14 +266,18 @@ function playFinale() {
 function pick(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
 
 function getRoomLabel(n) {
-  if (n<=5) return `Camera doppia ${n} — 1° posto`;
-  if (n<=10) return `Camera doppia ${n-5} — 2° posto`;
-  return "Camera singola";
+  if (n<=4) return `Camera Basic Doppia ${n}`;
+  if (n===5) return "Monolocale Matrimoniale Executive ★";
+  if (n<=9) return `Camera Basic Doppia ${n-5} — 2° posto`;
+  if (n===10) return "Monolocale Matrimoniale Executive ★";
+  return "Monolocale Basic — posto singolo";
 }
 function assignToRoom(n, name) {
-  if (n<=5) ROOMS[n-1].occupants.push(name);
-  else if (n<=10) ROOMS[n-6].occupants.push(name);
-  else ROOMS[5].occupants.push(name);
+  if (n<=4) ROOMS[n-1].occupants.push(name);        // basic 1-4, slot 1
+  else if (n===5) ROOMS[4].occupants.push(name);     // executive, slot 1
+  else if (n<=9) ROOMS[n-6].occupants.push(name);    // basic 1-4, slot 2
+  else if (n===10) ROOMS[4].occupants.push(name);    // executive, slot 2
+  else ROOMS[5].occupants.push(name);                // singola
 }
 
 function buildBalls() {
@@ -289,9 +306,9 @@ function clickBall(el, idx) {
     assignToRoom(extracted, name);
     updateDashboard();
     updateProgress();
-    const isPair = extracted>=6 && extracted<=10;
+    const isExecutive = extracted===5 || extracted===10;
     const isSingola = extracted===11;
-    if (isPair) playPairFanfare();
+    if (isExecutive) playTriumph();
     else if (isSingola) playDramatic();
     else playReveal();
     showReveal(el.textContent, name, extracted);
@@ -317,10 +334,10 @@ function showReveal(ballNum, name, n) {
   pairEl.textContent = "";
   commentEl.textContent = "";
 
-  if (n>=6 && n<=10) {
-    const partner = ROOMS[n-6].occupants[0];
+  if (n===10) {
+    const partner = ROOMS[4].occupants[0];
     pairEl.textContent = `${partner} + ${name}`;
-    commentEl.textContent = pick(PAIR_COMMENTS);
+    commentEl.textContent = "La camera più bella a loro! ★";
   } else if (n===11) {
     commentEl.textContent = pick(SINGOLA_COMMENTS);
     document.body.classList.add("shake");
@@ -367,7 +384,7 @@ function updateDashboard() {
   list.innerHTML = "";
   ROOMS.forEach(room => {
     const row = document.createElement("div");
-    row.className = "room-row"+(room.type==="singola"?" singola":"");
+    row.className = "room-row"+(room.type==="singola"?" singola":room.type==="executive"?" executive":"");
     const num = document.createElement("div");
     num.className = "room-number";
     num.textContent = room.id;
@@ -375,7 +392,7 @@ function updateDashboard() {
     info.style.flex = "1";
     const typeEl = document.createElement("div");
     typeEl.className = "room-type";
-    typeEl.textContent = room.type==="singola"?"Camera singola":"Camera doppia";
+    typeEl.textContent = room.type==="singola"?"Monolocale Basic":room.type==="executive"?"Monolocale Executive ★":"Camera Basic Doppia";
     const occ = document.createElement("div");
     occ.className = "room-occupants";
     room.occupants.forEach(name => {
