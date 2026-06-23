@@ -11,6 +11,12 @@
   html,body { min-height:100vh; background:var(--navy); color:var(--white); font-family:'Barlow',sans-serif; }
   body { background-image: radial-gradient(ellipse 60% 40% at 50% 0%,#1e2b6e33 0%,transparent 70%), repeating-linear-gradient(0deg,transparent,transparent 59px,#ffffff06 59px,#ffffff06 60px), repeating-linear-gradient(90deg,transparent,transparent 59px,#ffffff06 59px,#ffffff06 60px); }
   header { text-align:center; padding:2.5rem 1rem 1.5rem; border-bottom:1px solid #ffffff12; }
+  .tab-bar { display:flex; justify-content:center; gap:0; border-bottom:1px solid #ffffff12; background:var(--navy2); }
+  .tab-btn { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); background:transparent; border:none; padding:14px 28px; cursor:pointer; border-bottom:3px solid transparent; transition:color 0.2s,border-color 0.2s; }
+  .tab-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
+  .tab-btn:hover:not(.active) { color:var(--white); }
+  .tab-section { display:none; }
+  .tab-section.active { display:block; }
   .ucl-star { font-size:28px; color:var(--gold); letter-spacing:8px; display:block; margin-bottom:0.5rem; }
   header h1 { font-family:'Barlow Condensed',sans-serif; font-size:clamp(2rem,6vw,3.5rem); font-weight:900; text-transform:uppercase; letter-spacing:0.06em; color:var(--white); line-height:1; }
   header h1 span { color:var(--gold); }
@@ -83,6 +89,18 @@
   .final-banner p { font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); }
   .reset-btn { margin-top:1rem; background:transparent; border:1px solid var(--gold); color:var(--gold); padding:8px 22px; font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; border-radius:4px; cursor:pointer; transition:background 0.15s; }
   .reset-btn:hover { background:#2a1f00; }
+  /* AWARDS */
+  .awards-grid { display:flex; flex-direction:column; gap:10px; max-width:700px; margin:0 auto; }
+  .award-row { background:var(--card-bg); border:1px solid #ffffff10; border-radius:8px; padding:12px 16px; display:flex; align-items:center; gap:14px; min-height:60px; }
+  .award-row.filled { border-color:#2a3a6a; }
+  .award-icon { font-size:22px; min-width:32px; text-align:center; }
+  .award-info { flex:1; }
+  .award-title { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); margin-bottom:3px; }
+  .award-winner { font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:900; color:var(--white); text-transform:uppercase; }
+  .award-winner-wrap { display:flex; align-items:center; gap:8px; }
+  .award-winner-photo { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--gold); }
+  .award-empty { color:var(--muted); font-size:12px; font-style:italic; }
+  .awards-progress { max-width:700px; margin:0 auto 1.5rem; }
 </style>
 </head>
 <body>
@@ -93,6 +111,12 @@
   <p>Clicca una pallina per estrarre</p>
 </header>
 
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('camere')">🏨 Camere</button>
+  <button class="tab-btn" onclick="switchTab('awards')">🏆 Awards</button>
+</div>
+
+<div id="tab-camere" class="tab-section active">
 <main>
   <div class="urn-section">
     <div class="section-label">Urna</div>
@@ -125,6 +149,47 @@
     <div class="rooms-list" id="roomsList"></div>
   </div>
 </main>
+
+</main>
+</div><!-- end tab-camere -->
+
+<div id="tab-awards" class="tab-section">
+  <div style="max-width:1100px;margin:0 auto;padding:2rem 1rem 4rem;">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start;" id="awardsLayout">
+
+      <!-- URN awards -->
+      <div class="urn-section" id="awardsUrnSection">
+        <div class="section-label">Urna Awards</div>
+        <div class="urn-wrap">
+          <svg class="urn-svg" viewBox="0 0 260 290" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="130" cy="56" rx="80" ry="18" fill="#1a2455" stroke="#c8a84b" stroke-width="1.5"/>
+            <path d="M50 56 Q30 80 28 160 Q26 240 130 258 Q234 240 232 160 Q230 80 210 56" fill="#111840" stroke="#c8a84b" stroke-width="1.5"/>
+            <path d="M50 56 Q30 80 28 160 Q26 200 130 215" fill="#0a0f2e" opacity="0.4"/>
+            <ellipse cx="130" cy="258" rx="100" ry="20" fill="#1a2455" stroke="#c8a84b" stroke-width="1.5"/>
+            <line x1="50" y1="64" x2="210" y2="64" stroke="#c8a84b" stroke-width="0.8" opacity="0.4"/>
+            <path d="M28 110 Q10 120 10 140 Q10 158 28 160" stroke="#c8a84b" stroke-width="1.5" fill="none"/>
+            <path d="M232 110 Q250 120 250 140 Q250 158 232 160" stroke="#c8a84b" stroke-width="1.5" fill="none"/>
+            <text x="130" y="175" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-size="18" font-weight="900" fill="#c8a84b" letter-spacing="4" opacity="0.6">★★★</text>
+          </svg>
+        </div>
+        <div class="section-label">Palline — clicca per estrarre</div>
+        <div class="balls-container" id="awardsBallsContainer"></div>
+      </div>
+
+      <!-- Awards results -->
+      <div>
+        <div class="section-label" style="text-align:left;">Classifica Awards</div>
+        <div class="awards-progress">
+          <div class="progress-track"><div class="progress-fill" id="awardsProgressFill"></div></div>
+          <div class="progress-text" id="awardsProgressText">0 / 11 assegnati</div>
+        </div>
+        <div class="awards-grid" id="awardsGrid"></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- end tab-awards -->
 
 <div class="reveal-overlay" id="revealOverlay">
   <div class="reveal-box" id="revealBox">
@@ -429,6 +494,145 @@ function resetDraw() {
   document.getElementById("progressText").textContent="0 / 11 estratti";
   buildBalls(); updateDashboard();
 }
+
+
+// ============ AWARDS ============
+const AWARDS = [
+  { icon:"🤢", title:"Chi vomiterà di più?" },
+  { icon:"🚬", title:"Chi fumerà di più?" },
+  { icon:"🍆", title:"Chi scoperà di più?" },
+  { icon:"😤", title:"Chi romperà più i coglioni?" },
+  { icon:"💍", title:"Chi troverà moglie?" },
+  { icon:"🚋", title:"Chi verrà investito da un tram?" },
+  { icon:"💸", title:"Chi spenderà di più?" },
+  { icon:"🌨️", title:"Chi pipperà?" },
+  { icon:"💃", title:"Chi va a trans?" },
+  { icon:"👶", title:"Chi diventa padre?" },
+  { icon:"🛋️", title:"Chi non farà un cazzo?" },
+];
+
+let awardsShuffled = [...ALL_NAMES].sort(() => Math.random() - 0.5);
+let awardsExtracted = 0;
+let awardsBlocked = false;
+let awardsResults = []; // { award, name }
+
+function buildAwardsBalls() {
+  const c = document.getElementById("awardsBallsContainer");
+  c.innerHTML = "";
+  awardsShuffled.forEach((_, i) => {
+    const b = document.createElement("div");
+    b.className = "ball";
+    b.textContent = i + 1;
+    b.dataset.idx = i;
+    b.addEventListener("click", () => clickAwardBall(b, i));
+    c.appendChild(b);
+  });
+}
+
+function clickAwardBall(el, idx) {
+  if (awardsBlocked || el.classList.contains("used") || el.classList.contains("animating")) return;
+  awardsBlocked = true;
+  playPop();
+  el.classList.add("animating");
+  setTimeout(() => {
+    el.classList.remove("animating");
+    el.classList.add("used");
+    awardsExtracted++;
+    const name = awardsShuffled[idx];
+    const award = AWARDS[awardsExtracted - 1];
+    awardsResults.push({ award, name });
+    updateAwardsDashboard();
+    updateAwardsProgress();
+    playReveal();
+    showAwardReveal(el.textContent, name, award);
+  }, 580);
+}
+
+function showAwardReveal(ballNum, name, award) {
+  document.getElementById("revealPhoto").src = PHOTOS[name] || "";
+  document.getElementById("revealName").textContent = name;
+  document.getElementById("revealRoomLabel").textContent = award.icon + " " + award.title;
+  document.getElementById("easterEgg").innerHTML = name === "LP" ? '<div class="reveal-easter">SIUUUUUUUUM</div>' : "";
+  document.getElementById("revealPair").textContent = "";
+  document.getElementById("revealComment").textContent = "";
+  document.getElementById("revealOverlay").classList.add("active");
+  // Override closeReveal for awards context
+  document.getElementById("revealOverlay").dataset.mode = "awards";
+}
+
+function updateAwardsProgress() {
+  const pct = (awardsExtracted / 11) * 100;
+  document.getElementById("awardsProgressFill").style.width = pct + "%";
+  document.getElementById("awardsProgressText").textContent = awardsExtracted + " / 11 assegnati";
+}
+
+function updateAwardsDashboard() {
+  const grid = document.getElementById("awardsGrid");
+  grid.innerHTML = "";
+  AWARDS.forEach((award, i) => {
+    const result = awardsResults[i];
+    const row = document.createElement("div");
+    row.className = "award-row" + (result ? " filled" : "");
+    const icon = document.createElement("div");
+    icon.className = "award-icon";
+    icon.textContent = award.icon;
+    const info = document.createElement("div");
+    info.className = "award-info";
+    const title = document.createElement("div");
+    title.className = "award-title";
+    title.textContent = award.title;
+    const winnerDiv = document.createElement("div");
+    if (result) {
+      winnerDiv.className = "award-winner-wrap";
+      const img = document.createElement("img");
+      img.className = "award-winner-photo";
+      img.src = PHOTOS[result.name] || "";
+      img.alt = result.name;
+      const nameEl = document.createElement("span");
+      nameEl.className = "award-winner";
+      nameEl.textContent = result.name;
+      winnerDiv.appendChild(img);
+      winnerDiv.appendChild(nameEl);
+    } else {
+      winnerDiv.className = "award-empty";
+      winnerDiv.textContent = "da assegnare";
+    }
+    info.appendChild(title);
+    info.appendChild(winnerDiv);
+    row.appendChild(icon);
+    row.appendChild(info);
+    grid.appendChild(row);
+  });
+}
+
+function switchTab(tab) {
+  document.querySelectorAll(".tab-section").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + tab).classList.add("active");
+  event.target.classList.add("active");
+}
+
+// Patch closeReveal to handle both modes
+const _origCloseReveal = closeReveal;
+window.closeReveal = function() {
+  const mode = document.getElementById("revealOverlay").dataset.mode;
+  document.getElementById("revealOverlay").classList.remove("active");
+  document.getElementById("revealOverlay").dataset.mode = "";
+  if (mode === "awards") {
+    awardsBlocked = false;
+    if (awardsExtracted === 11) launchConfetti();
+  } else {
+    blocked = false;
+    if (extracted === 11) {
+      document.getElementById("finalBanner").classList.add("show");
+      launchConfetti();
+      playFinale();
+    }
+  }
+};
+
+buildAwardsBalls();
+updateAwardsDashboard();
 
 buildBalls();
 updateDashboard();
