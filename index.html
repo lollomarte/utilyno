@@ -22,11 +22,20 @@
   header h1 span { color:var(--gold); }
   header p { margin-top:0.5rem; font-size:13px; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; }
   main { max-width:1100px; margin:0 auto; padding:2rem 1rem 4rem; display:grid; grid-template-columns:1fr 380px; gap:2rem; align-items:start; }
-  @media(max-width:780px){ main{ grid-template-columns:1fr; } }
-  .urn-section { text-align:center; }
+  @media(max-width:780px){
+    main { grid-template-columns:1fr; gap:1.5rem; padding:1rem 0.75rem 3rem; }
+    #awardsLayout { grid-template-columns:1fr !important; gap:1.5rem; }
+    .balls-container { max-width:100%; gap:10px; }
+    .ball { width:52px; height:52px; font-size:17px; }
+    header { padding:1.5rem 1rem 1rem; }
+    .ucl-star { font-size:20px; letter-spacing:5px; }
+    header h1 { font-size:1.8rem; }
+    .reveal-photo-wrap { width:min(130px,38vw); height:min(130px,38vw); }
+    .reveal-name { font-size:clamp(2rem,10vw,3.5rem); }
+    .tab-btn { padding:12px 16px; font-size:11px; }
+  }
+  .urn-section { text-align:center; padding-top:0.5rem; }
   .section-label { font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); margin-bottom:1.25rem; }
-  .urn-wrap { position:relative; width:260px; height:290px; margin:0 auto 2rem; }
-  .urn-svg { width:100%; height:100%; }
   .balls-container { display:flex; flex-wrap:wrap; justify-content:center; gap:14px; margin:0 auto 2rem; max-width:340px; }
   .ball { width:60px; height:60px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#e8c96a,#9a6f1c); border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:900; color:var(--navy); box-shadow:inset 0 -4px 8px rgba(0,0,0,0.3),0 4px 16px rgba(200,168,75,0.3); transition:transform 0.15s,box-shadow 0.15s; user-select:none; }
   .ball:hover:not(.used):not(.animating) { transform:scale(1.12) translateY(-4px); box-shadow:inset 0 -4px 8px rgba(0,0,0,0.3),0 10px 28px rgba(200,168,75,0.55); }
@@ -120,18 +129,6 @@
 <main>
   <div class="urn-section">
     <div class="section-label">Urna</div>
-    <div class="urn-wrap">
-      <svg class="urn-svg" viewBox="0 0 260 290" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="130" cy="56" rx="80" ry="18" fill="#1a2455" stroke="#c8a84b" stroke-width="1.5"/>
-        <path d="M50 56 Q30 80 28 160 Q26 240 130 258 Q234 240 232 160 Q230 80 210 56" fill="#111840" stroke="#c8a84b" stroke-width="1.5"/>
-        <path d="M50 56 Q30 80 28 160 Q26 200 130 215" fill="#0a0f2e" opacity="0.4"/>
-        <ellipse cx="130" cy="258" rx="100" ry="20" fill="#1a2455" stroke="#c8a84b" stroke-width="1.5"/>
-        <line x1="50" y1="64" x2="210" y2="64" stroke="#c8a84b" stroke-width="0.8" opacity="0.4"/>
-        <path d="M28 110 Q10 120 10 140 Q10 158 28 160" stroke="#c8a84b" stroke-width="1.5" fill="none"/>
-        <path d="M232 110 Q250 120 250 140 Q250 158 232 160" stroke="#c8a84b" stroke-width="1.5" fill="none"/>
-        <text x="130" y="175" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-size="18" font-weight="900" fill="#c8a84b" letter-spacing="4" opacity="0.6">★★★</text>
-      </svg>
-    </div>
     <div class="section-label">Palline — clicca per estrarre</div>
     <div class="balls-container" id="ballsContainer"></div>
   </div>
@@ -161,19 +158,7 @@
       <!-- URN awards -->
       <div class="urn-section" id="awardsUrnSection">
         <div class="section-label">Urna Awards</div>
-        <div class="urn-wrap">
-          <svg class="urn-svg" viewBox="0 0 260 290" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="130" cy="56" rx="80" ry="18" fill="#1a2455" stroke="#c8a84b" stroke-width="1.5"/>
-            <path d="M50 56 Q30 80 28 160 Q26 240 130 258 Q234 240 232 160 Q230 80 210 56" fill="#111840" stroke="#c8a84b" stroke-width="1.5"/>
-            <path d="M50 56 Q30 80 28 160 Q26 200 130 215" fill="#0a0f2e" opacity="0.4"/>
-            <ellipse cx="130" cy="258" rx="100" ry="20" fill="#1a2455" stroke="#c8a84b" stroke-width="1.5"/>
-            <line x1="50" y1="64" x2="210" y2="64" stroke="#c8a84b" stroke-width="0.8" opacity="0.4"/>
-            <path d="M28 110 Q10 120 10 140 Q10 158 28 160" stroke="#c8a84b" stroke-width="1.5" fill="none"/>
-            <path d="M232 110 Q250 120 250 140 Q250 158 232 160" stroke="#c8a84b" stroke-width="1.5" fill="none"/>
-            <text x="130" y="175" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-size="18" font-weight="900" fill="#c8a84b" letter-spacing="4" opacity="0.6">★★★</text>
-          </svg>
-        </div>
-        <div class="section-label">Palline — clicca per estrarre</div>
+    <div class="section-label">Palline — clicca per estrarre</div>
         <div class="balls-container" id="awardsBallsContainer"></div>
       </div>
 
