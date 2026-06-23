@@ -201,6 +201,11 @@
     animation: glowPulse 1.5s ease-in-out infinite alternate;
   }
 
+  @keyframes siuuu {
+    0%   { opacity:0; transform:scale(0.5) rotate(-5deg); }
+    40%  { opacity:1; transform:scale(1.2) rotate(3deg); }
+    100% { transform:scale(1) rotate(0deg); }
+  }
   @keyframes glowPulse {
     from { box-shadow: 0 0 40px rgba(200,168,75,0.5); }
     to   { box-shadow: 0 0 90px rgba(200,168,75,0.9); }
@@ -496,6 +501,13 @@ function showReveal(ballNum, name, n) {
   document.getElementById("revealBallNum").textContent = ballNum;
   document.getElementById("revealRoomLabel").textContent = getRoomLabel(n);
   document.getElementById("revealName").textContent = name;
+    if (name === "LP") {
+      const siuu = document.createElement("div");
+      siuu.textContent = "SIUUUUUUUUM";
+      siuu.style.cssText = "font-family:Barlow Condensed,sans-serif;font-size:clamp(1.5rem,6vw,2.8rem);font-weight:900;letter-spacing:0.1em;color:#e8c96a;margin-bottom:1rem;animation:siuuu 0.6s ease forwards;";
+      document.querySelector(".reveal-box").insertBefore(siuu, document.getElementById("revealName"));
+      setTimeout(() => siuu.remove(), 8000);
+    }
   document.getElementById("revealOverlay").classList.add("active");
 }
 
