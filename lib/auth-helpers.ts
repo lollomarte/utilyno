@@ -48,3 +48,52 @@ export async function requireAdmin() {
 
   return { session };
 }
+
+const PORTAL_PATH_BY_ROLE: Record<string, string> = {
+  ADMIN: "/admin",
+  AGENZIA: "/agenzia",
+  AMMINISTRATORE: "/amministratore",
+  PROPRIETARIO: "/proprietario",
+  INQUILINO: "/inquilino",
+};
+
+/**
+ * Verifica che l'utente della sessione corrente esista ancora nel database
+ * (con il relativo record di ruolo) e restituisce il percorso del suo
+ * portale. Ritorna null se la sessione fa riferimento a un utente non più
+ * presente nel DB (es. dopo un reset), così le pagine che la chiamano
+ * possono offrire un logout invece di rimandare l'utente in loop verso
+ * /non-autorizzato.
+ */
+export async function resolvePortalForSession(
+  userId: string,
+  role: string
+): Promise<string | null> {
+  const path = PORTAL_PATH_BY_ROLE[role];
+  if (!path) return null;
+
+  switch (role) {
+    case "ADMIN": {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      return user ? path : null;
+    }
+    case "AGENZIA": {
+      const agenzia = await prisma.agenzia.findUnique({ where: { userId } });
+      return agenzia ? path : null;
+    }
+    case "AMMINISTRATORE": {
+      const amministratore = await prisma.amministratore.findUnique({ where: { userId } });
+      return amministratore ? path : null;
+    }
+    case "PROPRIETARIO": {
+      const proprietario = await prisma.proprietario.findUnique({ where: { userId } });
+      return proprietario ? path : null;
+    }
+    case "INQUILINO": {
+      const inquilino = await prisma.inquilino.findUnique({ where: { userId } });
+      return inquilino ? path : null;
+    }
+    default:
+      return null;
+  }
+}
