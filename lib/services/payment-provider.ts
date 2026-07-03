@@ -13,8 +13,9 @@ export interface InitiatePaymentResult {
 }
 
 /**
- * Astrazione verso un futuro istituto di pagamento reale (es. Nexi, Stripe, SIA).
- * Da sostituire con un'implementazione reale quando sarà definita la partnership.
+ * Astrazione verso un futuro istituto di pagamento reale (Partner 1 nel
+ * piano di partnership). Da sostituire con un'implementazione reale quando
+ * la partnership sarà definita.
  */
 export interface PaymentProvider {
   initiatePayment(input: InitiatePaymentInput): Promise<InitiatePaymentResult>;
@@ -27,7 +28,7 @@ class MockPaymentProvider implements PaymentProvider {
     return {
       externalPaymentId,
       status: "PENDING",
-      checkoutUrl: `https://mock-payment-provider.werent.it/checkout/${externalPaymentId}`,
+      checkoutUrl: `https://mock-payment-provider.loqo.it/checkout/${externalPaymentId}`,
     };
   }
 

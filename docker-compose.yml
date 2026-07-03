@@ -3,13 +3,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: werent
-      POSTGRES_PASSWORD: werent
-      POSTGRES_DB: werent
+      POSTGRES_USER: loqo
+      POSTGRES_PASSWORD: loqo
+      POSTGRES_DB: loqo
     ports:
       - "5432:5432"
     volumes:
-      - werent-postgres-data:/var/lib/postgresql/data
+      - loqo-postgres-data:/var/lib/postgresql/data
 
 volumes:
-  werent-postgres-data:
+  loqo-postgres-data:

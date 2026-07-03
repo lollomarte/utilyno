@@ -1,6 +1,19 @@
-import { PrismaClient, TipoImmobile, TipoContratto, RegimeFiscale, StatoContratto, StatoPagamento, TipoUtenza, StatoUtenza, StatoTicket } from "@prisma/client";
+import {
+  PrismaClient,
+  TipoImmobile,
+  TipoContratto,
+  RegimeFiscale,
+  StatoContratto,
+  StatoDeposito,
+  StatoPagamento,
+  TipoUtenza,
+  StatoUtenza,
+  StatoAssicurazione,
+  TipoChecklist,
+  StatoSegnalazione,
+} from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { addDays, addMonths, subMonths, subDays } from "date-fns";
+import { addDays, addMonths, subMonths } from "date-fns";
 
 const prisma = new PrismaClient();
 
@@ -11,13 +24,18 @@ async function hash(password: string) {
 async function main() {
   console.log("Pulizia database...");
   await prisma.documento.deleteMany();
+  await prisma.checklistImmobile.deleteMany();
   await prisma.ticket.deleteMany();
+  await prisma.segnalazioneCondominiale.deleteMany();
+  await prisma.assicurazione.deleteMany();
   await prisma.utenza.deleteMany();
   await prisma.pagamento.deleteMany();
   await prisma.contratto.deleteMany();
   await prisma.immobile.deleteMany();
+  await prisma.condominio.deleteMany();
   await prisma.inquilino.deleteMany();
   await prisma.proprietario.deleteMany();
+  await prisma.amministratore.deleteMany();
   await prisma.agenzia.deleteMany();
   await prisma.user.deleteMany();
 
@@ -26,7 +44,7 @@ async function main() {
   // ---------- Admin ----------
   await prisma.user.create({
     data: {
-      email: "admin@werent.it",
+      email: "admin@loqo.it",
       passwordHash: defaultPassword,
       role: "ADMIN",
       nome: "Giulia",
@@ -38,7 +56,7 @@ async function main() {
   // ---------- Agenzie ----------
   const agenziaUser1 = await prisma.user.create({
     data: {
-      email: "agenzia.milano@werent.it",
+      email: "agenzia.milano@loqo.it",
       passwordHash: defaultPassword,
       role: "AGENZIA",
       nome: "Marco",
@@ -50,7 +68,7 @@ async function main() {
     data: {
       userId: agenziaUser1.id,
       ragioneSociale: "Milano Casa Immobiliare Srl",
-      piva: "IT01234567890",
+      piva: "01234567890",
       indirizzo: "Via Torino 12, 20123 Milano (MI)",
       telefono: "+39 02 55443322",
     },
@@ -58,7 +76,7 @@ async function main() {
 
   const agenziaUser2 = await prisma.user.create({
     data: {
-      email: "agenzia.roma@werent.it",
+      email: "agenzia.roma@loqo.it",
       passwordHash: defaultPassword,
       role: "AGENZIA",
       nome: "Chiara",
@@ -70,9 +88,79 @@ async function main() {
     data: {
       userId: agenziaUser2.id,
       ragioneSociale: "Roma Affitti & Gestioni Srl",
-      piva: "IT09876543210",
+      piva: "09876543210",
       indirizzo: "Via Nazionale 45, 00184 Roma (RM)",
       telefono: "+39 06 99887766",
+    },
+  });
+
+  // ---------- Amministratori di condominio ----------
+  const amminUser1 = await prisma.user.create({
+    data: {
+      email: "amministratore.nord@loqo.it",
+      passwordHash: defaultPassword,
+      role: "AMMINISTRATORE",
+      nome: "Paolo",
+      cognome: "Neri",
+      telefono: "+39 02 33445566",
+    },
+  });
+  const amministratore1 = await prisma.amministratore.create({
+    data: {
+      userId: amminUser1.id,
+      ragioneSociale: "Condomini Nord Srl",
+      piva: "11223344556",
+      indirizzo: "Via Brera 5, 20121 Milano (MI)",
+      telefono: "+39 02 33445566",
+    },
+  });
+
+  const amminUser2 = await prisma.user.create({
+    data: {
+      email: "amministratore.sud@loqo.it",
+      passwordHash: defaultPassword,
+      role: "AMMINISTRATORE",
+      nome: "Federica",
+      cognome: "Testa",
+      telefono: "+39 06 77889900",
+    },
+  });
+  const amministratore2 = await prisma.amministratore.create({
+    data: {
+      userId: amminUser2.id,
+      ragioneSociale: "Gestioni Sud Srl",
+      piva: "66554433221",
+      indirizzo: "Via Cavour 20, 00184 Roma (RM)",
+      telefono: "+39 06 77889900",
+    },
+  });
+
+  // ---------- Condomini ----------
+  const condominio1 = await prisma.condominio.create({
+    data: {
+      amministratoreId: amministratore1.id,
+      nome: "Residenza Parco Sempione",
+      indirizzo: "Corso Buenos Aires 22",
+      comune: "Milano",
+      numeroUnita: 24,
+    },
+  });
+  const condominio2 = await prisma.condominio.create({
+    data: {
+      amministratoreId: amministratore1.id,
+      nome: "Condominio Via Torino",
+      indirizzo: "Via Torino 15",
+      comune: "Milano",
+      numeroUnita: 12,
+    },
+  });
+  const condominio3 = await prisma.condominio.create({
+    data: {
+      amministratoreId: amministratore2.id,
+      nome: "Palazzo Colosseo",
+      indirizzo: "Via del Corso 150",
+      comune: "Roma",
+      numeroUnita: 18,
     },
   });
 
@@ -83,6 +171,7 @@ async function main() {
     { nome: "Paolo", cognome: "Ricci", email: "paolo.ricci@example.com", cf: "RCCPLA70C15H501Z" },
     { nome: "Sara", cognome: "Marino", email: "sara.marino@example.com", cf: "MRNSRA85D55F839W" },
     { nome: "Davide", cognome: "Gallo", email: "davide.gallo@example.com", cf: "GLLDVD90E20H501K" },
+    { nome: "Elena", cognome: "Conti", email: "elena.conti@example.com", cf: "CNTLNE88F55F205J" },
   ];
   const proprietari = [];
   for (const p of proprietariData) {
@@ -116,6 +205,8 @@ async function main() {
     { nome: "Alessandro", cognome: "Conti", email: "alessandro.conti@example.com", cf: "CNTLSN87N15H501F" },
     { nome: "Valentina", cognome: "De Luca", email: "valentina.deluca@example.com", cf: "DLCVNT94P55F839G" },
     { nome: "Riccardo", cognome: "Barbieri", email: "riccardo.barbieri@example.com", cf: "BRBRCR89Q20H501H" },
+    { nome: "Martina", cognome: "Esposito", email: "martina.esposito@example.com", cf: "SPSMTN96R55F205I" },
+    { nome: "Lorenzo", cognome: "Ferrari", email: "lorenzo.ferrari@example.com", cf: "FRRLNZ90S15H501L" },
   ];
   const inquilini = [];
   for (const i of inquiliniData) {
@@ -140,14 +231,16 @@ async function main() {
 
   // ---------- Immobili ----------
   const immobiliData = [
-    { indirizzo: "Via Dante 8", comune: "Milano", provincia: "MI", tipo: TipoImmobile.RESIDENZIALE, mq: 75, valore: 320000, ape: "B", agenzia: agenzia1, proprietario: proprietari[0] },
-    { indirizzo: "Corso Buenos Aires 22", comune: "Milano", provincia: "MI", tipo: TipoImmobile.RESIDENZIALE, mq: 55, valore: 250000, ape: "C", agenzia: agenzia1, proprietario: proprietari[1] },
-    { indirizzo: "Viale Monza 100", comune: "Milano", provincia: "MI", tipo: TipoImmobile.COMMERCIALE, mq: 120, valore: 480000, ape: "D", agenzia: agenzia1, proprietario: proprietari[2] },
-    { indirizzo: "Via Padova 34", comune: "Milano", provincia: "MI", tipo: TipoImmobile.RESIDENZIALE, mq: 90, valore: 360000, ape: "A", agenzia: agenzia1, proprietario: proprietari[0] },
-    { indirizzo: "Via del Corso 150", comune: "Roma", provincia: "RM", tipo: TipoImmobile.RESIDENZIALE, mq: 65, valore: 400000, ape: "C", agenzia: agenzia2, proprietario: proprietari[3] },
-    { indirizzo: "Via Appia Nuova 210", comune: "Roma", provincia: "RM", tipo: TipoImmobile.RESIDENZIALE, mq: 80, valore: 340000, ape: "B", agenzia: agenzia2, proprietario: proprietari[4] },
-    { indirizzo: "Via Prenestina 55", comune: "Roma", provincia: "RM", tipo: TipoImmobile.COMMERCIALE, mq: 200, valore: 610000, ape: "E", agenzia: agenzia2, proprietario: proprietari[3] },
-    { indirizzo: "Via Tiburtina 88", comune: "Roma", provincia: "RM", tipo: TipoImmobile.RESIDENZIALE, mq: 48, valore: 195000, ape: "D", agenzia: agenzia2, proprietario: proprietari[4] },
+    { indirizzo: "Via Dante 8", comune: "Milano", provincia: "MI", tipo: TipoImmobile.RESIDENZIALE, mq: 75, valore: 320000, ape: "B", agenzia: agenzia1, proprietario: proprietari[0], condominio: null },
+    { indirizzo: "Corso Buenos Aires 22", comune: "Milano", provincia: "MI", tipo: TipoImmobile.RESIDENZIALE, mq: 55, valore: 250000, ape: "C", agenzia: agenzia1, proprietario: proprietari[1], condominio: condominio1 },
+    { indirizzo: "Viale Monza 100", comune: "Milano", provincia: "MI", tipo: TipoImmobile.COMMERCIALE, mq: 120, valore: 480000, ape: "D", agenzia: agenzia1, proprietario: proprietari[2], condominio: null },
+    { indirizzo: "Via Padova 34", comune: "Milano", provincia: "MI", tipo: TipoImmobile.RESIDENZIALE, mq: 90, valore: 360000, ape: "A", agenzia: agenzia1, proprietario: proprietari[0], condominio: condominio2 },
+    { indirizzo: "Via Torino 15", comune: "Milano", provincia: "MI", tipo: TipoImmobile.RESIDENZIALE, mq: 68, valore: 290000, ape: "B", agenzia: agenzia1, proprietario: proprietari[3], condominio: condominio2 },
+    { indirizzo: "Via del Corso 150", comune: "Roma", provincia: "RM", tipo: TipoImmobile.RESIDENZIALE, mq: 65, valore: 400000, ape: "C", agenzia: agenzia2, proprietario: proprietari[3], condominio: condominio3 },
+    { indirizzo: "Via Appia Nuova 210", comune: "Roma", provincia: "RM", tipo: TipoImmobile.RESIDENZIALE, mq: 80, valore: 340000, ape: "B", agenzia: agenzia2, proprietario: proprietari[4], condominio: null },
+    { indirizzo: "Via Prenestina 55", comune: "Roma", provincia: "RM", tipo: TipoImmobile.COMMERCIALE, mq: 200, valore: 610000, ape: "E", agenzia: agenzia2, proprietario: proprietari[3], condominio: null },
+    { indirizzo: "Via Tiburtina 88", comune: "Roma", provincia: "RM", tipo: TipoImmobile.RESIDENZIALE, mq: 48, valore: 195000, ape: "D", agenzia: agenzia2, proprietario: proprietari[4], condominio: condominio3 },
+    { indirizzo: "Via Nazionale 40", comune: "Roma", provincia: "RM", tipo: TipoImmobile.RESIDENZIALE, mq: 72, valore: 310000, ape: "C", agenzia: agenzia2, proprietario: proprietari[5], condominio: null },
   ];
   const immobili = [];
   for (const [idx, im] of immobiliData.entries()) {
@@ -155,6 +248,7 @@ async function main() {
       data: {
         proprietarioId: im.proprietario.id,
         agenziaId: im.agenzia.id,
+        condominioId: im.condominio?.id ?? null,
         indirizzo: im.indirizzo,
         comune: im.comune,
         provincia: im.provincia,
@@ -177,14 +271,48 @@ async function main() {
     });
   }
 
+  // ---------- Assicurazioni (2-3) ----------
+  await prisma.assicurazione.createMany({
+    data: [
+      {
+        immobileId: immobili[0].id,
+        tipo: "Polizza multirischio abitazione",
+        fornitore: "Generali Italia",
+        premioAnnuale: 240,
+        stato: StatoAssicurazione.ATTIVA,
+        dataScadenza: addMonths(new Date(), 8),
+        commissioneLoqo: 24,
+      },
+      {
+        immobileId: immobili[1].id,
+        tipo: "Polizza responsabilità civile locatore",
+        fornitore: "Allianz",
+        premioAnnuale: 180,
+        stato: StatoAssicurazione.DA_RINNOVARE,
+        dataScadenza: addDays(new Date(), 20),
+        commissioneLoqo: 18,
+      },
+      {
+        immobileId: immobili[5].id,
+        tipo: "Polizza multirischio abitazione",
+        fornitore: "UnipolSai",
+        premioAnnuale: 260,
+        stato: StatoAssicurazione.SCADUTA,
+        dataScadenza: subMonths(new Date(), 1),
+        commissioneLoqo: 26,
+      },
+    ],
+  });
+
   // ---------- Contratti ----------
   const contrattiConfig = [
-    { immobile: immobili[0], inquilino: inquilini[0], agenzia: agenzia1, tipo: TipoContratto.QUATTRO_PIU_QUATTRO, canone: 1100, regime: RegimeFiscale.CEDOLARE_SECCA, stato: StatoContratto.ATTIVO, inizio: subMonths(new Date(), 8), registrato: true },
-    { immobile: immobili[1], inquilino: inquilini[1], agenzia: agenzia1, tipo: TipoContratto.TRE_PIU_DUE, canone: 850, regime: RegimeFiscale.ORDINARIO, stato: StatoContratto.ATTIVO, inizio: subMonths(new Date(), 14), registrato: true },
-    { immobile: immobili[2], inquilino: inquilini[2], agenzia: agenzia1, tipo: TipoContratto.CONCORDATO, canone: 1900, regime: RegimeFiscale.ORDINARIO, stato: StatoContratto.ATTIVO, inizio: subMonths(new Date(), 3), registrato: true },
-    { immobile: immobili[3], inquilino: inquilini[3], agenzia: agenzia1, tipo: TipoContratto.STUDENTI, canone: 600, regime: RegimeFiscale.CEDOLARE_SECCA, stato: StatoContratto.SCADUTO, inizio: subMonths(new Date(), 20), registrato: true },
-    { immobile: immobili[4], inquilino: inquilini[4], agenzia: agenzia2, tipo: TipoContratto.QUATTRO_PIU_QUATTRO, canone: 1350, regime: RegimeFiscale.CEDOLARE_SECCA, stato: StatoContratto.ATTIVO, inizio: subMonths(new Date(), 5), registrato: true },
-    { immobile: immobili[5], inquilino: inquilini[5], agenzia: agenzia2, tipo: TipoContratto.TRANSITORIO, canone: 750, regime: RegimeFiscale.ORDINARIO, stato: StatoContratto.BOZZA, inizio: addDays(new Date(), 15), registrato: false },
+    { immobile: immobili[0], inquilino: inquilini[0], agenzia: agenzia1, tipo: TipoContratto.QUATTRO_PIU_QUATTRO, canone: 1100, regime: RegimeFiscale.CEDOLARE_SECCA, stato: StatoContratto.ATTIVO, inizio: subMonths(new Date(), 8), registrato: true, depositoStato: StatoDeposito.VERSATO },
+    { immobile: immobili[1], inquilino: inquilini[1], agenzia: agenzia1, tipo: TipoContratto.TRE_PIU_DUE, canone: 850, regime: RegimeFiscale.ORDINARIO, stato: StatoContratto.ATTIVO, inizio: subMonths(new Date(), 14), registrato: true, depositoStato: StatoDeposito.VERSATO },
+    { immobile: immobili[2], inquilino: inquilini[2], agenzia: agenzia1, tipo: TipoContratto.CONCORDATO, canone: 1900, regime: RegimeFiscale.ORDINARIO, stato: StatoContratto.ATTIVO, inizio: subMonths(new Date(), 3), registrato: true, depositoStato: StatoDeposito.IN_CONTESTAZIONE },
+    { immobile: immobili[3], inquilino: inquilini[3], agenzia: agenzia1, tipo: TipoContratto.STUDENTI, canone: 600, regime: RegimeFiscale.CEDOLARE_SECCA, stato: StatoContratto.SCADUTO, inizio: subMonths(new Date(), 20), registrato: true, depositoStato: StatoDeposito.RESTITUITO },
+    { immobile: immobili[5], inquilino: inquilini[4], agenzia: agenzia2, tipo: TipoContratto.QUATTRO_PIU_QUATTRO, canone: 1350, regime: RegimeFiscale.CEDOLARE_SECCA, stato: StatoContratto.ATTIVO, inizio: subMonths(new Date(), 5), registrato: true, depositoStato: StatoDeposito.VERSATO },
+    { immobile: immobili[6], inquilino: inquilini[5], agenzia: agenzia2, tipo: TipoContratto.TRANSITORIO, canone: 750, regime: RegimeFiscale.ORDINARIO, stato: StatoContratto.BOZZA, inizio: addDays(new Date(), 15), registrato: false, depositoStato: StatoDeposito.NON_VERSATO },
+    { immobile: immobili[8], inquilino: inquilini[6], agenzia: agenzia2, tipo: TipoContratto.TRE_PIU_DUE, canone: 700, regime: RegimeFiscale.CEDOLARE_SECCA, stato: StatoContratto.ATTIVO, inizio: subMonths(new Date(), 6), registrato: true, depositoStato: StatoDeposito.VERSATO },
   ];
 
   const contratti = [];
@@ -195,6 +323,8 @@ async function main() {
       c.tipo === TipoContratto.TRANSITORIO ? addMonths(c.inizio, 12) :
       c.tipo === TipoContratto.STUDENTI ? addMonths(c.inizio, 24) :
       addMonths(c.inizio, 36);
+
+    const depositoImporto = c.canone * 2;
 
     const contratto = await prisma.contratto.create({
       data: {
@@ -208,6 +338,11 @@ async function main() {
         regimeFiscale: c.regime,
         stato: c.stato,
         dataRegistrazioneAdE: c.registrato ? addDays(c.inizio, 30) : null,
+        dataUltimoRinnovoRegistrazione: c.registrato && c.stato === StatoContratto.ATTIVO ? addMonths(c.inizio, 12) : null,
+        depositoImporto,
+        depositoStato: c.depositoStato,
+        interessiLegaliMaturati: c.depositoStato === StatoDeposito.VERSATO ? Math.round(depositoImporto * 0.015 * 100) / 100 : 0,
+        dataRestituzioneDeposito: c.depositoStato === StatoDeposito.RESTITUITO ? addDays(c.inizio, 600) : null,
       },
     });
     contratti.push(contratto);
@@ -260,6 +395,28 @@ async function main() {
     });
   }
 
+  // Checklist ingresso per un paio di contratti attivi
+  await prisma.checklistImmobile.createMany({
+    data: [
+      {
+        contrattoId: contratti[0].id,
+        tipo: TipoChecklist.INGRESSO,
+        fotoUrls: ["/checklist/mock/foto1.jpg", "/checklist/mock/foto2.jpg"],
+        firmaInquilino: true,
+        firmaProprietario: true,
+        note: "Immobile consegnato in ottimo stato, nessuna criticità rilevata.",
+      },
+      {
+        contrattoId: contratti[4].id,
+        tipo: TipoChecklist.INGRESSO,
+        fotoUrls: ["/checklist/mock/foto3.jpg"],
+        firmaInquilino: true,
+        firmaProprietario: false,
+        note: "In attesa della firma del proprietario.",
+      },
+    ],
+  });
+
   // ---------- Ticket ----------
   await prisma.ticket.createMany({
     data: [
@@ -268,7 +425,7 @@ async function main() {
         inquilinoId: inquilini[0].id,
         titolo: "Perdita rubinetto cucina",
         descrizione: "Il rubinetto della cucina perde acqua costantemente, servirebbe un idraulico.",
-        stato: StatoTicket.APERTO,
+        stato: "APERTO",
         priorita: "ALTA",
       },
       {
@@ -276,7 +433,7 @@ async function main() {
         inquilinoId: inquilini[1].id,
         titolo: "Caldaia non si accende",
         descrizione: "La caldaia non parte da ieri sera, niente acqua calda.",
-        stato: StatoTicket.IN_LAVORAZIONE,
+        stato: "IN_LAVORAZIONE",
         priorita: "ALTA",
       },
       {
@@ -284,16 +441,62 @@ async function main() {
         inquilinoId: inquilini[2].id,
         titolo: "Citofono guasto",
         descrizione: "Il citofono non suona, bisogna sostituire il pulsante esterno.",
-        stato: StatoTicket.APERTO,
+        stato: "APERTO",
         priorita: "MEDIA",
       },
       {
-        immobileId: immobili[4].id,
+        immobileId: immobili[5].id,
         inquilinoId: inquilini[4].id,
         titolo: "Tapparella bloccata",
         descrizione: "La tapparella della camera da letto si è bloccata a metà.",
-        stato: StatoTicket.RISOLTO,
+        stato: "RISOLTO",
         priorita: "BASSA",
+      },
+    ],
+  });
+
+  // ---------- Segnalazioni condominiali (4-5) ----------
+  await prisma.segnalazioneCondominiale.createMany({
+    data: [
+      {
+        condominioId: condominio1.id,
+        amministratoreId: amministratore1.id,
+        titolo: "Infiltrazione tetto scala B",
+        descrizione: "Segnalata infiltrazione d'acqua dal tetto in corrispondenza della scala B, ultimo piano.",
+        stato: StatoSegnalazione.IN_LAVORAZIONE,
+        priorita: "ALTA",
+      },
+      {
+        condominioId: condominio1.id,
+        amministratoreId: amministratore1.id,
+        titolo: "Ascensore fuori servizio",
+        descrizione: "L'ascensore principale è bloccato al piano terra, necessario intervento tecnico.",
+        stato: StatoSegnalazione.APERTA,
+        priorita: "ALTA",
+      },
+      {
+        condominioId: condominio2.id,
+        amministratoreId: amministratore1.id,
+        titolo: "Manutenzione giardino condominiale",
+        descrizione: "Il giardino condominiale necessita di potatura e manutenzione ordinaria.",
+        stato: StatoSegnalazione.APERTA,
+        priorita: "BASSA",
+      },
+      {
+        condominioId: condominio3.id,
+        amministratoreId: amministratore2.id,
+        titolo: "Sostituzione lampade scale",
+        descrizione: "Diverse lampade delle scale condominiali sono fulminate e vanno sostituite.",
+        stato: StatoSegnalazione.RISOLTA,
+        priorita: "MEDIA",
+      },
+      {
+        condominioId: condominio3.id,
+        amministratoreId: amministratore2.id,
+        titolo: "Rumori molesti impianto idrico",
+        descrizione: "Alcuni condomini segnalano rumori anomali provenienti dall'impianto idrico centrale.",
+        stato: StatoSegnalazione.IN_LAVORAZIONE,
+        priorita: "MEDIA",
       },
     ],
   });

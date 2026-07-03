@@ -10,12 +10,25 @@ export interface RegisterContractResult {
   dataRegistrazione: Date;
 }
 
+export interface RenewRegistrationInput {
+  contrattoId: string;
+  protocolloOriginale?: string;
+}
+
+export interface RenewRegistrationResult {
+  protocolloRinnovo: string;
+  dataRinnovo: Date;
+}
+
 /**
- * Astrazione verso il futuro censimento all'Agenzia delle Entrate (servizio RLI / SISTER).
- * Da sostituire con un'implementazione reale quando sarà definita l'integrazione.
+ * Astrazione verso il futuro censimento all'Agenzia delle Entrate (servizio
+ * RLI / SISTER), inclusa la gestione del rinnovo annuale obbligatorio dei
+ * contratti a canone libero. Da sostituire con un'implementazione reale
+ * quando l'integrazione sarà definita.
  */
 export interface AdERegistrationProvider {
   registerContract(input: RegisterContractInput): Promise<RegisterContractResult>;
+  renewRegistration(input: RenewRegistrationInput): Promise<RenewRegistrationResult>;
 }
 
 class MockAdERegistrationProvider implements AdERegistrationProvider {
@@ -25,6 +38,15 @@ class MockAdERegistrationProvider implements AdERegistrationProvider {
     return {
       protocollo,
       dataRegistrazione,
+    };
+  }
+
+  async renewRegistration(input: RenewRegistrationInput): Promise<RenewRegistrationResult> {
+    const dataRinnovo = new Date();
+    const protocolloRinnovo = `MOCK-ADE-RINNOVO-${dataRinnovo.getFullYear()}-${input.contrattoId.slice(0, 8).toUpperCase()}`;
+    return {
+      protocolloRinnovo,
+      dataRinnovo,
     };
   }
 }

@@ -3,6 +3,7 @@ import { PortalShell } from "@/components/layout/portal-shell";
 
 const NAV_ITEMS = [
   { href: "/agenzia", label: "Dashboard" },
+  { href: "/agenzia/immobili", label: "Immobili" },
   { href: "/agenzia/contratti", label: "Contratti" },
 ];
 

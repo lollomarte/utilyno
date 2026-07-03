@@ -1,14 +1,15 @@
 import type { NextAuthConfig } from "next-auth";
 
-// Tipo letterale locale (non importato da @prisma/client): auth.config.ts deve
-// restare edge-safe perché è l'unico modulo importato da middleware.ts. Un
-// import, anche solo di tipo, da @prisma/client trascinerebbe il pacchetto
-// nel bundle del middleware e rompe il deploy su Vercel (Edge Runtime).
-type Role = "ADMIN" | "AGENZIA" | "PROPRIETARIO" | "INQUILINO";
+// Tipo letterale locale, NON importato da @prisma/client: questo file deve
+// restare edge-safe perché è l'unico modulo importato da middleware.ts (Edge
+// Runtime). Anche un import di solo tipo da @prisma/client trascinerebbe il
+// pacchetto nel bundle del middleware e rompe il deploy su Vercel.
+type Role = "ADMIN" | "AGENZIA" | "AMMINISTRATORE" | "PROPRIETARIO" | "INQUILINO";
 
 export const PORTAL_BY_ROLE: Record<string, string> = {
   ADMIN: "/admin",
   AGENZIA: "/agenzia",
+  AMMINISTRATORE: "/amministratore",
   PROPRIETARIO: "/proprietario",
   INQUILINO: "/inquilino",
 };

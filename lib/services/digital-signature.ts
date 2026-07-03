@@ -11,8 +11,9 @@ export interface RequestSignatureResult {
 }
 
 /**
- * Astrazione verso un futuro provider di firma digitale (es. Namirial, InfoCert, DocuSign).
- * Da sostituire con un'implementazione reale quando sarà definita la partnership.
+ * Astrazione verso un futuro provider di firma digitale (es. Namirial,
+ * InfoCert, DocuSign). Da sostituire con un'implementazione reale quando la
+ * partnership sarà definita.
  */
 export interface SignatureProvider {
   requestSignature(input: RequestSignatureInput): Promise<RequestSignatureResult>;

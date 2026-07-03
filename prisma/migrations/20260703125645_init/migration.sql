@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'AGENZIA', 'PROPRIETARIO', 'INQUILINO');
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'AGENZIA', 'AMMINISTRATORE', 'PROPRIETARIO', 'INQUILINO');
 
 -- CreateEnum
 CREATE TYPE "TipoImmobile" AS ENUM ('RESIDENZIALE', 'COMMERCIALE');
@@ -14,6 +14,9 @@ CREATE TYPE "RegimeFiscale" AS ENUM ('CEDOLARE_SECCA', 'ORDINARIO');
 CREATE TYPE "StatoContratto" AS ENUM ('BOZZA', 'ATTIVO', 'SCADUTO', 'RISOLTO');
 
 -- CreateEnum
+CREATE TYPE "StatoDeposito" AS ENUM ('NON_VERSATO', 'VERSATO', 'IN_CONTESTAZIONE', 'RESTITUITO');
+
+-- CreateEnum
 CREATE TYPE "StatoPagamento" AS ENUM ('PROGRAMMATO', 'PAGATO', 'IN_RITARDO', 'INSOLUTO');
 
 -- CreateEnum
@@ -21,6 +24,15 @@ CREATE TYPE "TipoUtenza" AS ENUM ('LUCE', 'GAS', 'ACQUA', 'INTERNET');
 
 -- CreateEnum
 CREATE TYPE "StatoUtenza" AS ENUM ('DA_ATTIVARE', 'ATTIVA', 'DISDETTA');
+
+-- CreateEnum
+CREATE TYPE "StatoAssicurazione" AS ENUM ('ATTIVA', 'SCADUTA', 'DA_RINNOVARE');
+
+-- CreateEnum
+CREATE TYPE "TipoChecklist" AS ENUM ('INGRESSO', 'USCITA');
+
+-- CreateEnum
+CREATE TYPE "StatoSegnalazione" AS ENUM ('APERTA', 'IN_LAVORAZIONE', 'RISOLTA');
 
 -- CreateEnum
 CREATE TYPE "StatoTicket" AS ENUM ('APERTO', 'IN_LAVORAZIONE', 'RISOLTO');
@@ -52,6 +64,31 @@ CREATE TABLE "Agenzia" (
 );
 
 -- CreateTable
+CREATE TABLE "Amministratore" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "ragioneSociale" TEXT NOT NULL,
+    "piva" TEXT NOT NULL,
+    "indirizzo" TEXT NOT NULL,
+    "telefono" TEXT,
+
+    CONSTRAINT "Amministratore_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Condominio" (
+    "id" TEXT NOT NULL,
+    "amministratoreId" TEXT NOT NULL,
+    "nome" TEXT NOT NULL,
+    "indirizzo" TEXT NOT NULL,
+    "comune" TEXT NOT NULL,
+    "numeroUnita" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Condominio_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Proprietario" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -75,6 +112,7 @@ CREATE TABLE "Immobile" (
     "id" TEXT NOT NULL,
     "proprietarioId" TEXT NOT NULL,
     "agenziaId" TEXT NOT NULL,
+    "condominioId" TEXT,
     "indirizzo" TEXT NOT NULL,
     "comune" TEXT NOT NULL,
     "provincia" TEXT NOT NULL,
@@ -101,6 +139,11 @@ CREATE TABLE "Contratto" (
     "regimeFiscale" "RegimeFiscale" NOT NULL,
     "stato" "StatoContratto" NOT NULL DEFAULT 'BOZZA',
     "dataRegistrazioneAdE" TIMESTAMP(3),
+    "dataUltimoRinnovoRegistrazione" TIMESTAMP(3),
+    "depositoImporto" DOUBLE PRECISION NOT NULL,
+    "depositoStato" "StatoDeposito" NOT NULL DEFAULT 'NON_VERSATO',
+    "interessiLegaliMaturati" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "dataRestituzioneDeposito" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Contratto_pkey" PRIMARY KEY ("id")
@@ -129,6 +172,48 @@ CREATE TABLE "Utenza" (
     "dataAttivazione" TIMESTAMP(3),
 
     CONSTRAINT "Utenza_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Assicurazione" (
+    "id" TEXT NOT NULL,
+    "immobileId" TEXT NOT NULL,
+    "tipo" TEXT NOT NULL,
+    "fornitore" TEXT NOT NULL,
+    "premioAnnuale" DOUBLE PRECISION NOT NULL,
+    "stato" "StatoAssicurazione" NOT NULL DEFAULT 'ATTIVA',
+    "dataScadenza" TIMESTAMP(3) NOT NULL,
+    "commissioneLoqo" DOUBLE PRECISION NOT NULL,
+
+    CONSTRAINT "Assicurazione_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ChecklistImmobile" (
+    "id" TEXT NOT NULL,
+    "contrattoId" TEXT NOT NULL,
+    "tipo" "TipoChecklist" NOT NULL,
+    "fotoUrls" TEXT[],
+    "firmaInquilino" BOOLEAN NOT NULL DEFAULT false,
+    "firmaProprietario" BOOLEAN NOT NULL DEFAULT false,
+    "note" TEXT,
+    "dataCompilazione" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ChecklistImmobile_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SegnalazioneCondominiale" (
+    "id" TEXT NOT NULL,
+    "condominioId" TEXT NOT NULL,
+    "amministratoreId" TEXT NOT NULL,
+    "titolo" TEXT NOT NULL,
+    "descrizione" TEXT NOT NULL,
+    "stato" "StatoSegnalazione" NOT NULL DEFAULT 'APERTA',
+    "priorita" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "SegnalazioneCondominiale_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -168,6 +253,12 @@ CREATE UNIQUE INDEX "Agenzia_userId_key" ON "Agenzia"("userId");
 CREATE UNIQUE INDEX "Agenzia_piva_key" ON "Agenzia"("piva");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Amministratore_userId_key" ON "Amministratore"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Amministratore_piva_key" ON "Amministratore"("piva");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Proprietario_userId_key" ON "Proprietario"("userId");
 
 -- CreateIndex
@@ -183,6 +274,12 @@ CREATE UNIQUE INDEX "Inquilino_codiceFiscale_key" ON "Inquilino"("codiceFiscale"
 ALTER TABLE "Agenzia" ADD CONSTRAINT "Agenzia_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Amministratore" ADD CONSTRAINT "Amministratore_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Condominio" ADD CONSTRAINT "Condominio_amministratoreId_fkey" FOREIGN KEY ("amministratoreId") REFERENCES "Amministratore"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Proprietario" ADD CONSTRAINT "Proprietario_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -193,6 +290,9 @@ ALTER TABLE "Immobile" ADD CONSTRAINT "Immobile_proprietarioId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "Immobile" ADD CONSTRAINT "Immobile_agenziaId_fkey" FOREIGN KEY ("agenziaId") REFERENCES "Agenzia"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Immobile" ADD CONSTRAINT "Immobile_condominioId_fkey" FOREIGN KEY ("condominioId") REFERENCES "Condominio"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Contratto" ADD CONSTRAINT "Contratto_immobileId_fkey" FOREIGN KEY ("immobileId") REFERENCES "Immobile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -208,6 +308,15 @@ ALTER TABLE "Pagamento" ADD CONSTRAINT "Pagamento_contrattoId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "Utenza" ADD CONSTRAINT "Utenza_immobileId_fkey" FOREIGN KEY ("immobileId") REFERENCES "Immobile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Assicurazione" ADD CONSTRAINT "Assicurazione_immobileId_fkey" FOREIGN KEY ("immobileId") REFERENCES "Immobile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChecklistImmobile" ADD CONSTRAINT "ChecklistImmobile_contrattoId_fkey" FOREIGN KEY ("contrattoId") REFERENCES "Contratto"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SegnalazioneCondominiale" ADD CONSTRAINT "SegnalazioneCondominiale_condominioId_fkey" FOREIGN KEY ("condominioId") REFERENCES "Condominio"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Ticket" ADD CONSTRAINT "Ticket_immobileId_fkey" FOREIGN KEY ("immobileId") REFERENCES "Immobile"("id") ON DELETE CASCADE ON UPDATE CASCADE;

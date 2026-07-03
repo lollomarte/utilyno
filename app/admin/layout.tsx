@@ -12,7 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <PortalShell
       portalLabel="Portale Admin"
-      roleLabel="Amministratore WERENT"
+      roleLabel="Amministratore LOQO"
       navItems={NAV_ITEMS}
       nome={session.user.nome}
       cognome={session.user.cognome}

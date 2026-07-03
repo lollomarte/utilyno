@@ -11,7 +11,7 @@ export default async function AgenzieListPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Agenzie</h1>
-        <p className="mt-1 text-sm text-slate-500">Elenco delle agenzie affiliate a WERENT</p>
+        <p className="mt-1 text-sm text-slate-500">Elenco delle agenzie affiliate a LOQO</p>
       </div>
 
       <Card className="p-0">

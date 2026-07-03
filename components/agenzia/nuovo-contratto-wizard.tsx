@@ -10,12 +10,16 @@ import { formatCurrency } from "@/lib/utils";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
+import { NuovoImmobileForm } from "@/components/agenzia/nuovo-immobile-form";
 import { cn } from "@/lib/utils";
 
 type Immobile = { id: string; indirizzo: string; comune: string; provincia: string };
 type Inquilino = { id: string; user: { nome: string; cognome: string; email: string } };
+type Proprietario = { id: string; user: { nome: string; cognome: string; email: string } };
+type Condominio = { id: string; nome: string; comune: string };
 
-const STEPS = ["Immobile", "Inquilino", "Dati contratto", "Riepilogo"];
+const STEPS = ["Immobile", "Inquilino", "Dati contratto e deposito", "Riepilogo"];
 
 function addMonthsToDateString(dateString: string, months: number) {
   const date = new Date(dateString);
@@ -23,11 +27,24 @@ function addMonthsToDateString(dateString: string, months: number) {
   return format(date, "yyyy-MM-dd");
 }
 
-export function NuovoContrattoWizard({ immobili, inquilini }: { immobili: Immobile[]; inquilini: Inquilino[] }) {
+export function NuovoContrattoWizard({
+  immobiliIniziali,
+  inquilini,
+  proprietari,
+  condomini,
+}: {
+  immobiliIniziali: Immobile[];
+  inquilini: Inquilino[];
+  proprietari: Proprietario[];
+  condomini: Condominio[];
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [immobili, setImmobili] = useState<Immobile[]>(immobiliIniziali);
+  const [modalAperto, setModalAperto] = useState(false);
+  const [depositoTouched, setDepositoTouched] = useState(false);
   const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
 
   const [form, setForm] = useState<Partial<NuovoContrattoInput>>({
@@ -40,6 +57,15 @@ export function NuovoContrattoWizard({ immobili, inquilini }: { immobili: Immobi
   const selectedImmobile = immobili.find((i) => i.id === form.immobileId);
   const selectedInquilino = inquilini.find((i) => i.id === form.inquilinoId);
 
+  function handleImmobileCreato(nuovoImmobile: Immobile) {
+    // Lo stato del wizard (step corrente, inquilino/dati già inseriti) resta
+    // intatto: il form vive in un modal sopra questo stesso componente,
+    // nessuna navigazione di pagina avviene.
+    setImmobili((prev) => [...prev, nuovoImmobile]);
+    setForm((prev) => ({ ...prev, immobileId: nuovoImmobile.id }));
+    setModalAperto(false);
+  }
+
   function updateTipoContratto(tipo: NuovoContrattoInput["tipoContratto"]) {
     setForm((prev) => ({
       ...prev,
@@ -51,7 +77,15 @@ export function NuovoContrattoWizard({ immobili, inquilini }: { immobili: Immobi
   function canProceed() {
     if (step === 0) return !!form.immobileId;
     if (step === 1) return !!form.inquilinoId;
-    if (step === 2) return !!form.dataInizio && !!form.dataFine && !!form.canoneMensile && form.canoneMensile > 0;
+    if (step === 2)
+      return (
+        !!form.dataInizio &&
+        !!form.dataFine &&
+        !!form.canoneMensile &&
+        form.canoneMensile > 0 &&
+        form.depositoImporto !== undefined &&
+        form.depositoImporto >= 0
+      );
     return true;
   }
 
@@ -74,7 +108,7 @@ export function NuovoContrattoWizard({ immobili, inquilini }: { immobili: Immobi
 
   return (
     <div className="space-y-6">
-      <ol className="flex items-center gap-4 text-sm">
+      <ol className="flex flex-wrap items-center gap-4 text-sm">
         {STEPS.map((label, index) => (
           <li
             key={label}
@@ -99,29 +133,41 @@ export function NuovoContrattoWizard({ immobili, inquilini }: { immobili: Immobi
       <Card>
         {step === 0 && (
           <div>
-            <CardHeader title="Seleziona l'immobile" />
-            <div className="space-y-2">
-              {immobili.map((immobile) => (
-                <label
-                  key={immobile.id}
-                  className={cn(
-                    "flex cursor-pointer items-center justify-between rounded-md border px-4 py-3 text-sm",
-                    form.immobileId === immobile.id ? "border-slate-900 ring-1 ring-slate-900" : "border-slate-200"
-                  )}
-                >
-                  <span>
-                    {immobile.indirizzo}, {immobile.comune} ({immobile.provincia})
-                  </span>
-                  <input
-                    type="radio"
-                    name="immobileId"
-                    className="h-4 w-4"
-                    checked={form.immobileId === immobile.id}
-                    onChange={() => setForm((prev) => ({ ...prev, immobileId: immobile.id }))}
-                  />
-                </label>
-              ))}
+            <div className="mb-4 flex items-center justify-between">
+              <CardHeader title="Seleziona l'immobile" />
+              <Button type="button" variant="secondary" onClick={() => setModalAperto(true)}>
+                Aggiungi nuovo immobile
+              </Button>
             </div>
+            {immobili.length === 0 ? (
+              <p className="rounded-md bg-slate-50 p-4 text-sm text-slate-500">
+                Non hai ancora nessun immobile. Usa &quot;Aggiungi nuovo immobile&quot; per crearne uno senza perdere
+                i dati già inseriti in questo wizard.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {immobili.map((immobile) => (
+                  <label
+                    key={immobile.id}
+                    className={cn(
+                      "flex cursor-pointer items-center justify-between rounded-md border px-4 py-3 text-sm",
+                      form.immobileId === immobile.id ? "border-slate-900 ring-1 ring-slate-900" : "border-slate-200"
+                    )}
+                  >
+                    <span>
+                      {immobile.indirizzo}, {immobile.comune} ({immobile.provincia})
+                    </span>
+                    <input
+                      type="radio"
+                      name="immobileId"
+                      className="h-4 w-4"
+                      checked={form.immobileId === immobile.id}
+                      onChange={() => setForm((prev) => ({ ...prev, immobileId: immobile.id }))}
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -155,7 +201,7 @@ export function NuovoContrattoWizard({ immobili, inquilini }: { immobili: Immobi
 
         {step === 2 && (
           <div>
-            <CardHeader title="Dati contratto" />
+            <CardHeader title="Dati contratto e deposito" />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="tipoContratto">Tipo contratto</Label>
@@ -222,7 +268,30 @@ export function NuovoContrattoWizard({ immobili, inquilini }: { immobili: Immobi
                   min="0"
                   step="1"
                   value={form.canoneMensile ?? ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, canoneMensile: Number(e.target.value) }))}
+                  onChange={(e) =>
+                    setForm((prev) => {
+                      const canoneMensile = Number(e.target.value);
+                      return {
+                        ...prev,
+                        canoneMensile,
+                        depositoImporto: depositoTouched ? prev.depositoImporto : canoneMensile * 2,
+                      };
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="depositoImporto">Deposito cauzionale (EUR)</Label>
+                <Input
+                  id="depositoImporto"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={form.depositoImporto ?? ""}
+                  onChange={(e) => {
+                    setDepositoTouched(true);
+                    setForm((prev) => ({ ...prev, depositoImporto: Number(e.target.value) }));
+                  }}
                 />
               </div>
             </div>
@@ -263,6 +332,12 @@ export function NuovoContrattoWizard({ immobili, inquilini }: { immobili: Immobi
                 <dt className="text-xs font-medium uppercase text-slate-400">Canone mensile</dt>
                 <dd className="mt-1 text-slate-900">{form.canoneMensile ? formatCurrency(form.canoneMensile) : "-"}</dd>
               </div>
+              <div>
+                <dt className="text-xs font-medium uppercase text-slate-400">Deposito cauzionale</dt>
+                <dd className="mt-1 text-slate-900">
+                  {form.depositoImporto !== undefined ? formatCurrency(form.depositoImporto) : "-"}
+                </dd>
+              </div>
             </dl>
             {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
           </div>
@@ -283,6 +358,10 @@ export function NuovoContrattoWizard({ immobili, inquilini }: { immobili: Immobi
           </Button>
         )}
       </div>
+
+      <Modal open={modalAperto} onClose={() => setModalAperto(false)} title="Aggiungi nuovo immobile">
+        <NuovoImmobileForm proprietari={proprietari} condomini={condomini} onSuccess={handleImmobileCreato} />
+      </Modal>
     </div>
   );
 }

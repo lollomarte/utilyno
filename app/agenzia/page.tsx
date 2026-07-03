@@ -1,22 +1,16 @@
 import Link from "next/link";
 import { requireAgenzia } from "@/lib/auth-helpers";
-import { getAgenziaDashboardStats, getContrattiForAgenzia } from "@/lib/data/agenzia";
+import { getAgenziaDashboardStats, getContrattiInScadenza } from "@/lib/data/agenzia";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { StatoContrattoBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { STATO_CONTRATTO_LABELS } from "@/lib/labels";
-import { addDays } from "date-fns";
 
 export default async function AgenziaDashboardPage() {
   const { agenzia } = await requireAgenzia();
   const stats = await getAgenziaDashboardStats(agenzia.id);
-
-  const now = new Date();
-  const contrattiInScadenza = (await getContrattiForAgenzia(agenzia.id, { stato: "ATTIVO" })).filter(
-    (c) => c.dataFine >= now && c.dataFine <= addDays(now, 60)
-  );
+  const contrattiInScadenza = await getContrattiInScadenza(agenzia.id, 60);
+  const leadReListing = await getContrattiInScadenza(agenzia.id, 90);
 
   return (
     <div className="space-y-8">
@@ -41,7 +35,7 @@ export default async function AgenziaDashboardPage() {
       </div>
 
       <Card>
-        <CardHeader title="Contratti in scadenza nei prossimi 60 giorni" />
+        <CardHeader title="Contratti in scadenza nei prossimi 60 giorni" description="Promemoria operativo per rinnovi e adempimenti" />
         {contrattiInScadenza.length === 0 ? (
           <EmptyState message="Nessun contratto in scadenza a breve." />
         ) : (
@@ -51,7 +45,6 @@ export default async function AgenziaDashboardPage() {
                 <TableHeaderCell>Immobile</TableHeaderCell>
                 <TableHeaderCell>Inquilino</TableHeaderCell>
                 <TableHeaderCell>Scadenza</TableHeaderCell>
-                <TableHeaderCell>Stato</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -66,9 +59,43 @@ export default async function AgenziaDashboardPage() {
                     {c.inquilino.user.nome} {c.inquilino.user.cognome}
                   </TableCell>
                   <TableCell>{formatDate(c.dataFine)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Opportunità di re-listing"
+          description="Contratti in scadenza nei prossimi 90 giorni: potenziali immobili da rimettere sul mercato"
+        />
+        {leadReListing.length === 0 ? (
+          <EmptyState message="Nessuna opportunità di re-listing nei prossimi 90 giorni." />
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Immobile</TableHeaderCell>
+                <TableHeaderCell>Proprietario</TableHeaderCell>
+                <TableHeaderCell>Canone attuale</TableHeaderCell>
+                <TableHeaderCell>Scadenza</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {leadReListing.map((c) => (
+                <TableRow key={c.id}>
                   <TableCell>
-                    <StatoContrattoBadge stato={c.stato} label={STATO_CONTRATTO_LABELS[c.stato]} />
+                    <Link href={`/agenzia/contratti/${c.id}`} className="font-medium text-slate-900 hover:underline">
+                      {c.immobile.indirizzo}, {c.immobile.comune}
+                    </Link>
                   </TableCell>
+                  <TableCell>
+                    {c.immobile.proprietario.user.nome} {c.immobile.proprietario.user.cognome}
+                  </TableCell>
+                  <TableCell>{formatCurrency(c.canoneMensile)}</TableCell>
+                  <TableCell>{formatDate(c.dataFine)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

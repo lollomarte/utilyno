@@ -30,6 +30,13 @@ const CONTRATTO_TONE: Record<string, BadgeTone> = {
   RISOLTO: "danger",
 };
 
+const DEPOSITO_TONE: Record<string, BadgeTone> = {
+  NON_VERSATO: "neutral",
+  VERSATO: "success",
+  IN_CONTESTAZIONE: "danger",
+  RESTITUITO: "info",
+};
+
 const PAGAMENTO_TONE: Record<string, BadgeTone> = {
   PROGRAMMATO: "info",
   PAGATO: "success",
@@ -43,6 +50,18 @@ const UTENZA_TONE: Record<string, BadgeTone> = {
   DISDETTA: "neutral",
 };
 
+const ASSICURAZIONE_TONE: Record<string, BadgeTone> = {
+  ATTIVA: "success",
+  SCADUTA: "danger",
+  DA_RINNOVARE: "warning",
+};
+
+const SEGNALAZIONE_TONE: Record<string, BadgeTone> = {
+  APERTA: "danger",
+  IN_LAVORAZIONE: "warning",
+  RISOLTA: "success",
+};
+
 const TICKET_TONE: Record<string, BadgeTone> = {
   APERTO: "danger",
   IN_LAVORAZIONE: "warning",
@@ -53,12 +72,24 @@ export function StatoContrattoBadge({ stato, label }: { stato: string; label: st
   return <Badge tone={CONTRATTO_TONE[stato] ?? "neutral"}>{label}</Badge>;
 }
 
+export function StatoDepositoBadge({ stato, label }: { stato: string; label: string }) {
+  return <Badge tone={DEPOSITO_TONE[stato] ?? "neutral"}>{label}</Badge>;
+}
+
 export function StatoPagamentoBadge({ stato, label }: { stato: string; label: string }) {
   return <Badge tone={PAGAMENTO_TONE[stato] ?? "neutral"}>{label}</Badge>;
 }
 
 export function StatoUtenzaBadge({ stato, label }: { stato: string; label: string }) {
   return <Badge tone={UTENZA_TONE[stato] ?? "neutral"}>{label}</Badge>;
+}
+
+export function StatoAssicurazioneBadge({ stato, label }: { stato: string; label: string }) {
+  return <Badge tone={ASSICURAZIONE_TONE[stato] ?? "neutral"}>{label}</Badge>;
+}
+
+export function StatoSegnalazioneBadge({ stato, label }: { stato: string; label: string }) {
+  return <Badge tone={SEGNALAZIONE_TONE[stato] ?? "neutral"}>{label}</Badge>;
 }
 
 export function StatoTicketBadge({ stato, label }: { stato: string; label: string }) {

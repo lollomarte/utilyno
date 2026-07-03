@@ -55,6 +55,7 @@ export async function getImmobileDetailForProprietario(immobileId: string, propr
         },
         orderBy: { createdAt: "desc" },
       },
+      assicurazioni: { orderBy: { dataScadenza: "asc" } },
       ticket: { orderBy: { createdAt: "desc" } },
     },
   });

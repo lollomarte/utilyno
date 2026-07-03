@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 
 const ROLE_OPTIONS = [
   { value: "AGENZIA", label: "Agenzia" },
+  { value: "AMMINISTRATORE", label: "Amministratore di condominio" },
   { value: "PROPRIETARIO", label: "Proprietario" },
   { value: "INQUILINO", label: "Inquilino" },
 ] as const;
@@ -24,6 +25,7 @@ export function RegisterForm() {
     register,
     handleSubmit,
     watch,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
@@ -31,13 +33,17 @@ export function RegisterForm() {
   });
 
   const role = watch("role");
+  const isRagioneSocialeRole = role === "AGENZIA" || role === "AMMINISTRATORE";
 
   async function onSubmit(data: RegisterFormValues) {
     setServerError(null);
 
     const parsed = registerSchema.safeParse(data);
     if (!parsed.success) {
-      setServerError("Compila tutti i campi obbligatori per il profilo selezionato.");
+      for (const issue of parsed.error.issues) {
+        const field = issue.path.join(".") as keyof RegisterFormValues;
+        if (field) setError(field, { message: issue.message });
+      }
       return;
     }
 
@@ -113,7 +119,7 @@ export function RegisterForm() {
           <FieldError message={errors.password?.message} />
         </div>
 
-        {role === "AGENZIA" && (
+        {isRagioneSocialeRole && (
           <>
             <div>
               <Label htmlFor="ragioneSociale">Ragione sociale</Label>
@@ -122,7 +128,7 @@ export function RegisterForm() {
             </div>
             <div>
               <Label htmlFor="piva">Partita IVA</Label>
-              <Input id="piva" {...register("piva")} />
+              <Input id="piva" inputMode="numeric" placeholder="12345678901" {...register("piva")} />
               <FieldError message={errors.piva?.message} />
             </div>
             <div>
@@ -137,7 +143,7 @@ export function RegisterForm() {
           <>
             <div>
               <Label htmlFor="codiceFiscale">Codice fiscale</Label>
-              <Input id="codiceFiscale" {...register("codiceFiscale")} />
+              <Input id="codiceFiscale" placeholder="RSSMRA80A01H501U" {...register("codiceFiscale")} />
               <FieldError message={errors.codiceFiscale?.message} />
             </div>
             <div>
@@ -151,7 +157,7 @@ export function RegisterForm() {
         {role === "INQUILINO" && (
           <div>
             <Label htmlFor="codiceFiscale">Codice fiscale</Label>
-            <Input id="codiceFiscale" {...register("codiceFiscale")} />
+            <Input id="codiceFiscale" placeholder="RSSMRA80A01H501U" {...register("codiceFiscale")} />
             <FieldError message={errors.codiceFiscale?.message} />
           </div>
         )}

@@ -7,6 +7,7 @@ export async function getContrattoAttivoForInquilino(inquilinoId: string) {
       immobile: true,
       agenzia: true,
       pagamenti: { orderBy: { dataScadenza: "asc" } },
+      checklist: { orderBy: { dataCompilazione: "desc" } },
     },
     orderBy: { createdAt: "desc" },
   });

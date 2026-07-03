@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WERENT - Piattaforma di gestione affitti",
-  description: "WERENT: la piattaforma B2B per la gestione di affitti, agenzie, proprietari e inquilini.",
+  title: "LOQO - Piattaforma di gestione affitti",
+  description: "LOQO: l'infrastruttura B2B per la gestione di affitti, agenzie, amministratori di condominio, proprietari e inquilini.",
 };
 
 export default function RootLayout({

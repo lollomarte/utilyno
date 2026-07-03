@@ -3,7 +3,7 @@ import { getContrattoAttivoForInquilino, getUtenzeForImmobile } from "@/lib/data
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { StatoPagamentoBadge, StatoUtenzaBadge } from "@/components/ui/badge";
+import { StatoPagamentoBadge, StatoUtenzaBadge, StatoDepositoBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   TIPO_CONTRATTO_LABELS,
@@ -11,6 +11,8 @@ import {
   STATO_PAGAMENTO_LABELS,
   TIPO_UTENZA_LABELS,
   STATO_UTENZA_LABELS,
+  STATO_DEPOSITO_LABELS,
+  TIPO_CHECKLIST_LABELS,
 } from "@/lib/labels";
 
 export default async function InquilinoDashboardPage() {
@@ -29,6 +31,7 @@ export default async function InquilinoDashboardPage() {
   const prossimaScadenza = contratto.pagamenti
     .filter((p) => p.stato === "PROGRAMMATO" || p.stato === "IN_RITARDO")
     .sort((a, b) => a.dataScadenza.getTime() - b.dataScadenza.getTime())[0];
+  const checklistIngresso = contratto.checklist.find((c) => c.tipo === "INGRESSO");
 
   return (
     <div className="space-y-8">
@@ -58,6 +61,20 @@ export default async function InquilinoDashboardPage() {
             { label: "Regime fiscale", value: REGIME_FISCALE_LABELS[contratto.regimeFiscale] },
             { label: "Agenzia", value: contratto.agenzia.ragioneSociale },
             { label: "Periodo", value: `${formatDate(contratto.dataInizio)} - ${formatDate(contratto.dataFine)}` },
+          ]}
+        />
+      </Card>
+
+      <Card>
+        <CardHeader title="Deposito cauzionale" />
+        <DescriptionList
+          items={[
+            { label: "Importo", value: formatCurrency(contratto.depositoImporto) },
+            {
+              label: "Stato",
+              value: <StatoDepositoBadge stato={contratto.depositoStato} label={STATO_DEPOSITO_LABELS[contratto.depositoStato]} />,
+            },
+            { label: "Interessi legali maturati", value: formatCurrency(contratto.interessiLegaliMaturati) },
           ]}
         />
       </Card>
@@ -117,6 +134,24 @@ export default async function InquilinoDashboardPage() {
               ))}
             </TableBody>
           </Table>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader title="Checklist ingresso" />
+        {!checklistIngresso ? (
+          <EmptyState message="Nessuna checklist di ingresso disponibile." />
+        ) : (
+          <DescriptionList
+            items={[
+              { label: "Tipo", value: TIPO_CHECKLIST_LABELS[checklistIngresso.tipo] },
+              { label: "Data compilazione", value: formatDate(checklistIngresso.dataCompilazione) },
+              { label: "Foto allegate", value: String(checklistIngresso.fotoUrls.length) },
+              { label: "Firma inquilino", value: checklistIngresso.firmaInquilino ? "Firmata" : "Da firmare" },
+              { label: "Firma proprietario", value: checklistIngresso.firmaProprietario ? "Firmata" : "Da firmare" },
+              { label: "Note", value: checklistIngresso.note ?? "-" },
+            ]}
+          />
         )}
       </Card>
     </div>

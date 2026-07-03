@@ -1,20 +1,25 @@
 import { prisma } from "@/lib/prisma";
 
 export async function getAdminDashboardStats() {
-  const [numeroAgenzie, numeroContratti, contrattiAttivi, pagamentiInRitardo, volumeIncassato] = await Promise.all([
-    prisma.agenzia.count(),
-    prisma.contratto.count(),
-    prisma.contratto.count({ where: { stato: "ATTIVO" } }),
-    prisma.pagamento.count({ where: { stato: { in: ["IN_RITARDO", "INSOLUTO"] } } }),
-    prisma.pagamento.aggregate({ _sum: { importo: true }, where: { stato: "PAGATO" } }),
-  ]);
+  const [numeroAgenzie, numeroAmministratori, numeroContratti, contrattiAttivi, pagamentiInRitardo, volumeIncassato, poolDepositi] =
+    await Promise.all([
+      prisma.agenzia.count(),
+      prisma.amministratore.count(),
+      prisma.contratto.count(),
+      prisma.contratto.count({ where: { stato: "ATTIVO" } }),
+      prisma.pagamento.count({ where: { stato: { in: ["IN_RITARDO", "INSOLUTO"] } } }),
+      prisma.pagamento.aggregate({ _sum: { importo: true }, where: { stato: "PAGATO" } }),
+      prisma.contratto.aggregate({ _sum: { depositoImporto: true }, where: { depositoStato: "VERSATO" } }),
+    ]);
 
   return {
     numeroAgenzie,
+    numeroAmministratori,
     numeroContratti,
     contrattiAttivi,
     pagamentiInRitardo,
     volumeIncassato: volumeIncassato._sum.importo ?? 0,
+    poolDepositiTotale: poolDepositi._sum.depositoImporto ?? 0,
   };
 }
 
@@ -49,5 +54,25 @@ export async function getAgenzieConPortfolio() {
     numeroImmobili: agenzia._count.immobili,
     numeroContratti: agenzia._count.contratti,
     canoniMensiliAttivi: agenzia.contratti.reduce((sum, c) => sum + c.canoneMensile, 0),
+  }));
+}
+
+export async function getAmministratoriConPortfolio() {
+  const amministratori = await prisma.amministratore.findMany({
+    include: {
+      user: true,
+      condomini: { select: { numeroUnita: true, _count: { select: { segnalazioni: true } } } },
+    },
+    orderBy: { ragioneSociale: "asc" },
+  });
+
+  return amministratori.map((a) => ({
+    id: a.id,
+    ragioneSociale: a.ragioneSociale,
+    piva: a.piva,
+    email: a.user.email,
+    numeroCondomini: a.condomini.length,
+    unitaTotali: a.condomini.reduce((sum, c) => sum + c.numeroUnita, 0),
+    segnalazioniTotali: a.condomini.reduce((sum, c) => sum + c._count.segnalazioni, 0),
   }));
 }

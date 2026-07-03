@@ -11,8 +11,9 @@ export async function getAgenziaDashboardStats(agenziaId: string) {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
   const in60Giorni = addDays(now, 60);
+  const in90Giorni = addDays(now, 90);
 
-  const [contrattiAttivi, incassiMese, contrattiInScadenza, pagamentiInRitardo] = await Promise.all([
+  const [contrattiAttivi, incassiMese, contrattiInScadenza, pagamentiInRitardo, leadReListing] = await Promise.all([
     prisma.contratto.count({ where: { agenziaId, stato: "ATTIVO" } }),
     prisma.pagamento.aggregate({
       _sum: { importo: true },
@@ -28,6 +29,9 @@ export async function getAgenziaDashboardStats(agenziaId: string) {
     prisma.pagamento.count({
       where: { stato: { in: ["IN_RITARDO", "INSOLUTO"] }, contratto: { agenziaId } },
     }),
+    prisma.contratto.count({
+      where: { agenziaId, stato: "ATTIVO", dataFine: { gte: now, lte: in90Giorni } },
+    }),
   ]);
 
   return {
@@ -35,7 +39,20 @@ export async function getAgenziaDashboardStats(agenziaId: string) {
     canoniIncassatiMese: incassiMese._sum.importo ?? 0,
     contrattiInScadenza,
     pagamentiInRitardo,
+    leadReListing,
   };
+}
+
+export async function getContrattiInScadenza(agenziaId: string, entroGiorni: number) {
+  const now = new Date();
+  return prisma.contratto.findMany({
+    where: { agenziaId, stato: "ATTIVO", dataFine: { gte: now, lte: addDays(now, entroGiorni) } },
+    include: {
+      immobile: { include: { proprietario: { include: { user: true } } } },
+      inquilino: { include: { user: true } },
+    },
+    orderBy: { dataFine: "asc" },
+  });
 }
 
 export async function getContrattiForAgenzia(
@@ -65,6 +82,7 @@ export async function getContrattoDetail(contrattoId: string, agenziaId: string)
       inquilino: { include: { user: true } },
       pagamenti: { orderBy: { dataScadenza: "asc" } },
       documenti: { orderBy: { uploadedAt: "desc" } },
+      checklist: { orderBy: { dataCompilazione: "desc" } },
     },
   });
 }
@@ -72,6 +90,7 @@ export async function getContrattoDetail(contrattoId: string, agenziaId: string)
 export async function getImmobiliForAgenzia(agenziaId: string) {
   return prisma.immobile.findMany({
     where: { agenziaId },
+    include: { proprietario: { include: { user: true } }, condominio: true },
     orderBy: { indirizzo: "asc" },
   });
 }
@@ -80,5 +99,18 @@ export async function getInquiliniDisponibili() {
   return prisma.inquilino.findMany({
     include: { user: true },
     orderBy: { user: { cognome: "asc" } },
+  });
+}
+
+export async function getProprietariDisponibili() {
+  return prisma.proprietario.findMany({
+    include: { user: true },
+    orderBy: { user: { cognome: "asc" } },
+  });
+}
+
+export async function getCondominiDisponibili() {
+  return prisma.condominio.findMany({
+    orderBy: { nome: "asc" },
   });
 }

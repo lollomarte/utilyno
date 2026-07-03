@@ -34,6 +34,31 @@ export async function registraContrattoAdEAction(
   return { success: true, protocollo: result.protocollo };
 }
 
+export async function rinnovaRegistrazioneAction(
+  contrattoId: string
+): Promise<{ success: true; protocolloRinnovo: string } | { success: false; error: string }> {
+  const { agenzia } = await requireAgenzia();
+
+  const contratto = await prisma.contratto.findFirst({ where: { id: contrattoId, agenziaId: agenzia.id } });
+  if (!contratto) {
+    return { success: false, error: "Contratto non trovato" };
+  }
+  if (!contratto.dataRegistrazioneAdE) {
+    return { success: false, error: "Il contratto non risulta ancora registrato" };
+  }
+
+  const result = await adeRegistrationProvider.renewRegistration({ contrattoId: contratto.id });
+
+  await prisma.contratto.update({
+    where: { id: contratto.id },
+    data: { dataUltimoRinnovoRegistrazione: result.dataRinnovo },
+  });
+
+  revalidatePath(`/agenzia/contratti/${contrattoId}`);
+
+  return { success: true, protocolloRinnovo: result.protocolloRinnovo };
+}
+
 export async function creaContrattoAction(
   input: NuovoContrattoInput
 ): Promise<{ success: true; contrattoId: string } | { success: false; error: string }> {
@@ -69,6 +94,8 @@ export async function creaContrattoAction(
       canoneMensile: data.canoneMensile,
       regimeFiscale: data.regimeFiscale,
       stato: "ATTIVO",
+      depositoImporto: data.depositoImporto,
+      depositoStato: "NON_VERSATO",
     },
   });
 

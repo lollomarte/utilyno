@@ -40,6 +40,15 @@ export async function POST(request: Request) {
           },
         },
       }),
+      ...(data.role === "AMMINISTRATORE" && {
+        amministratore: {
+          create: {
+            ragioneSociale: data.ragioneSociale,
+            piva: data.piva,
+            indirizzo: data.indirizzo,
+          },
+        },
+      }),
       ...(data.role === "PROPRIETARIO" && {
         proprietario: {
           create: {

@@ -1,29 +1,35 @@
 import Link from "next/link";
-import { getAdminDashboardStats, getAgenzieConPortfolio } from "@/lib/data/admin";
+import { getAdminDashboardStats, getAgenzieConPortfolio, getAmministratoriConPortfolio } from "@/lib/data/admin";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function AdminDashboardPage() {
-  const [stats, agenzie] = await Promise.all([getAdminDashboardStats(), getAgenzieConPortfolio()]);
+  const [stats, agenzie, amministratori] = await Promise.all([
+    getAdminDashboardStats(),
+    getAgenzieConPortfolio(),
+    getAmministratoriConPortfolio(),
+  ]);
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">Vista aggregata sulla piattaforma WERENT</p>
+        <p className="mt-1 text-sm text-slate-500">Vista aggregata sulla piattaforma LOQO</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Agenzie" value={String(stats.numeroAgenzie)} />
+        <StatCard label="Amministratori di condominio" value={String(stats.numeroAmministratori)} />
         <StatCard label="Contratti totali" value={String(stats.numeroContratti)} hint={`${stats.contrattiAttivi} attivi`} />
-        <StatCard label="Volume incassato" value={formatCurrency(stats.volumeIncassato)} hint="Totale storico" />
         <StatCard
           label="Pagamenti in ritardo"
           value={String(stats.pagamentiInRitardo)}
           tone={stats.pagamentiInRitardo > 0 ? "danger" : "default"}
         />
+        <StatCard label="Volume transitato stimato" value={formatCurrency(stats.volumeIncassato)} hint="Totale storico incassato" />
+        <StatCard label="Pool depositi totale" value={formatCurrency(stats.poolDepositiTotale)} hint="Depositi cauzionali versati" />
       </div>
 
       <Card>
@@ -51,6 +57,34 @@ export default async function AdminDashboardPage() {
                   <TableCell>{agenzia.numeroImmobili}</TableCell>
                   <TableCell>{agenzia.numeroContratti}</TableCell>
                   <TableCell>{formatCurrency(agenzia.canoniMensiliAttivi)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader title="Amministratori di condominio" />
+        {amministratori.length === 0 ? (
+          <EmptyState message="Nessun amministratore di condominio registrato." />
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Amministratore</TableHeaderCell>
+                <TableHeaderCell>Condomini gestiti</TableHeaderCell>
+                <TableHeaderCell>Unità totali</TableHeaderCell>
+                <TableHeaderCell>Segnalazioni</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {amministratori.map((a) => (
+                <TableRow key={a.id}>
+                  <TableCell className="font-medium text-slate-900">{a.ragioneSociale}</TableCell>
+                  <TableCell>{a.numeroCondomini}</TableCell>
+                  <TableCell>{a.unitaTotali}</TableCell>
+                  <TableCell>{a.segnalazioniTotali}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

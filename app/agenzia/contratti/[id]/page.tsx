@@ -3,14 +3,16 @@ import { requireAgenzia } from "@/lib/auth-helpers";
 import { getContrattoDetail } from "@/lib/data/agenzia";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { StatoContrattoBadge, StatoPagamentoBadge } from "@/components/ui/badge";
-import { RegistraAdEButton } from "@/components/agenzia/registra-ade-button";
+import { StatoContrattoBadge, StatoPagamentoBadge, StatoDepositoBadge } from "@/components/ui/badge";
+import { RegistraAdEButton, RinnovaRegistrazioneButton } from "@/components/agenzia/registra-ade-button";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   STATO_CONTRATTO_LABELS,
   STATO_PAGAMENTO_LABELS,
+  STATO_DEPOSITO_LABELS,
   TIPO_CONTRATTO_LABELS,
   REGIME_FISCALE_LABELS,
+  TIPO_CHECKLIST_LABELS,
 } from "@/lib/labels";
 
 export default async function ContrattoDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -52,13 +54,36 @@ export default async function ContrattoDetailPage({ params }: { params: Promise<
                 ? `Registrato il ${formatDate(contratto.dataRegistrazioneAdE)}`
                 : "Non ancora registrato",
             },
+            {
+              label: "Ultimo rinnovo registrazione",
+              value: contratto.dataUltimoRinnovoRegistrazione
+                ? formatDate(contratto.dataUltimoRinnovoRegistrazione)
+                : "Nessun rinnovo registrato",
+            },
           ]}
         />
-        {!contratto.dataRegistrazioneAdE && (
-          <div className="mt-4">
-            <RegistraAdEButton contrattoId={contratto.id} />
-          </div>
-        )}
+        <div className="mt-4 flex flex-wrap gap-3">
+          {!contratto.dataRegistrazioneAdE && <RegistraAdEButton contrattoId={contratto.id} />}
+          {contratto.dataRegistrazioneAdE && <RinnovaRegistrazioneButton contrattoId={contratto.id} />}
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader title="Deposito cauzionale" />
+        <DescriptionList
+          items={[
+            { label: "Importo", value: formatCurrency(contratto.depositoImporto) },
+            {
+              label: "Stato",
+              value: <StatoDepositoBadge stato={contratto.depositoStato} label={STATO_DEPOSITO_LABELS[contratto.depositoStato]} />,
+            },
+            { label: "Interessi legali maturati", value: formatCurrency(contratto.interessiLegaliMaturati) },
+            {
+              label: "Data restituzione",
+              value: contratto.dataRestituzioneDeposito ? formatDate(contratto.dataRestituzioneDeposito) : "-",
+            },
+          ]}
+        />
       </Card>
 
       <Card>
@@ -90,6 +115,24 @@ export default async function ContrattoDetailPage({ params }: { params: Promise<
               ))}
             </TableBody>
           </Table>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader title="Checklist immobile" />
+        {contratto.checklist.length === 0 ? (
+          <EmptyState message="Nessuna checklist compilata." />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {contratto.checklist.map((c) => (
+              <li key={c.id} className="flex items-center justify-between py-3 text-sm">
+                <span className="text-slate-700">
+                  {TIPO_CHECKLIST_LABELS[c.tipo]} &middot; {c.fotoUrls.length} foto
+                </span>
+                <span className="text-slate-400">{formatDate(c.dataCompilazione)}</span>
+              </li>
+            ))}
+          </ul>
         )}
       </Card>
 

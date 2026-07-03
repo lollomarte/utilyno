@@ -3,12 +3,20 @@ import { requireProprietario } from "@/lib/auth-helpers";
 import { getImmobileDetailForProprietario } from "@/lib/data/proprietario";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { StatoContrattoBadge, StatoPagamentoBadge, StatoTicketBadge } from "@/components/ui/badge";
+import {
+  StatoContrattoBadge,
+  StatoPagamentoBadge,
+  StatoDepositoBadge,
+  StatoAssicurazioneBadge,
+  StatoTicketBadge,
+} from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   TIPO_IMMOBILE_LABELS,
   STATO_CONTRATTO_LABELS,
   STATO_PAGAMENTO_LABELS,
+  STATO_DEPOSITO_LABELS,
+  STATO_ASSICURAZIONE_LABELS,
   STATO_TICKET_LABELS,
 } from "@/lib/labels";
 
@@ -46,23 +54,29 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
       </Card>
 
       <Card>
-        <CardHeader title="Contratto attivo" />
+        <CardHeader title="Contratto attivo e deposito" />
         {!contrattoAttivo ? (
           <EmptyState message="Nessun contratto attivo su questo immobile." />
         ) : (
-          <>
-            <DescriptionList
-              items={[
-                { label: "Inquilino", value: `${contrattoAttivo.inquilino.user.nome} ${contrattoAttivo.inquilino.user.cognome}` },
-                { label: "Canone mensile", value: formatCurrency(contrattoAttivo.canoneMensile) },
-                { label: "Periodo", value: `${formatDate(contrattoAttivo.dataInizio)} - ${formatDate(contrattoAttivo.dataFine)}` },
-                {
-                  label: "Stato",
-                  value: <StatoContrattoBadge stato={contrattoAttivo.stato} label={STATO_CONTRATTO_LABELS[contrattoAttivo.stato]} />,
-                },
-              ]}
-            />
-          </>
+          <DescriptionList
+            items={[
+              { label: "Inquilino", value: `${contrattoAttivo.inquilino.user.nome} ${contrattoAttivo.inquilino.user.cognome}` },
+              { label: "Canone mensile", value: formatCurrency(contrattoAttivo.canoneMensile) },
+              { label: "Periodo", value: `${formatDate(contrattoAttivo.dataInizio)} - ${formatDate(contrattoAttivo.dataFine)}` },
+              {
+                label: "Stato contratto",
+                value: <StatoContrattoBadge stato={contrattoAttivo.stato} label={STATO_CONTRATTO_LABELS[contrattoAttivo.stato]} />,
+              },
+              { label: "Importo deposito", value: formatCurrency(contrattoAttivo.depositoImporto) },
+              {
+                label: "Stato deposito",
+                value: (
+                  <StatoDepositoBadge stato={contrattoAttivo.depositoStato} label={STATO_DEPOSITO_LABELS[contrattoAttivo.depositoStato]} />
+                ),
+              },
+              { label: "Interessi legali maturati", value: formatCurrency(contrattoAttivo.interessiLegaliMaturati) },
+            ]}
+          />
         )}
       </Card>
 
@@ -94,6 +108,38 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
                     </TableCell>
                   </TableRow>
                 ))}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader title="Assicurazioni collegate" />
+        {immobile.assicurazioni.length === 0 ? (
+          <EmptyState message="Nessuna assicurazione attiva su questo immobile." />
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Tipo</TableHeaderCell>
+                <TableHeaderCell>Fornitore</TableHeaderCell>
+                <TableHeaderCell>Premio annuale</TableHeaderCell>
+                <TableHeaderCell>Scadenza</TableHeaderCell>
+                <TableHeaderCell>Stato</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {immobile.assicurazioni.map((a) => (
+                <TableRow key={a.id}>
+                  <TableCell>{a.tipo}</TableCell>
+                  <TableCell>{a.fornitore}</TableCell>
+                  <TableCell>{formatCurrency(a.premioAnnuale)}</TableCell>
+                  <TableCell>{formatDate(a.dataScadenza)}</TableCell>
+                  <TableCell>
+                    <StatoAssicurazioneBadge stato={a.stato} label={STATO_ASSICURAZIONE_LABELS[a.stato]} />
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         )}

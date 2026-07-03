@@ -8,6 +8,7 @@ export const nuovoContrattoSchema = z.object({
   dataFine: z.string().min(1, "Indica la data di fine"),
   canoneMensile: z.coerce.number().positive("Il canone deve essere maggiore di zero"),
   regimeFiscale: z.enum(["CEDOLARE_SECCA", "ORDINARIO"]),
+  depositoImporto: z.coerce.number().min(0, "Il deposito non può essere negativo"),
 });
 
 export type NuovoContrattoInput = z.infer<typeof nuovoContrattoSchema>;

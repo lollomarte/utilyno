@@ -12,6 +12,16 @@ export async function requireAgenzia() {
   return { session, agenzia };
 }
 
+export async function requireAmministratore() {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "AMMINISTRATORE") redirect("/login");
+
+  const amministratore = await prisma.amministratore.findUnique({ where: { userId: session.user.id } });
+  if (!amministratore) redirect("/non-autorizzato");
+
+  return { session, amministratore };
+}
+
 export async function requireProprietario() {
   const session = await auth();
   if (!session?.user || session.user.role !== "PROPRIETARIO") redirect("/login");

@@ -1,6 +1,7 @@
 export const ROLE_LABELS: Record<string, string> = {
-  ADMIN: "Amministratore WERENT",
+  ADMIN: "Amministratore LOQO",
   AGENZIA: "Agenzia",
+  AMMINISTRATORE: "Amministratore di condominio",
   PROPRIETARIO: "Proprietario",
   INQUILINO: "Inquilino",
 };
@@ -23,6 +24,13 @@ export const STATO_CONTRATTO_LABELS: Record<string, string> = {
   ATTIVO: "Attivo",
   SCADUTO: "Scaduto",
   RISOLTO: "Risolto",
+};
+
+export const STATO_DEPOSITO_LABELS: Record<string, string> = {
+  NON_VERSATO: "Non versato",
+  VERSATO: "Versato",
+  IN_CONTESTAZIONE: "In contestazione",
+  RESTITUITO: "Restituito",
 };
 
 export const STATO_PAGAMENTO_LABELS: Record<string, string> = {
@@ -48,6 +56,23 @@ export const STATO_UTENZA_LABELS: Record<string, string> = {
   DA_ATTIVARE: "Da attivare",
   ATTIVA: "Attiva",
   DISDETTA: "Disdetta",
+};
+
+export const STATO_ASSICURAZIONE_LABELS: Record<string, string> = {
+  ATTIVA: "Attiva",
+  SCADUTA: "Scaduta",
+  DA_RINNOVARE: "Da rinnovare",
+};
+
+export const TIPO_CHECKLIST_LABELS: Record<string, string> = {
+  INGRESSO: "Ingresso",
+  USCITA: "Uscita",
+};
+
+export const STATO_SEGNALAZIONE_LABELS: Record<string, string> = {
+  APERTA: "Aperta",
+  IN_LAVORAZIONE: "In lavorazione",
+  RISOLTA: "Risolta",
 };
 
 export const STATO_TICKET_LABELS: Record<string, string> = {
