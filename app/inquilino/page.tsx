@@ -1,9 +1,16 @@
 import { requireInquilino } from "@/lib/auth-helpers";
-import { getContrattoAttivoForInquilino, getUtenzeForImmobile } from "@/lib/data/inquilino";
+import {
+  getContrattoAttivoForInquilino,
+  getUtenzeForImmobile,
+  getSegnalazioniPerInquilino,
+  getComunicazioniPerInquilino,
+} from "@/lib/data/inquilino";
+import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
+import { ChecklistItem } from "@/components/inquilino/checklist-item";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { StatoPagamentoBadge, StatoUtenzaBadge, StatoDepositoBadge } from "@/components/ui/badge";
+import { StatoPagamentoBadge, StatoUtenzaBadge, StatoDepositoBadge, StatoSegnalazioneBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   TIPO_CONTRATTO_LABELS,
@@ -12,11 +19,11 @@ import {
   TIPO_UTENZA_LABELS,
   STATO_UTENZA_LABELS,
   STATO_DEPOSITO_LABELS,
-  TIPO_CHECKLIST_LABELS,
+  STATO_SEGNALAZIONE_LABELS,
 } from "@/lib/labels";
 
 export default async function InquilinoDashboardPage() {
-  const { inquilino } = await requireInquilino();
+  const { session, inquilino } = await requireInquilino();
   const contratto = await getContrattoAttivoForInquilino(inquilino.id);
 
   if (!contratto) {
@@ -27,11 +34,14 @@ export default async function InquilinoDashboardPage() {
     );
   }
 
-  const utenze = await getUtenzeForImmobile(contratto.immobileId);
+  const [utenze, segnalazioni, comunicazioni] = await Promise.all([
+    getUtenzeForImmobile(contratto.immobileId),
+    getSegnalazioniPerInquilino(contratto.immobileId),
+    getComunicazioniPerInquilino(contratto.immobile.condominioId, session.user.id),
+  ]);
   const prossimaScadenza = contratto.pagamenti
     .filter((p) => p.stato === "PROGRAMMATO" || p.stato === "IN_RITARDO")
     .sort((a, b) => a.dataScadenza.getTime() - b.dataScadenza.getTime())[0];
-  const checklistIngresso = contratto.checklist.find((c) => c.tipo === "INGRESSO");
 
   return (
     <div className="space-y-8">
@@ -138,20 +148,64 @@ export default async function InquilinoDashboardPage() {
       </Card>
 
       <Card>
-        <CardHeader title="Checklist ingresso" />
-        {!checklistIngresso ? (
-          <EmptyState message="Nessuna checklist di ingresso disponibile." />
+        <CardHeader title="Checklist immobile" description="Conferma con la tua firma le checklist di ingresso e uscita" />
+        {contratto.checklist.length === 0 ? (
+          <EmptyState message="Nessuna checklist disponibile." />
         ) : (
-          <DescriptionList
-            items={[
-              { label: "Tipo", value: TIPO_CHECKLIST_LABELS[checklistIngresso.tipo] },
-              { label: "Data compilazione", value: formatDate(checklistIngresso.dataCompilazione) },
-              { label: "Foto allegate", value: String(checklistIngresso.fotoUrls.length) },
-              { label: "Firma inquilino", value: checklistIngresso.firmaInquilino ? "Firmata" : "Da firmare" },
-              { label: "Firma proprietario", value: checklistIngresso.firmaProprietario ? "Firmata" : "Da firmare" },
-              { label: "Note", value: checklistIngresso.note ?? "-" },
-            ]}
-          />
+          <ul className="divide-y divide-slate-100">
+            {contratto.checklist.map((c) => (
+              <ChecklistItem
+                key={c.id}
+                id={c.id}
+                tipo={c.tipo}
+                note={c.note}
+                fotoCount={c.fotoUrls.length}
+                dataCompilazione={c.dataCompilazione}
+                firmaInquilinoAt={c.firmaInquilinoAt}
+                firmaProprietarioAt={c.firmaProprietarioAt}
+              />
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader title="Comunicazioni" description="Comunicazioni inviate dall'amministratore a tutto il condominio" />
+        {comunicazioni.length === 0 ? (
+          <EmptyState message="Nessuna comunicazione ricevuta." />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {comunicazioni.map((c) => (
+              <ComunicazioneItem
+                key={c.id}
+                id={c.id}
+                titolo={c.titolo}
+                testo={c.testo}
+                createdAt={c.createdAt}
+                letta={c.letture.length > 0}
+              />
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader title="Segnalazioni ricevute" description="Segnalazioni condominiali relative alla tua unità" />
+        {segnalazioni.length === 0 ? (
+          <EmptyState message="Nessuna segnalazione ricevuta." />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {segnalazioni.map((s) => (
+              <li key={s.id} className="py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm font-medium text-slate-900">{s.titolo}</span>
+                  <StatoSegnalazioneBadge stato={s.stato} label={STATO_SEGNALAZIONE_LABELS[s.stato]} />
+                </div>
+                <p className="mt-1 text-sm text-slate-500">{s.descrizione}</p>
+                <p className="mt-1 text-xs text-slate-400">{formatDate(s.createdAt)}</p>
+              </li>
+            ))}
+          </ul>
         )}
       </Card>
     </div>

@@ -1,16 +1,29 @@
 import { requireAmministratore } from "@/lib/auth-helpers";
-import { getSegnalazioniForAmministratore, getCondominiForAmministratore } from "@/lib/data/amministratore";
+import {
+  getSegnalazioniForAmministratore,
+  getCondominiForAmministratore,
+  getImmobiliPerSegnalazione,
+} from "@/lib/data/amministratore";
 import { NuovaSegnalazioneForm } from "@/components/amministratore/nuova-segnalazione-form";
 import { StatoSegnalazioneSelect } from "@/components/amministratore/stato-segnalazione-select";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
 
+function destinatariLabel(notificaInquilino: boolean, notificaProprietario: boolean, hasImmobile: boolean) {
+  if (!hasImmobile) return "Generale";
+  if (notificaInquilino && notificaProprietario) return "Inquilino + Proprietario";
+  if (notificaInquilino) return "Inquilino";
+  if (notificaProprietario) return "Proprietario";
+  return "-";
+}
+
 export default async function SegnalazioniPage() {
   const { amministratore } = await requireAmministratore();
-  const [segnalazioni, condomini] = await Promise.all([
+  const [segnalazioni, condomini, immobili] = await Promise.all([
     getSegnalazioniForAmministratore(amministratore.id),
     getCondominiForAmministratore(amministratore.id),
+    getImmobiliPerSegnalazione(amministratore.id),
   ]);
 
   return (
@@ -22,7 +35,7 @@ export default async function SegnalazioniPage() {
 
       <Card>
         <CardHeader title="Nuova segnalazione" />
-        <NuovaSegnalazioneForm condomini={condomini} />
+        <NuovaSegnalazioneForm condomini={condomini} immobili={immobili} />
       </Card>
 
       <Card className="p-0">
@@ -34,6 +47,7 @@ export default async function SegnalazioniPage() {
               <TableRow>
                 <TableHeaderCell>Titolo</TableHeaderCell>
                 <TableHeaderCell>Condominio</TableHeaderCell>
+                <TableHeaderCell>Destinatari</TableHeaderCell>
                 <TableHeaderCell>Data</TableHeaderCell>
                 <TableHeaderCell>Priorità</TableHeaderCell>
                 <TableHeaderCell>Stato</TableHeaderCell>
@@ -44,6 +58,7 @@ export default async function SegnalazioniPage() {
                 <TableRow key={s.id}>
                   <TableCell>{s.titolo}</TableCell>
                   <TableCell>{s.condominio.nome}</TableCell>
+                  <TableCell>{destinatariLabel(s.notificaInquilino, s.notificaProprietario, !!s.immobileId)}</TableCell>
                   <TableCell>{formatDate(s.createdAt)}</TableCell>
                   <TableCell>{s.priorita}</TableCell>
                   <TableCell>

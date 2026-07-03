@@ -1,0 +1,73 @@
+"use client";
+
+import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { creaChecklistAction } from "@/app/actions/checklist";
+import { TIPO_CHECKLIST_LABELS } from "@/lib/labels";
+import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+export function ChecklistForm({ contrattoId }: { contrattoId: string }) {
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setSuccess(false);
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await creaChecklistAction(formData);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      setSuccess(true);
+      formRef.current?.reset();
+      router.refresh();
+    });
+  }
+
+  return (
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+      <input type="hidden" name="contrattoId" value={contrattoId} />
+      <div>
+        <Label htmlFor="tipo">Tipo checklist</Label>
+        <Select id="tipo" name="tipo" defaultValue="INGRESSO">
+          {Object.entries(TIPO_CHECKLIST_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="foto">Foto (opzionale)</Label>
+        <input
+          id="foto"
+          name="foto"
+          type="file"
+          accept="image/*"
+          multiple
+          className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+        />
+      </div>
+      <div>
+        <Label htmlFor="note">Note</Label>
+        <Textarea id="note" name="note" rows={3} />
+      </div>
+      <label className="flex items-center gap-2 text-sm text-slate-700">
+        <input type="checkbox" name="firmaProprietario" className="h-4 w-4" />
+        Firma proprietario confermata (presente al momento della compilazione)
+      </label>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {success && <p className="text-sm text-emerald-700">Checklist salvata.</p>}
+      <Button type="submit" disabled={isPending}>
+        {isPending ? "Salvataggio in corso..." : "Salva checklist"}
+      </Button>
+    </form>
+  );
+}

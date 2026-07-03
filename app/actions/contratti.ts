@@ -1,11 +1,17 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { addMonths } from "date-fns";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireAgenzia } from "@/lib/auth-helpers";
 import { adeRegistrationProvider } from "@/lib/services/ade-registration";
 import { nuovoContrattoSchema, type NuovoContrattoInput } from "@/lib/validations/contratto";
+
+function generaPasswordProvvisoria(): string {
+  return randomBytes(9).toString("base64url");
+}
 
 export async function registraContrattoAdEAction(
   contrattoId: string
@@ -61,12 +67,20 @@ export async function rinnovaRegistrazioneAction(
 
 export async function creaContrattoAction(
   input: NuovoContrattoInput
-): Promise<{ success: true; contrattoId: string } | { success: false; error: string }> {
+): Promise<
+  | { success: true; contrattoId: string; inquilinoTemporaryPassword?: string; inquilinoEmail?: string }
+  | { success: false; error: string; fieldErrors?: Record<string, string> }
+> {
   const { agenzia } = await requireAgenzia();
 
   const parsed = nuovoContrattoSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: "Dati non validi" };
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path.join(".");
+      if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+    }
+    return { success: false, error: "Dati non validi", fieldErrors };
   }
   const data = parsed.data;
 
@@ -75,7 +89,44 @@ export async function creaContrattoAction(
     return { success: false, error: "Immobile non valido" };
   }
 
-  const inquilino = await prisma.inquilino.findUnique({ where: { id: data.inquilinoId } });
+  let inquilinoId = data.inquilinoId;
+  let inquilinoTemporaryPassword: string | undefined;
+
+  if (data.inquilinoMode === "nuovo") {
+    const existing = await prisma.user.findUnique({ where: { email: data.inquilinoEmail! } });
+    if (existing) {
+      return {
+        success: false,
+        error: "Email già registrata",
+        fieldErrors: { inquilinoEmail: "Questa email è già associata a un account esistente" },
+      };
+    }
+
+    inquilinoTemporaryPassword = generaPasswordProvvisoria();
+    const passwordHash = await bcrypt.hash(inquilinoTemporaryPassword, 10);
+    const nuovoInquilino = await prisma.inquilino.create({
+      data: {
+        codiceFiscale: data.inquilinoCodiceFiscale!,
+        user: {
+          create: {
+            email: data.inquilinoEmail!,
+            passwordHash,
+            role: "INQUILINO",
+            nome: data.inquilinoNome!,
+            cognome: data.inquilinoCognome!,
+            telefono: data.inquilinoTelefono || null,
+          },
+        },
+      },
+    });
+    inquilinoId = nuovoInquilino.id;
+  }
+
+  if (!inquilinoId) {
+    return { success: false, error: "Inquilino non valido" };
+  }
+
+  const inquilino = await prisma.inquilino.findUnique({ where: { id: inquilinoId }, include: { user: true } });
   if (!inquilino) {
     return { success: false, error: "Inquilino non valido" };
   }
@@ -86,7 +137,7 @@ export async function creaContrattoAction(
   const contratto = await prisma.contratto.create({
     data: {
       immobileId: data.immobileId,
-      inquilinoId: data.inquilinoId,
+      inquilinoId,
       agenziaId: agenzia.id,
       tipoContratto: data.tipoContratto,
       dataInizio,
@@ -111,5 +162,10 @@ export async function creaContrattoAction(
 
   revalidatePath("/agenzia/contratti");
 
-  return { success: true, contrattoId: contratto.id };
+  return {
+    success: true,
+    contrattoId: contratto.id,
+    inquilinoTemporaryPassword,
+    inquilinoEmail: inquilinoTemporaryPassword ? inquilino.user.email : undefined,
+  };
 }

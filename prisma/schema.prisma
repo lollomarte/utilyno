@@ -109,6 +109,7 @@ model User {
   amministratore Amministratore?
   proprietario   Proprietario?
   inquilino      Inquilino?
+  letture        LetturaComunicazione[]
 }
 
 model Agenzia {
@@ -147,8 +148,9 @@ model Condominio {
   numeroUnita  Int
   createdAt    DateTime @default(now())
 
-  immobili     Immobile[]
-  segnalazioni SegnalazioneCondominiale[]
+  immobili       Immobile[]
+  segnalazioni   SegnalazioneCondominiale[]
+  comunicazioni  ComunicazioneCondominiale[]
 }
 
 model Proprietario {
@@ -169,6 +171,7 @@ model Inquilino {
 
   contratti Contratto[]
   ticket    Ticket[]
+  inviti    InvitoInquilino[]
 }
 
 model Immobile {
@@ -195,6 +198,7 @@ model Immobile {
   assicurazioni  Assicurazione[]
   ticket         Ticket[]
   documenti      Documento[]
+  segnalazioni   SegnalazioneCondominiale[]
 }
 
 model Contratto {
@@ -223,6 +227,7 @@ model Contratto {
   pagamenti  Pagamento[]
   documenti  Documento[]
   checklist  ChecklistImmobile[]
+  inviti     InvitoInquilino[]
 }
 
 model Pagamento {
@@ -266,12 +271,14 @@ model ChecklistImmobile {
   contrattoId      String
   contratto        Contratto     @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
 
-  tipo             TipoChecklist
-  fotoUrls         String[]
-  firmaInquilino   Boolean       @default(false)
-  firmaProprietario Boolean      @default(false)
-  note             String?
-  dataCompilazione DateTime      @default(now())
+  tipo                TipoChecklist
+  fotoUrls            String[]
+  firmaInquilino      Boolean       @default(false)
+  firmaInquilinoAt    DateTime?
+  firmaProprietario   Boolean       @default(false)
+  firmaProprietarioAt DateTime?
+  note                String?
+  dataCompilazione    DateTime      @default(now())
 }
 
 model SegnalazioneCondominiale {
@@ -279,12 +286,54 @@ model SegnalazioneCondominiale {
   condominioId     String
   condominio       Condominio        @relation(fields: [condominioId], references: [id], onDelete: Cascade)
   amministratoreId String
+  immobileId       String?
+  immobile         Immobile?         @relation(fields: [immobileId], references: [id], onDelete: SetNull)
 
-  titolo           String
-  descrizione      String
-  stato            StatoSegnalazione @default(APERTA)
-  priorita         String
-  createdAt        DateTime          @default(now())
+  titolo               String
+  descrizione           String
+  stato                 StatoSegnalazione @default(APERTA)
+  priorita              String
+  notificaInquilino     Boolean           @default(true)
+  notificaProprietario  Boolean           @default(false)
+  createdAt             DateTime          @default(now())
+}
+
+model ComunicazioneCondominiale {
+  id               String     @id @default(cuid())
+  condominioId     String
+  condominio       Condominio @relation(fields: [condominioId], references: [id], onDelete: Cascade)
+  amministratoreId String
+
+  titolo    String
+  testo     String
+  createdAt DateTime @default(now())
+
+  letture LetturaComunicazione[]
+}
+
+model LetturaComunicazione {
+  id              String                    @id @default(cuid())
+  comunicazioneId String
+  comunicazione   ComunicazioneCondominiale @relation(fields: [comunicazioneId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lettoAt         DateTime                  @default(now())
+
+  @@unique([comunicazioneId, userId])
+}
+
+model InvitoInquilino {
+  id          String    @id @default(cuid())
+  token       String    @unique
+  inquilinoId String
+  inquilino   Inquilino @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
+  contrattoId String
+  contratto   Contratto @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
+
+  email     String
+  scadenza  DateTime
+  usatoAt   DateTime?
+  createdAt DateTime  @default(now())
 }
 
 model Ticket {

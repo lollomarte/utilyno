@@ -32,7 +32,7 @@ export async function getCondominioDetail(condominioId: string, amministratoreId
           contratti: { where: { stato: "ATTIVO" }, include: { inquilino: { include: { user: true } } } },
         },
       },
-      segnalazioni: { orderBy: { createdAt: "desc" } },
+      segnalazioni: { include: { immobile: true }, orderBy: { createdAt: "desc" } },
     },
   });
 }
@@ -40,7 +40,30 @@ export async function getCondominioDetail(condominioId: string, amministratoreId
 export async function getSegnalazioniForAmministratore(amministratoreId: string) {
   return prisma.segnalazioneCondominiale.findMany({
     where: { amministratoreId },
-    include: { condominio: true },
+    include: { condominio: true, immobile: true },
     orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getComunicazioniForCondominio(condominioId: string, amministratoreId: string) {
+  const condominio = await prisma.condominio.findFirst({ where: { id: condominioId, amministratoreId } });
+  if (!condominio) return [];
+
+  return prisma.comunicazioneCondominiale.findMany({
+    where: { condominioId },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getImmobiliPerSegnalazione(amministratoreId: string) {
+  return prisma.immobile.findMany({
+    where: { condominio: { amministratoreId } },
+    select: {
+      id: true,
+      indirizzo: true,
+      condominioId: true,
+      contratti: { where: { stato: "ATTIVO" }, select: { id: true } },
+    },
+    orderBy: { indirizzo: "asc" },
   });
 }

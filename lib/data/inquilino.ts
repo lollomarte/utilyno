@@ -24,3 +24,19 @@ export async function getTicketForInquilino(inquilinoId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export async function getSegnalazioniPerInquilino(immobileId: string) {
+  return prisma.segnalazioneCondominiale.findMany({
+    where: { immobileId, notificaInquilino: true },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getComunicazioniPerInquilino(condominioId: string | null, userId: string) {
+  if (!condominioId) return [];
+  return prisma.comunicazioneCondominiale.findMany({
+    where: { condominioId },
+    include: { letture: { where: { userId } } },
+    orderBy: { createdAt: "desc" },
+  });
+}

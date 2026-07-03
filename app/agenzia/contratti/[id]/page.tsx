@@ -5,6 +5,8 @@ import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { StatoContrattoBadge, StatoPagamentoBadge, StatoDepositoBadge } from "@/components/ui/badge";
 import { RegistraAdEButton, RinnovaRegistrazioneButton } from "@/components/agenzia/registra-ade-button";
+import { GeneraInvitoButton } from "@/components/agenzia/genera-invito-button";
+import { ChecklistForm } from "@/components/agenzia/checklist-form";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   STATO_CONTRATTO_LABELS,
@@ -69,6 +71,14 @@ export default async function ContrattoDetailPage({ params }: { params: Promise<
       </Card>
 
       <Card>
+        <CardHeader
+          title="Onboarding inquilino"
+          description="Genera un link di invito per far completare all'inquilino l'attivazione del proprio account"
+        />
+        <GeneraInvitoButton contrattoId={contratto.id} />
+      </Card>
+
+      <Card>
         <CardHeader title="Deposito cauzionale" />
         <DescriptionList
           items={[
@@ -119,17 +129,30 @@ export default async function ContrattoDetailPage({ params }: { params: Promise<
       </Card>
 
       <Card>
+        <CardHeader title="Compila checklist" description="Ingresso o uscita, con foto e conferma firma proprietario" />
+        <ChecklistForm contrattoId={contratto.id} />
+      </Card>
+
+      <Card>
         <CardHeader title="Checklist immobile" />
         {contratto.checklist.length === 0 ? (
           <EmptyState message="Nessuna checklist compilata." />
         ) : (
           <ul className="divide-y divide-slate-100">
             {contratto.checklist.map((c) => (
-              <li key={c.id} className="flex items-center justify-between py-3 text-sm">
-                <span className="text-slate-700">
-                  {TIPO_CHECKLIST_LABELS[c.tipo]} &middot; {c.fotoUrls.length} foto
-                </span>
-                <span className="text-slate-400">{formatDate(c.dataCompilazione)}</span>
+              <li key={c.id} className="py-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-slate-900">
+                    {TIPO_CHECKLIST_LABELS[c.tipo]} &middot; {c.fotoUrls.length} foto
+                  </span>
+                  <span className="text-slate-400">{formatDate(c.dataCompilazione)}</span>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">
+                  Firma inquilino: {c.firmaInquilinoAt ? `confermata il ${formatDate(c.firmaInquilinoAt)}` : "da confermare"}
+                  {" · "}
+                  Firma proprietario: {c.firmaProprietarioAt ? `confermata il ${formatDate(c.firmaProprietarioAt)}` : "da confermare"}
+                </p>
+                {c.note && <p className="mt-1 text-sm text-slate-600">{c.note}</p>}
               </li>
             ))}
           </ul>

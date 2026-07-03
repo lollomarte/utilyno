@@ -42,9 +42,15 @@ export function NuovoContrattoWizard({
   const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [immobili, setImmobili] = useState<Immobile[]>(immobiliIniziali);
   const [modalAperto, setModalAperto] = useState(false);
   const [depositoTouched, setDepositoTouched] = useState(false);
+  const [esitoCreazione, setEsitoCreazione] = useState<{
+    contrattoId: string;
+    inquilinoTemporaryPassword?: string;
+    inquilinoEmail?: string;
+  } | null>(null);
   const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
 
   const [form, setForm] = useState<Partial<NuovoContrattoInput>>({
@@ -52,6 +58,7 @@ export function NuovoContrattoWizard({
     dataInizio: todayStr,
     dataFine: addMonthsToDateString(todayStr, DURATA_MESI_PER_TIPO.QUATTRO_PIU_QUATTRO),
     regimeFiscale: "CEDOLARE_SECCA",
+    inquilinoMode: "esistente",
   });
 
   const selectedImmobile = immobili.find((i) => i.id === form.immobileId);
@@ -76,7 +83,12 @@ export function NuovoContrattoWizard({
 
   function canProceed() {
     if (step === 0) return !!form.immobileId;
-    if (step === 1) return !!form.inquilinoId;
+    if (step === 1) {
+      if (form.inquilinoMode === "nuovo") {
+        return !!form.inquilinoNome && !!form.inquilinoCognome && !!form.inquilinoEmail && !!form.inquilinoCodiceFiscale;
+      }
+      return !!form.inquilinoId;
+    }
     if (step === 2)
       return (
         !!form.dataInizio &&
@@ -91,6 +103,7 @@ export function NuovoContrattoWizard({
 
   function handleSubmit() {
     setError(null);
+    setFieldErrors({});
     const parsed = nuovoContrattoSchema.safeParse(form);
     if (!parsed.success) {
       setError("Verifica i dati inseriti nei passaggi precedenti.");
@@ -100,6 +113,15 @@ export function NuovoContrattoWizard({
       const result = await creaContrattoAction(parsed.data);
       if (!result.success) {
         setError(result.error);
+        if (result.fieldErrors) setFieldErrors(result.fieldErrors);
+        return;
+      }
+      if (result.inquilinoTemporaryPassword) {
+        setEsitoCreazione({
+          contrattoId: result.contrattoId,
+          inquilinoTemporaryPassword: result.inquilinoTemporaryPassword,
+          inquilinoEmail: result.inquilinoEmail,
+        });
         return;
       }
       router.push(`/agenzia/contratti/${result.contrattoId}`);
@@ -174,28 +196,96 @@ export function NuovoContrattoWizard({
         {step === 1 && (
           <div>
             <CardHeader title="Seleziona l'inquilino" />
-            <div className="space-y-2">
-              {inquilini.map((inquilino) => (
-                <label
-                  key={inquilino.id}
-                  className={cn(
-                    "flex cursor-pointer items-center justify-between rounded-md border px-4 py-3 text-sm",
-                    form.inquilinoId === inquilino.id ? "border-slate-900 ring-1 ring-slate-900" : "border-slate-200"
-                  )}
-                >
-                  <span>
-                    {inquilino.user.nome} {inquilino.user.cognome} &middot; {inquilino.user.email}
-                  </span>
-                  <input
-                    type="radio"
-                    name="inquilinoId"
-                    className="h-4 w-4"
-                    checked={form.inquilinoId === inquilino.id}
-                    onChange={() => setForm((prev) => ({ ...prev, inquilinoId: inquilino.id }))}
-                  />
-                </label>
-              ))}
+            <div className="mb-4">
+              <Label htmlFor="inquilinoMode">Inquilino</Label>
+              <Select
+                id="inquilinoMode"
+                value={form.inquilinoMode}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, inquilinoMode: e.target.value as NuovoContrattoInput["inquilinoMode"] }))
+                }
+              >
+                <option value="esistente">Inquilino esistente</option>
+                <option value="nuovo">Nuovo inquilino</option>
+              </Select>
             </div>
+
+            {form.inquilinoMode === "esistente" ? (
+              <div className="space-y-2">
+                {inquilini.map((inquilino) => (
+                  <label
+                    key={inquilino.id}
+                    className={cn(
+                      "flex cursor-pointer items-center justify-between rounded-md border px-4 py-3 text-sm",
+                      form.inquilinoId === inquilino.id ? "border-slate-900 ring-1 ring-slate-900" : "border-slate-200"
+                    )}
+                  >
+                    <span>
+                      {inquilino.user.nome} {inquilino.user.cognome} &middot; {inquilino.user.email}
+                    </span>
+                    <input
+                      type="radio"
+                      name="inquilinoId"
+                      className="h-4 w-4"
+                      checked={form.inquilinoId === inquilino.id}
+                      onChange={() => setForm((prev) => ({ ...prev, inquilinoId: inquilino.id }))}
+                    />
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4 rounded-md bg-slate-50 p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Nuovo inquilino</p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="inquilinoNome">Nome</Label>
+                    <Input
+                      id="inquilinoNome"
+                      value={form.inquilinoNome ?? ""}
+                      onChange={(e) => setForm((prev) => ({ ...prev, inquilinoNome: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="inquilinoCognome">Cognome</Label>
+                    <Input
+                      id="inquilinoCognome"
+                      value={form.inquilinoCognome ?? ""}
+                      onChange={(e) => setForm((prev) => ({ ...prev, inquilinoCognome: e.target.value }))}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="inquilinoEmail">Email</Label>
+                    <Input
+                      id="inquilinoEmail"
+                      type="email"
+                      value={form.inquilinoEmail ?? ""}
+                      onChange={(e) => setForm((prev) => ({ ...prev, inquilinoEmail: e.target.value }))}
+                    />
+                    {fieldErrors.inquilinoEmail && <p className="mt-1 text-xs text-red-600">{fieldErrors.inquilinoEmail}</p>}
+                  </div>
+                  <div>
+                    <Label htmlFor="inquilinoCodiceFiscale">Codice fiscale</Label>
+                    <Input
+                      id="inquilinoCodiceFiscale"
+                      placeholder="RSSMRA80A01H501U"
+                      value={form.inquilinoCodiceFiscale ?? ""}
+                      onChange={(e) => setForm((prev) => ({ ...prev, inquilinoCodiceFiscale: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="inquilinoTelefono">Telefono (opzionale)</Label>
+                    <Input
+                      id="inquilinoTelefono"
+                      value={form.inquilinoTelefono ?? ""}
+                      onChange={(e) => setForm((prev) => ({ ...prev, inquilinoTelefono: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Verrà creato un account con una password provvisoria, mostrata al termine della creazione del contratto.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -311,7 +401,11 @@ export function NuovoContrattoWizard({
               <div>
                 <dt className="text-xs font-medium uppercase text-slate-400">Inquilino</dt>
                 <dd className="mt-1 text-slate-900">
-                  {selectedInquilino ? `${selectedInquilino.user.nome} ${selectedInquilino.user.cognome}` : "-"}
+                  {form.inquilinoMode === "nuovo"
+                    ? `${form.inquilinoNome ?? ""} ${form.inquilinoCognome ?? ""} (nuovo account)`
+                    : selectedInquilino
+                      ? `${selectedInquilino.user.nome} ${selectedInquilino.user.cognome}`
+                      : "-"}
                 </dd>
               </div>
               <div>
@@ -361,6 +455,26 @@ export function NuovoContrattoWizard({
 
       <Modal open={modalAperto} onClose={() => setModalAperto(false)} title="Aggiungi nuovo immobile">
         <NuovoImmobileForm proprietari={proprietari} condomini={condomini} onSuccess={handleImmobileCreato} />
+      </Modal>
+
+      <Modal open={!!esitoCreazione} onClose={() => {}} title="Contratto creato">
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600">
+            È stato creato un nuovo account per l&apos;inquilino <strong>{esitoCreazione?.inquilinoEmail}</strong> con la
+            seguente password provvisoria. Comunicala all&apos;inquilino in modo sicuro: non sarà più visibile dopo questo
+            passaggio.
+          </p>
+          <p className="rounded-md bg-slate-100 px-4 py-3 font-mono text-sm text-slate-900">
+            {esitoCreazione?.inquilinoTemporaryPassword}
+          </p>
+          <Button
+            onClick={() => {
+              if (esitoCreazione) router.push(`/agenzia/contratti/${esitoCreazione.contrattoId}`);
+            }}
+          >
+            Vai al contratto
+          </Button>
+        </div>
       </Modal>
     </div>
   );

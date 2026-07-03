@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAmministratore } from "@/lib/auth-helpers";
-import { getCondominioDetail } from "@/lib/data/amministratore";
+import { getCondominioDetail, getComunicazioniForCondominio } from "@/lib/data/amministratore";
+import { NuovaComunicazioneForm } from "@/components/amministratore/nuova-comunicazione-form";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { StatoSegnalazioneBadge } from "@/components/ui/badge";
@@ -15,6 +16,8 @@ export default async function CondominioDetailPage({ params }: { params: Promise
   if (!condominio) {
     notFound();
   }
+
+  const comunicazioni = await getComunicazioniForCondominio(id, amministratore.id);
 
   return (
     <div className="space-y-6">
@@ -77,6 +80,8 @@ export default async function CondominioDetailPage({ params }: { params: Promise
             <TableHead>
               <TableRow>
                 <TableHeaderCell>Titolo</TableHeaderCell>
+                <TableHeaderCell>Unità</TableHeaderCell>
+                <TableHeaderCell>Destinatari</TableHeaderCell>
                 <TableHeaderCell>Data</TableHeaderCell>
                 <TableHeaderCell>Priorità</TableHeaderCell>
                 <TableHeaderCell>Stato</TableHeaderCell>
@@ -86,6 +91,18 @@ export default async function CondominioDetailPage({ params }: { params: Promise
               {condominio.segnalazioni.map((s) => (
                 <TableRow key={s.id}>
                   <TableCell>{s.titolo}</TableCell>
+                  <TableCell>{s.immobile?.indirizzo ?? "Generale"}</TableCell>
+                  <TableCell>
+                    {!s.immobileId
+                      ? "-"
+                      : s.notificaInquilino && s.notificaProprietario
+                        ? "Inquilino + Proprietario"
+                        : s.notificaInquilino
+                          ? "Inquilino"
+                          : s.notificaProprietario
+                            ? "Proprietario"
+                            : "-"}
+                  </TableCell>
                   <TableCell>{formatDate(s.createdAt)}</TableCell>
                   <TableCell>{s.priorita}</TableCell>
                   <TableCell>
@@ -95,6 +112,28 @@ export default async function CondominioDetailPage({ params }: { params: Promise
               ))}
             </TableBody>
           </Table>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader title="Invia comunicazione a tutto il condominio" description="Raggiunge tutti gli inquilini e i proprietari con un'unità in questo condominio" />
+        <NuovaComunicazioneForm condominioId={condominio.id} />
+      </Card>
+
+      <Card>
+        <CardHeader title="Comunicazioni inviate" />
+        {comunicazioni.length === 0 ? (
+          <EmptyState message="Nessuna comunicazione inviata a questo condominio." />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {comunicazioni.map((c) => (
+              <li key={c.id} className="py-3">
+                <p className="text-sm font-medium text-slate-900">{c.titolo}</p>
+                <p className="mt-1 text-sm text-slate-500">{c.testo}</p>
+                <p className="mt-1 text-xs text-slate-400">{formatDate(c.createdAt)}</p>
+              </li>
+            ))}
+          </ul>
         )}
       </Card>
     </div>
