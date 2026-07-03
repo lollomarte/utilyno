@@ -1,0 +1,214 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  ADMIN
+  AGENZIA
+  PROPRIETARIO
+  INQUILINO
+}
+
+enum TipoImmobile {
+  RESIDENZIALE
+  COMMERCIALE
+}
+
+enum TipoContratto {
+  QUATTRO_PIU_QUATTRO
+  TRE_PIU_DUE
+  TRANSITORIO
+  STUDENTI
+  CONCORDATO
+}
+
+enum RegimeFiscale {
+  CEDOLARE_SECCA
+  ORDINARIO
+}
+
+enum StatoContratto {
+  BOZZA
+  ATTIVO
+  SCADUTO
+  RISOLTO
+}
+
+enum StatoPagamento {
+  PROGRAMMATO
+  PAGATO
+  IN_RITARDO
+  INSOLUTO
+}
+
+enum TipoUtenza {
+  LUCE
+  GAS
+  ACQUA
+  INTERNET
+}
+
+enum StatoUtenza {
+  DA_ATTIVARE
+  ATTIVA
+  DISDETTA
+}
+
+enum StatoTicket {
+  APERTO
+  IN_LAVORAZIONE
+  RISOLTO
+}
+
+// ---------- Models ----------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  nome         String
+  cognome      String
+  telefono     String?
+  createdAt    DateTime @default(now())
+
+  agenzia      Agenzia?
+  proprietario Proprietario?
+  inquilino    Inquilino?
+}
+
+model Agenzia {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ragioneSociale String
+  piva           String  @unique
+  indirizzo      String
+  telefono       String?
+
+  immobili   Immobile[]
+  contratti  Contratto[]
+}
+
+model Proprietario {
+  id             String @id @default(cuid())
+  userId         String @unique
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codiceFiscale  String @unique
+  indirizzo      String
+
+  immobili Immobile[]
+}
+
+model Inquilino {
+  id            String @id @default(cuid())
+  userId        String @unique
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codiceFiscale String @unique
+
+  contratti Contratto[]
+  ticket    Ticket[]
+}
+
+model Immobile {
+  id             String       @id @default(cuid())
+  proprietarioId String
+  proprietario   Proprietario @relation(fields: [proprietarioId], references: [id], onDelete: Cascade)
+  agenziaId      String
+  agenzia        Agenzia      @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
+
+  indirizzo      String
+  comune         String
+  provincia      String
+  datiCatastali  String
+  superficieMq   Float
+  tipoImmobile   TipoImmobile
+  apeClasse      String?
+  valoreStimato  Float
+  createdAt      DateTime     @default(now())
+
+  contratti Contratto[]
+  utenze    Utenza[]
+  ticket    Ticket[]
+  documenti Documento[]
+}
+
+model Contratto {
+  id                    String          @id @default(cuid())
+  immobileId            String
+  immobile              Immobile        @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+  inquilinoId           String
+  inquilino             Inquilino       @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
+  agenziaId             String
+  agenzia               Agenzia         @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
+
+  tipoContratto         TipoContratto
+  dataInizio            DateTime
+  dataFine              DateTime
+  canoneMensile         Float
+  regimeFiscale         RegimeFiscale
+  stato                 StatoContratto  @default(BOZZA)
+  dataRegistrazioneAdE  DateTime?
+  createdAt             DateTime        @default(now())
+
+  pagamenti Pagamento[]
+  documenti Documento[]
+}
+
+model Pagamento {
+  id              String         @id @default(cuid())
+  contrattoId     String
+  contratto       Contratto      @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
+
+  importo         Float
+  dataScadenza    DateTime
+  dataPagamento   DateTime?
+  stato           StatoPagamento @default(PROGRAMMATO)
+  metodoPagamento String?
+}
+
+model Utenza {
+  id             String      @id @default(cuid())
+  immobileId     String
+  immobile       Immobile    @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+
+  tipo           TipoUtenza
+  fornitore      String
+  stato          StatoUtenza @default(DA_ATTIVARE)
+  dataAttivazione DateTime?
+}
+
+model Ticket {
+  id          String      @id @default(cuid())
+  immobileId  String
+  immobile    Immobile    @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+  inquilinoId String
+  inquilino   Inquilino   @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
+
+  titolo      String
+  descrizione String
+  stato       StatoTicket @default(APERTO)
+  priorita    String
+  createdAt   DateTime    @default(now())
+}
+
+model Documento {
+  id           String     @id @default(cuid())
+  contrattoId  String?
+  contratto    Contratto? @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
+  immobileId   String?
+  immobile     Immobile?  @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+
+  nome         String
+  url          String
+  tipo         String
+  uploadedAt   DateTime   @default(now())
+}
