@@ -141,24 +141,30 @@ export async function getCondominiDisponibili() {
   });
 }
 
-/** Totale incassato (pagamenti PAGATO) mese per mese, ultimi 6 mesi incluso quello corrente. */
+/** Totale incassato (pagamenti PAGATO) mese per mese, ultimi 6 mesi incluso quello corrente.
+ * Una sola query per l'intera finestra (non 6 in parallelo, che sotto il limite di
+ * connessioni del pool si accodavano invece di essere davvero concorrenti). */
 export async function getAndamentoIncassiAgenzia(agenziaId: string) {
   const now = new Date();
   const mesi = Array.from({ length: 6 }, (_, i) => subMonths(now, 5 - i));
 
-  return Promise.all(
-    mesi.map(async (mese) => {
-      const agg = await prisma.pagamento.aggregate({
-        _sum: { importo: true },
-        where: {
-          stato: "PAGATO",
-          dataPagamento: { gte: startOfMonth(mese), lte: endOfMonth(mese) },
-          contratto: { agenziaId },
-        },
-      });
-      return { mese: format(mese, "MMM", { locale: it }), importo: agg._sum.importo ?? 0 };
-    })
-  );
+  const pagamenti = await prisma.pagamento.findMany({
+    where: {
+      stato: "PAGATO",
+      dataPagamento: { gte: startOfMonth(mesi[0]), lte: endOfMonth(mesi[mesi.length - 1]) },
+      contratto: { agenziaId },
+    },
+    select: { dataPagamento: true, importo: true },
+  });
+
+  return mesi.map((mese) => {
+    const inizio = startOfMonth(mese).getTime();
+    const fine = endOfMonth(mese).getTime();
+    const importo = pagamenti
+      .filter((p) => p.dataPagamento && p.dataPagamento.getTime() >= inizio && p.dataPagamento.getTime() <= fine)
+      .reduce((sum, p) => sum + p.importo, 0);
+    return { mese: format(mese, "MMM", { locale: it }), importo };
+  });
 }
 
 export async function getDistribuzionePagamentiAgenzia(agenziaId: string) {

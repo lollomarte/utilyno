@@ -177,6 +177,8 @@ model Condominio {
 
   immobili      Immobile[]
   comunicazioni ComunicazioneCondominiale[]
+
+  @@index([amministratoreId])
 }
 
 model Proprietario {
@@ -223,6 +225,10 @@ model Immobile {
   assicurazioni Assicurazione[]
   documenti     Documento[]
   segnalazioni  Segnalazione[]
+
+  @@index([proprietarioId])
+  @@index([agenziaId])
+  @@index([condominioId])
 }
 
 model Contratto {
@@ -256,6 +262,11 @@ model Contratto {
   documenti Documento[]
   checklist ChecklistImmobile[]
   inviti    InvitoInquilino[]
+
+  @@index([immobileId])
+  @@index([inquilinoId])
+  @@index([agenziaId])
+  @@index([stato])
 }
 
 model Pagamento {
@@ -272,6 +283,9 @@ model Pagamento {
   dataAccredito   DateTime?
   stato           StatoPagamento @default(PROGRAMMATO)
   metodoPagamento String?
+
+  @@index([contrattoId])
+  @@index([stato, dataScadenza])
 }
 
 model Utenza {
@@ -283,6 +297,8 @@ model Utenza {
   fornitore       String
   stato           StatoUtenza @default(DA_ATTIVARE)
   dataAttivazione DateTime?
+
+  @@index([immobileId])
 }
 
 model Assicurazione {
@@ -296,6 +312,8 @@ model Assicurazione {
   stato           StatoAssicurazione @default(ATTIVA)
   dataScadenza    DateTime
   commissioneLoqo Float
+
+  @@index([immobileId])
 }
 
 model ChecklistImmobile {
@@ -311,6 +329,8 @@ model ChecklistImmobile {
   firmaProprietarioAt DateTime?
   note                String?
   dataCompilazione    DateTime      @default(now())
+
+  @@index([contrattoId])
 }
 
 model Segnalazione {
@@ -333,6 +353,10 @@ model Segnalazione {
   destinatari         SegnalazioneDestinatario[]
   risposte            SegnalazioneRisposta[]
   richiestaPreventivo RichiestaPreventivo?
+
+  @@index([immobileId])
+  @@index([creatoDaUserId])
+  @@index([stato])
 }
 
 model SegnalazioneDestinatario {
@@ -346,6 +370,7 @@ model SegnalazioneDestinatario {
   dataLettura DateTime?
 
   @@unique([segnalazioneId, userId])
+  @@index([userId])
 }
 
 model SegnalazioneRisposta {
@@ -357,6 +382,8 @@ model SegnalazioneRisposta {
 
   testo     String
   createdAt DateTime @default(now())
+
+  @@index([segnalazioneId])
 }
 
 model Partner {
@@ -391,6 +418,9 @@ model RichiestaPreventivo {
   stato     StatoRichiestaPreventivo @default(INVIATA)
   note      String?
   createdAt DateTime                 @default(now())
+
+  @@index([partnerId])
+  @@index([richiedenteUserId])
 }
 
 model ComunicazioneCondominiale {
@@ -404,6 +434,8 @@ model ComunicazioneCondominiale {
   createdAt DateTime @default(now())
 
   letture LetturaComunicazione[]
+
+  @@index([condominioId])
 }
 
 model LetturaComunicazione {
@@ -415,6 +447,7 @@ model LetturaComunicazione {
   lettoAt         DateTime                  @default(now())
 
   @@unique([comunicazioneId, userId])
+  @@index([userId])
 }
 
 model InvitoInquilino {
@@ -429,6 +462,9 @@ model InvitoInquilino {
   scadenza  DateTime
   usatoAt   DateTime?
   createdAt DateTime  @default(now())
+
+  @@index([inquilinoId])
+  @@index([contrattoId])
 }
 
 model Documento {
