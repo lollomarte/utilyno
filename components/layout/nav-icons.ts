@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, FileText, MessageSquareWarning, UserRound } from "lucide-react";
+import { LayoutDashboard, Building2, FileText, MessageSquareWarning, UserRound, Handshake } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 /**
@@ -10,6 +10,7 @@ import type { LucideIcon } from "lucide-react";
 const NAV_ICONS: Record<string, LucideIcon> = {
   "/admin": LayoutDashboard,
   "/admin/agenzie": Building2,
+  "/admin/lead": Handshake,
   "/agenzia": LayoutDashboard,
   "/agenzia/immobili": Building2,
   "/agenzia/contratti": FileText,

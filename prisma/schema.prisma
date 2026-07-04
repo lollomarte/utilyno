@@ -94,6 +94,28 @@ enum CategoriaSegnalazione {
   PROBLEMA_CONTRATTUALE
 }
 
+/**
+ * Categoria dell'intervento necessario: asse indipendente dalla categoria di routing sopra.
+ * Usata sia per classificare i Partner sia (opzionalmente) una Segnalazione, per il matching lead->partner.
+ */
+enum CategoriaIntervento {
+  IDRAULICO
+  ELETTRICISTA
+  CALDAIA_CLIMATIZZAZIONE
+  MANUTENZIONE_GENERICA
+  UTENZE_LUCE_GAS
+  ASSICURAZIONE
+  ALTRO
+}
+
+enum StatoRichiestaPreventivo {
+  INVIATA
+  CONTATTATO
+  PREVENTIVO_RICEVUTO
+  CHIUSA_CONVERTITA
+  CHIUSA_NON_CONVERTITA
+}
+
 // ---------- Models ----------
 
 model User {
@@ -114,6 +136,7 @@ model User {
   segnalazioniCreate   Segnalazione[]             @relation("SegnalazioniCreate")
   segnalazioniRicevute SegnalazioneDestinatario[]
   segnalazioniRisposte SegnalazioneRisposta[]
+  richiestePreventivo  RichiestaPreventivo[]
 }
 
 model Agenzia {
@@ -283,12 +306,13 @@ model ChecklistImmobile {
 }
 
 model Segnalazione {
-  id          String                 @id @default(cuid())
-  titolo      String
-  descrizione String
-  categoria   CategoriaSegnalazione?
-  priorita    String
-  stato       StatoSegnalazione      @default(APERTA)
+  id                  String                 @id @default(cuid())
+  titolo              String
+  descrizione         String
+  categoria           CategoriaSegnalazione?
+  categoriaIntervento CategoriaIntervento?
+  priorita            String
+  stato               StatoSegnalazione      @default(APERTA)
 
   creatoDaUserId String
   creatoDa       User   @relation("SegnalazioniCreate", fields: [creatoDaUserId], references: [id], onDelete: Cascade)
@@ -298,8 +322,9 @@ model Segnalazione {
 
   createdAt DateTime @default(now())
 
-  destinatari SegnalazioneDestinatario[]
-  risposte    SegnalazioneRisposta[]
+  destinatari         SegnalazioneDestinatario[]
+  risposte            SegnalazioneRisposta[]
+  richiestaPreventivo RichiestaPreventivo?
 }
 
 model SegnalazioneDestinatario {
@@ -324,6 +349,40 @@ model SegnalazioneRisposta {
 
   testo     String
   createdAt DateTime @default(now())
+}
+
+model Partner {
+  id                String              @id @default(cuid())
+  nome              String
+  categoria         CategoriaIntervento
+  zonaCopertura     String
+  telefono          String
+  email             String
+  contattoReferente String
+  attivo            Boolean             @default(true)
+  /**
+   * Percentuale o importo fisso stimato per lead: solo per uso interno/admin, non esposto agli altri ruoli.
+   */
+  commissioneMedia  Float?
+  createdAt         DateTime            @default(now())
+
+  richiestePreventivo RichiestaPreventivo[]
+}
+
+model RichiestaPreventivo {
+  id String @id @default(cuid())
+
+  segnalazioneId String       @unique
+  segnalazione   Segnalazione @relation(fields: [segnalazioneId], references: [id], onDelete: Cascade)
+  partnerId      String
+  partner        Partner      @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  richiedenteUserId String
+  richiedente       User   @relation(fields: [richiedenteUserId], references: [id], onDelete: Cascade)
+
+  stato     StatoRichiestaPreventivo @default(INVIATA)
+  note      String?
+  createdAt DateTime                 @default(now())
 }
 
 model ComunicazioneCondominiale {

@@ -5,10 +5,14 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { creaSegnalazioneAction } from "@/app/actions/segnalazioni";
-import { nuovaSegnalazioneSchema, type NuovaSegnalazioneInput } from "@/lib/validations/segnalazione";
+import {
+  nuovaSegnalazioneSchema,
+  type NuovaSegnalazioneInput,
+  type NuovaSegnalazioneFormInput,
+} from "@/lib/validations/segnalazione";
 import { Input, Label, Select, Textarea, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CATEGORIA_SEGNALAZIONE_LABELS } from "@/lib/labels";
+import { CATEGORIA_SEGNALAZIONE_LABELS, CATEGORIA_INTERVENTO_LABELS } from "@/lib/labels";
 import type { CategoriaSegnalazione } from "@prisma/client";
 
 type ImmobileOption = { id: string; indirizzo: string; comune: string; condominioId: string | null };
@@ -32,7 +36,7 @@ export function NuovaSegnalazioneForm({
     watch,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<NuovaSegnalazioneInput>({
+  } = useForm<NuovaSegnalazioneFormInput, unknown, NuovaSegnalazioneInput>({
     resolver: zodResolver(nuovaSegnalazioneSchema),
     defaultValues: { immobileId: immobili[0]?.id ?? "", priorita: "MEDIA" },
   });
@@ -53,7 +57,14 @@ export function NuovaSegnalazioneForm({
       setServerError(result.error);
       return;
     }
-    reset({ immobileId: data.immobileId, titolo: "", descrizione: "", priorita: "MEDIA", categoria: undefined });
+    reset({
+      immobileId: data.immobileId,
+      titolo: "",
+      descrizione: "",
+      priorita: "MEDIA",
+      categoria: undefined,
+      categoriaIntervento: undefined,
+    });
     router.refresh();
     setEsito(result.destinatari);
   }
@@ -115,6 +126,20 @@ export function NuovaSegnalazioneForm({
             </option>
           ))}
         </Select>
+      </div>
+      <div>
+        <Label htmlFor="categoriaIntervento">Tipo di intervento necessario (opzionale)</Label>
+        <Select id="categoriaIntervento" {...register("categoriaIntervento")}>
+          <option value="">Non specificato</option>
+          {Object.entries(CATEGORIA_INTERVENTO_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </Select>
+        <p className="mt-1 text-xs text-slate-400">
+          Se indicato, potrai richiedere un preventivo a un partner convenzionato dopo l&apos;invio.
+        </p>
       </div>
       <div>
         <Label htmlFor="titolo">Titolo</Label>

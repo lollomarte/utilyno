@@ -4,7 +4,14 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { risolviDestinatari, getCategorieDisponibili } from "@/lib/segnalazioni/risolviDestinatari";
-import { nuovaSegnalazioneSchema, rispostaSegnalazioneSchema, type NuovaSegnalazioneInput, type RispostaSegnalazioneInput } from "@/lib/validations/segnalazione";
+import {
+  nuovaSegnalazioneSchema,
+  rispostaSegnalazioneSchema,
+  richiediPreventivoSchema,
+  type NuovaSegnalazioneInput,
+  type RispostaSegnalazioneInput,
+  type RichiediPreventivoInput,
+} from "@/lib/validations/segnalazione";
 import { ROLE_LABELS } from "@/lib/labels";
 import type { StatoSegnalazione } from "@prisma/client";
 
@@ -77,6 +84,7 @@ export async function creaSegnalazioneAction(
       titolo: parsed.data.titolo,
       descrizione: parsed.data.descrizione,
       categoria: parsed.data.categoria,
+      categoriaIntervento: parsed.data.categoriaIntervento,
       priorita: parsed.data.priorita,
       creatoDaUserId: session.user.id,
       immobileId: parsed.data.immobileId,
@@ -167,4 +175,47 @@ export async function segnaSegnalazioneLettaAction(segnalazioneId: string): Prom
     where: { segnalazioneId, userId: session.user.id, letto: false },
     data: { letto: true, dataLettura: new Date() },
   });
+}
+
+export async function richiediPreventivoAction(
+  input: RichiediPreventivoInput
+): Promise<{ success: true; partnerNome: string } | { success: false; error: string }> {
+  const session = await auth();
+  if (!session?.user) return { success: false, error: "Sessione non valida" };
+
+  const parsed = richiediPreventivoSchema.safeParse(input);
+  if (!parsed.success) return { success: false, error: "Dati non validi" };
+
+  const segnalazione = await prisma.segnalazione.findUnique({
+    where: { id: parsed.data.segnalazioneId },
+    include: { destinatari: true, richiestaPreventivo: true },
+  });
+  if (!segnalazione) return { success: false, error: "Segnalazione non trovata" };
+
+  const isPartecipante =
+    segnalazione.creatoDaUserId === session.user.id || segnalazione.destinatari.some((d) => d.userId === session.user.id);
+  if (!isPartecipante) return { success: false, error: "Non hai accesso a questa segnalazione" };
+
+  if (segnalazione.richiestaPreventivo) {
+    return { success: false, error: "È già stato richiesto un preventivo per questa segnalazione" };
+  }
+
+  const partner = await prisma.partner.findFirst({ where: { id: parsed.data.partnerId, attivo: true } });
+  if (!partner) return { success: false, error: "Partner non disponibile" };
+
+  try {
+    await prisma.richiestaPreventivo.create({
+      data: {
+        segnalazioneId: segnalazione.id,
+        partnerId: partner.id,
+        richiedenteUserId: session.user.id,
+      },
+    });
+  } catch {
+    return { success: false, error: "È già stato richiesto un preventivo per questa segnalazione" };
+  }
+
+  revalidateListe();
+
+  return { success: true, partnerNome: partner.nome };
 }

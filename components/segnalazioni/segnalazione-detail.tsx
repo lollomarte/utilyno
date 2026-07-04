@@ -3,15 +3,21 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { segnaSegnalazioneLettaAction, aggiungiRispostaAction } from "@/app/actions/segnalazioni";
+import { segnaSegnalazioneLettaAction, aggiungiRispostaAction, richiediPreventivoAction } from "@/app/actions/segnalazioni";
 import { StatoSegnalazioneSelect } from "@/components/segnalazioni/stato-select";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge, StatoSegnalazioneBadge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
-import { STATO_SEGNALAZIONE_LABELS, CATEGORIA_SEGNALAZIONE_LABELS, ROLE_LABELS } from "@/lib/labels";
-import type { CategoriaSegnalazione, StatoSegnalazione } from "@prisma/client";
+import {
+  STATO_SEGNALAZIONE_LABELS,
+  CATEGORIA_SEGNALAZIONE_LABELS,
+  CATEGORIA_INTERVENTO_LABELS,
+  STATO_RICHIESTA_PREVENTIVO_LABELS,
+  ROLE_LABELS,
+} from "@/lib/labels";
+import type { CategoriaSegnalazione, CategoriaIntervento, StatoSegnalazione, StatoRichiestaPreventivo } from "@prisma/client";
 
 interface Persona {
   nome: string;
@@ -24,6 +30,7 @@ export interface SegnalazioneDetailData {
   titolo: string;
   descrizione: string;
   categoria: CategoriaSegnalazione | null;
+  categoriaIntervento: CategoriaIntervento | null;
   priorita: string;
   stato: StatoSegnalazione;
   createdAt: Date;
@@ -32,6 +39,7 @@ export interface SegnalazioneDetailData {
   immobile: { indirizzo: string; comune: string; condominio: { nome: string } | null };
   destinatari: { userId: string; letto: boolean; dataLettura: Date | null; user: Persona }[];
   risposte: { id: string; testo: string; createdAt: Date; autore: Persona }[];
+  richiestaPreventivo: { stato: StatoRichiestaPreventivo; partner: { nome: string } } | null;
 }
 
 export function SegnalazioneDetail({
@@ -39,16 +47,21 @@ export function SegnalazioneDetail({
   currentUserId,
   puoModificareStato,
   backHref,
+  partnerDisponibili,
 }: {
   segnalazione: SegnalazioneDetailData;
   currentUserId: string;
   puoModificareStato: boolean;
   backHref: string;
+  partnerDisponibili: { id: string; nome: string; zonaCopertura: string }[];
 }) {
   const router = useRouter();
   const [testo, setTesto] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [preventivoError, setPreventivoError] = useState<string | null>(null);
+  const [isPreventivoPending, startPreventivoTransition] = useTransition();
+  const [richiestoAPartnerId, setRichiestoAPartnerId] = useState<string | null>(null);
 
   useEffect(() => {
     segnaSegnalazioneLettaAction(segnalazione.id);
@@ -56,6 +69,12 @@ export function SegnalazioneDetail({
 
   const isMittente = currentUserId === segnalazione.creatoDaUserId;
   const destinatariAltri = segnalazione.destinatari.filter((d) => d.userId !== segnalazione.creatoDaUserId);
+
+  const richiestaAttiva =
+    segnalazione.richiestaPreventivo ??
+    (richiestoAPartnerId
+      ? { stato: "INVIATA" as StatoRichiestaPreventivo, partner: { nome: partnerDisponibili.find((p) => p.id === richiestoAPartnerId)?.nome ?? "" } }
+      : null);
 
   function handleReply(e: React.FormEvent) {
     e.preventDefault();
@@ -68,6 +87,19 @@ export function SegnalazioneDetail({
         return;
       }
       setTesto("");
+      router.refresh();
+    });
+  }
+
+  function handleRichiediPreventivo(partnerId: string) {
+    setPreventivoError(null);
+    startPreventivoTransition(async () => {
+      const result = await richiediPreventivoAction({ segnalazioneId: segnalazione.id, partnerId });
+      if (!result.success) {
+        setPreventivoError(result.error);
+        return;
+      }
+      setRichiestoAPartnerId(partnerId);
       router.refresh();
     });
   }
@@ -121,6 +153,43 @@ export function SegnalazioneDetail({
               </li>
             ))}
           </ul>
+        </Card>
+      )}
+
+      {segnalazione.categoriaIntervento && (
+        <Card>
+          <CardHeader
+            title="Serve un intervento?"
+            description={`Partner convenzionati per: ${CATEGORIA_INTERVENTO_LABELS[segnalazione.categoriaIntervento]}`}
+          />
+          {richiestaAttiva ? (
+            <p className="text-sm text-slate-700">
+              Preventivo richiesto a <span className="font-medium">{richiestaAttiva.partner.nome}</span> —{" "}
+              {STATO_RICHIESTA_PREVENTIVO_LABELS[richiestaAttiva.stato]}
+            </p>
+          ) : partnerDisponibili.length === 0 ? (
+            <p className="text-sm text-slate-400">Nessun partner convenzionato disponibile al momento per questa categoria.</p>
+          ) : (
+            <div className="space-y-3">
+              {partnerDisponibili.map((p) => (
+                <div key={p.id} className="flex items-center justify-between gap-4 rounded-card border border-slate-200 p-4">
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">{p.nome}</p>
+                    <p className="text-sm text-slate-500">{p.zonaCopertura}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={isPreventivoPending}
+                    onClick={() => handleRichiediPreventivo(p.id)}
+                  >
+                    Richiedi preventivo
+                  </Button>
+                </div>
+              ))}
+              {preventivoError && <p className="text-sm text-red-600">{preventivoError}</p>}
+            </div>
+          )}
         </Card>
       )}
 

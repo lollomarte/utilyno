@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { requireAmministratore } from "@/lib/auth-helpers";
-import { getSegnalazioneDetail } from "@/lib/data/segnalazioni";
+import { getSegnalazioneDetail, getPartnerDisponibiliPerSegnalazione } from "@/lib/data/segnalazioni";
 import { SegnalazioneDetail } from "@/components/segnalazioni/segnalazione-detail";
 
 export default async function SegnalazioneDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -11,6 +11,7 @@ export default async function SegnalazioneDetailPage({ params }: { params: Promi
 
   const puoModificareStato =
     segnalazione.creatoDaUserId === session.user.id || segnalazione.immobile.condominio?.amministratoreId === amministratore.id;
+  const partnerDisponibili = await getPartnerDisponibiliPerSegnalazione(segnalazione);
 
   return (
     <SegnalazioneDetail
@@ -18,6 +19,7 @@ export default async function SegnalazioneDetailPage({ params }: { params: Promi
       currentUserId={session.user.id}
       puoModificareStato={puoModificareStato}
       backHref="/amministratore/segnalazioni"
+      partnerDisponibili={partnerDisponibili}
     />
   );
 }

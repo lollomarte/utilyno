@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { CategoriaIntervento } from "@prisma/client";
 
 /** Ogni segnalazione dove l'utente è il creatore o uno dei destinatari (il creatore ha sempre una propria riga destinatario). */
 export async function getSegnalazioniPerUser(userId: string) {
@@ -27,6 +28,7 @@ export async function getSegnalazioneDetail(segnalazioneId: string, userId: stri
       immobile: { include: { condominio: true } },
       destinatari: { include: { user: true }, orderBy: { id: "asc" } },
       risposte: { include: { autore: true }, orderBy: { createdAt: "asc" } },
+      richiestaPreventivo: { include: { partner: true } },
     },
   });
   if (!segnalazione) return null;
@@ -40,4 +42,20 @@ export async function getSegnalazioneDetail(segnalazioneId: string, userId: stri
 
 export async function getSegnalazioniNonLette(userId: string) {
   return prisma.segnalazioneDestinatario.count({ where: { userId, letto: false } });
+}
+
+export async function getPartnerAttiviPerCategoria(categoria: CategoriaIntervento) {
+  return prisma.partner.findMany({
+    where: { categoria, attivo: true },
+    orderBy: { nome: "asc" },
+  });
+}
+
+/** Partner da proporre per una segnalazione: nessuno se manca la categoriaIntervento o se è già stato richiesto un preventivo. */
+export async function getPartnerDisponibiliPerSegnalazione(segnalazione: {
+  categoriaIntervento: CategoriaIntervento | null;
+  richiestaPreventivo: unknown;
+}) {
+  if (!segnalazione.categoriaIntervento || segnalazione.richiestaPreventivo) return [];
+  return getPartnerAttiviPerCategoria(segnalazione.categoriaIntervento);
 }

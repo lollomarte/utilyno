@@ -81,3 +81,21 @@ export const CATEGORIA_SEGNALAZIONE_LABELS: Record<string, string> = {
   PROBLEMA_MISTO: "Problema misto (unità/condominio)",
   PROBLEMA_CONTRATTUALE: "Questione contrattuale",
 };
+
+export const CATEGORIA_INTERVENTO_LABELS: Record<string, string> = {
+  IDRAULICO: "Idraulico",
+  ELETTRICISTA: "Elettricista",
+  CALDAIA_CLIMATIZZAZIONE: "Caldaia e climatizzazione",
+  MANUTENZIONE_GENERICA: "Manutenzione generica",
+  UTENZE_LUCE_GAS: "Utenze (luce e gas)",
+  ASSICURAZIONE: "Assicurazione",
+  ALTRO: "Altro",
+};
+
+export const STATO_RICHIESTA_PREVENTIVO_LABELS: Record<string, string> = {
+  INVIATA: "Inviata",
+  CONTATTATO: "Contattato",
+  PREVENTIVO_RICEVUTO: "Preventivo ricevuto",
+  CHIUSA_CONVERTITA: "Chiusa (convertita)",
+  CHIUSA_NON_CONVERTITA: "Chiusa (non convertita)",
+};

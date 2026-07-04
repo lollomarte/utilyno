@@ -11,6 +11,7 @@ import {
   StatoAssicurazione,
   TipoChecklist,
   StatoSegnalazione,
+  CategoriaIntervento,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { addDays, addMonths, subMonths } from "date-fns";
@@ -25,6 +26,8 @@ async function main() {
   console.log("Pulizia database...");
   await prisma.documento.deleteMany();
   await prisma.checklistImmobile.deleteMany();
+  await prisma.richiestaPreventivo.deleteMany();
+  await prisma.partner.deleteMany();
   await prisma.segnalazioneRisposta.deleteMany();
   await prisma.segnalazioneDestinatario.deleteMany();
   await prisma.segnalazione.deleteMany();
@@ -420,10 +423,10 @@ async function main() {
 
   // ---------- Segnalazioni: problemi di unità (aperte dall'inquilino, vanno al proprietario) ----------
   const segnalazioniUnita = [
-    { immobile: immobili[0], inquilino: inquilini[0], titolo: "Perdita rubinetto cucina", descrizione: "Il rubinetto della cucina perde acqua costantemente, servirebbe un idraulico.", stato: StatoSegnalazione.APERTA, priorita: "ALTA" },
-    { immobile: immobili[1], inquilino: inquilini[1], titolo: "Caldaia non si accende", descrizione: "La caldaia non parte da ieri sera, niente acqua calda.", stato: StatoSegnalazione.IN_LAVORAZIONE, priorita: "ALTA" },
-    { immobile: immobili[2], inquilino: inquilini[2], titolo: "Citofono guasto", descrizione: "Il citofono non suona, bisogna sostituire il pulsante esterno.", stato: StatoSegnalazione.APERTA, priorita: "MEDIA" },
-    { immobile: immobili[5], inquilino: inquilini[4], titolo: "Tapparella bloccata", descrizione: "La tapparella della camera da letto si è bloccata a metà.", stato: StatoSegnalazione.RISOLTA, priorita: "BASSA" },
+    { immobile: immobili[0], inquilino: inquilini[0], titolo: "Perdita rubinetto cucina", descrizione: "Il rubinetto della cucina perde acqua costantemente, servirebbe un idraulico.", stato: StatoSegnalazione.APERTA, priorita: "ALTA", categoriaIntervento: CategoriaIntervento.IDRAULICO },
+    { immobile: immobili[1], inquilino: inquilini[1], titolo: "Caldaia non si accende", descrizione: "La caldaia non parte da ieri sera, niente acqua calda.", stato: StatoSegnalazione.IN_LAVORAZIONE, priorita: "ALTA", categoriaIntervento: CategoriaIntervento.CALDAIA_CLIMATIZZAZIONE },
+    { immobile: immobili[2], inquilino: inquilini[2], titolo: "Citofono guasto", descrizione: "Il citofono non suona, bisogna sostituire il pulsante esterno.", stato: StatoSegnalazione.APERTA, priorita: "MEDIA", categoriaIntervento: CategoriaIntervento.ELETTRICISTA },
+    { immobile: immobili[5], inquilino: inquilini[4], titolo: "Tapparella bloccata", descrizione: "La tapparella della camera da letto si è bloccata a metà.", stato: StatoSegnalazione.RISOLTA, priorita: "BASSA", categoriaIntervento: CategoriaIntervento.MANUTENZIONE_GENERICA },
   ];
   for (const s of segnalazioniUnita) {
     const proprietario = proprietari.find((p) => p.id === s.immobile.proprietarioId)!;
@@ -432,6 +435,7 @@ async function main() {
         titolo: s.titolo,
         descrizione: s.descrizione,
         categoria: "PROBLEMA_UNITA",
+        categoriaIntervento: s.categoriaIntervento,
         stato: s.stato,
         priorita: s.priorita,
         creatoDaUserId: s.inquilino.userId,
@@ -478,6 +482,84 @@ async function main() {
       },
     });
   }
+
+  // ---------- Partner convenzionati ----------
+  await prisma.partner.createMany({
+    data: [
+      {
+        nome: "Idraulica Rossi",
+        categoria: "IDRAULICO",
+        zonaCopertura: "Milano e provincia",
+        telefono: "+39 02 1234567",
+        email: "info@idraulicarossi.it",
+        contattoReferente: "Giuseppe Rossi",
+        commissioneMedia: 25,
+      },
+      {
+        nome: "ElettroService Milano",
+        categoria: "ELETTRICISTA",
+        zonaCopertura: "Milano e hinterland",
+        telefono: "+39 02 2345678",
+        email: "assistenza@elettroservicemilano.it",
+        contattoReferente: "Marco Bianchi",
+        commissioneMedia: 20,
+      },
+      {
+        nome: "Caldaie & Clima Lombardia",
+        categoria: "CALDAIA_CLIMATIZZAZIONE",
+        zonaCopertura: "Milano, Monza e Brianza",
+        telefono: "+39 02 3456789",
+        email: "info@caldaieclimalombardia.it",
+        contattoReferente: "Luca Ferrari",
+        commissioneMedia: 30,
+      },
+      {
+        nome: "Tutto Pro Milano",
+        categoria: "MANUTENZIONE_GENERICA",
+        zonaCopertura: "Milano città",
+        telefono: "+39 02 4567890",
+        email: "richieste@tuttopromilano.it",
+        contattoReferente: "Andrea Colombo",
+        commissioneMedia: 18,
+      },
+      {
+        nome: "Energia Diretta",
+        categoria: "UTENZE_LUCE_GAS",
+        zonaCopertura: "Tutta Italia",
+        telefono: "+39 800 123456",
+        email: "commerciale@energiadiretta.it",
+        contattoReferente: "Silvia Greco",
+        commissioneMedia: 15,
+      },
+      {
+        nome: "Assicura Casa",
+        categoria: "ASSICURAZIONE",
+        zonaCopertura: "Tutta Italia",
+        telefono: "+39 06 5678901",
+        email: "polizze@assicuracasa.it",
+        contattoReferente: "Roberto Marino",
+        commissioneMedia: 12,
+      },
+      {
+        nome: "Idraulica Capitale",
+        categoria: "IDRAULICO",
+        zonaCopertura: "Roma e provincia",
+        telefono: "+39 06 6789012",
+        email: "info@idraulicacapitale.it",
+        contattoReferente: "Francesco Esposito",
+        commissioneMedia: 25,
+      },
+      {
+        nome: "Handyman Roma",
+        categoria: "MANUTENZIONE_GENERICA",
+        zonaCopertura: "Roma città",
+        telefono: "+39 06 7890123",
+        email: "info@handymanroma.it",
+        contattoReferente: "Davide Ricci",
+        commissioneMedia: 18,
+      },
+    ],
+  });
 
   console.log("Seed completato con successo.");
 }
