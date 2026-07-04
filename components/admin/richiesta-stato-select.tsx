@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { aggiornaStatoRichiestaPreventivoAction } from "@/app/actions/partner";
 import { Select } from "@/components/ui/input";
 import { STATO_RICHIESTA_PREVENTIVO_LABELS } from "@/lib/labels";
+import { withTimeout } from "@/lib/utils";
 import type { StatoRichiestaPreventivo } from "@prisma/client";
 
 export function RichiestaStatoSelect({ richiestaId, statoAttuale }: { richiestaId: string; statoAttuale: string }) {
@@ -14,8 +15,12 @@ export function RichiestaStatoSelect({ richiestaId, statoAttuale }: { richiestaI
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const nuovoStato = e.target.value as StatoRichiestaPreventivo;
     startTransition(async () => {
-      await aggiornaStatoRichiestaPreventivoAction(richiestaId, nuovoStato);
-      router.refresh();
+      try {
+        await withTimeout(aggiornaStatoRichiestaPreventivoAction(richiestaId, nuovoStato));
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+      }
     });
   }
 

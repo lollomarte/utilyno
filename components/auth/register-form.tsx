@@ -10,6 +10,7 @@ import { registerSchema, registerFormSchema, type RegisterFormValues } from "@/l
 import { Card, CardHeader } from "@/components/ui/card";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { withTimeout } from "@/lib/utils";
 
 const ROLE_OPTIONS = [
   { value: "AGENZIA", label: "Agenzia" },
@@ -47,31 +48,39 @@ export function RegisterForm() {
       return;
     }
 
-    const response = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(parsed.data),
-    });
+    try {
+      const response = await withTimeout(
+        fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(parsed.data),
+        })
+      );
 
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      setServerError(body?.error || "Registrazione non riuscita. Riprova.");
-      return;
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        setServerError(body?.error || "Registrazione non riuscita. Riprova.");
+        return;
+      }
+
+      const result = await withTimeout(
+        signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
+        })
+      );
+
+      if (result?.error) {
+        router.push("/login");
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch {
+      setServerError("Qualcosa è andato storto, riprova.");
     }
-
-    const result = await signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      router.push("/login");
-      return;
-    }
-
-    router.push("/");
-    router.refresh();
   }
 
   return (

@@ -14,7 +14,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { TIPO_IMMOBILE_LABELS } from "@/lib/labels";
-import { cn } from "@/lib/utils";
+import { cn, withTimeout } from "@/lib/utils";
 
 type ImmobileDisponibile = {
   id: string;
@@ -108,13 +108,18 @@ function CollegaEsistenteForm({
     }
     setIsSubmitting(true);
     setError(null);
-    const result = await collegaImmobileEsistenteAction({ condominioId, immobileId });
-    setIsSubmitting(false);
-    if (!result.success) {
-      setError(result.error);
-      return;
+    try {
+      const result = await withTimeout(collegaImmobileEsistenteAction({ condominioId, immobileId }));
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      onSuccess();
+    } catch {
+      setError("Qualcosa è andato storto, riprova.");
+    } finally {
+      setIsSubmitting(false);
     }
-    onSuccess();
   }
 
   if (immobili.length === 0) {
@@ -175,17 +180,21 @@ function CreaImmobileForm({
 
   async function onSubmit(data: CreaImmobilePerCondominioInput) {
     setServerError(null);
-    const result = await creaImmobilePerCondominioAction(data);
-    if (!result.success) {
-      if (result.fieldErrors) {
-        for (const [field, message] of Object.entries(result.fieldErrors)) {
-          setError(field as keyof CreaImmobilePerCondominioFormInput, { message });
+    try {
+      const result = await withTimeout(creaImmobilePerCondominioAction(data));
+      if (!result.success) {
+        if (result.fieldErrors) {
+          for (const [field, message] of Object.entries(result.fieldErrors)) {
+            setError(field as keyof CreaImmobilePerCondominioFormInput, { message });
+          }
         }
+        setServerError(result.error);
+        return;
       }
-      setServerError(result.error);
-      return;
+      onSuccess();
+    } catch {
+      setServerError("Qualcosa è andato storto, riprova.");
     }
-    onSuccess();
   }
 
   return (

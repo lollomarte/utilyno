@@ -10,6 +10,7 @@ import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { withTimeout } from "@/lib/utils";
 
 export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   const router = useRouter();
@@ -22,15 +23,19 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
 
   async function onSubmit(data: LoginInput) {
     setServerError(null);
-    const result = await signIn("credentials", { ...data, redirect: false });
+    try {
+      const result = await withTimeout(signIn("credentials", { ...data, redirect: false }));
 
-    if (result?.error) {
-      setServerError("Credenziali non valide. Riprova.");
-      return;
+      if (result?.error) {
+        setServerError("Credenziali non valide. Riprova.");
+        return;
+      }
+
+      router.push(callbackUrl || "/");
+      router.refresh();
+    } catch {
+      setServerError("Qualcosa è andato storto, riprova.");
     }
-
-    router.push(callbackUrl || "/");
-    router.refresh();
   }
 
   return (

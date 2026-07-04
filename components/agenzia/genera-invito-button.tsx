@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { generaInvitoAction } from "@/app/actions/inviti";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/utils";
+import { formatDate, withTimeout } from "@/lib/utils";
 
 export function GeneraInvitoButton({ contrattoId }: { contrattoId: string }) {
   const [isPending, startTransition] = useTransition();
@@ -16,13 +16,17 @@ export function GeneraInvitoButton({ contrattoId }: { contrattoId: string }) {
     setError(null);
     setCopiato(false);
     startTransition(async () => {
-      const result = await generaInvitoAction(contrattoId);
-      if (!result.success) {
-        setError(result.error);
-        return;
+      try {
+        const result = await withTimeout(generaInvitoAction(contrattoId));
+        if (!result.success) {
+          setError(result.error);
+          return;
+        }
+        setLink(`${window.location.origin}/invito/${result.token}`);
+        setScadenza(result.scadenza);
+      } catch {
+        setError("Qualcosa è andato storto, riprova.");
       }
-      setLink(`${window.location.origin}/invito/${result.token}`);
-      setScadenza(result.scadenza);
     });
   }
 

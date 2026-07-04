@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { segnaComunicazioneLettaAction } from "@/app/actions/comunicazioni";
 import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/utils";
+import { formatDate, withTimeout } from "@/lib/utils";
 
 export function ComunicazioneItem({
   id,
@@ -23,8 +23,12 @@ export function ComunicazioneItem({
 
   function handleMarkRead() {
     startTransition(async () => {
-      const result = await segnaComunicazioneLettaAction(id);
-      if (result.success) setLetta(true);
+      try {
+        const result = await withTimeout(segnaComunicazioneLettaAction(id));
+        if (result.success) setLetta(true);
+      } catch (err) {
+        console.error(err);
+      }
     });
   }
 

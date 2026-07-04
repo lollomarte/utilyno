@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { creaContrattoAction } from "@/app/actions/contratti";
 import { nuovoContrattoSchema, DURATA_MESI_PER_TIPO, type NuovoContrattoInput } from "@/lib/validations/contratto";
 import { TIPO_CONTRATTO_LABELS, REGIME_FISCALE_LABELS } from "@/lib/labels";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, withTimeout } from "@/lib/utils";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -110,21 +110,25 @@ export function NuovoContrattoWizard({
       return;
     }
     startTransition(async () => {
-      const result = await creaContrattoAction(parsed.data);
-      if (!result.success) {
-        setError(result.error);
-        if (result.fieldErrors) setFieldErrors(result.fieldErrors);
-        return;
+      try {
+        const result = await withTimeout(creaContrattoAction(parsed.data));
+        if (!result.success) {
+          setError(result.error);
+          if (result.fieldErrors) setFieldErrors(result.fieldErrors);
+          return;
+        }
+        if (result.inquilinoTemporaryPassword) {
+          setEsitoCreazione({
+            contrattoId: result.contrattoId,
+            inquilinoTemporaryPassword: result.inquilinoTemporaryPassword,
+            inquilinoEmail: result.inquilinoEmail,
+          });
+          return;
+        }
+        router.push(`/agenzia/contratti/${result.contrattoId}`);
+      } catch {
+        setError("Qualcosa è andato storto, riprova.");
       }
-      if (result.inquilinoTemporaryPassword) {
-        setEsitoCreazione({
-          contrattoId: result.contrattoId,
-          inquilinoTemporaryPassword: result.inquilinoTemporaryPassword,
-          inquilinoEmail: result.inquilinoEmail,
-        });
-        return;
-      }
-      router.push(`/agenzia/contratti/${result.contrattoId}`);
     });
   }
 

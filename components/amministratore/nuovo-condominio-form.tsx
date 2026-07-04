@@ -8,6 +8,7 @@ import { creaCondominioAction } from "@/app/actions/condomini";
 import { nuovoCondominioSchema, type NuovoCondominioInput, type NuovoCondominioFormInput } from "@/lib/validations/condominio";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { withTimeout } from "@/lib/utils";
 
 export function NuovoCondominioForm() {
   const router = useRouter();
@@ -20,12 +21,16 @@ export function NuovoCondominioForm() {
 
   async function onSubmit(data: NuovoCondominioInput) {
     setServerError(null);
-    const result = await creaCondominioAction(data);
-    if (!result.success) {
-      setServerError(result.error);
-      return;
+    try {
+      const result = await withTimeout(creaCondominioAction(data));
+      if (!result.success) {
+        setServerError(result.error);
+        return;
+      }
+      router.push(`/amministratore/condomini/${result.condominioId}`);
+    } catch {
+      setServerError("Qualcosa è andato storto, riprova.");
     }
-    router.push(`/amministratore/condomini/${result.condominioId}`);
   }
 
   return (

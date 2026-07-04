@@ -9,7 +9,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge, StatoSegnalazioneBadge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/utils";
+import { formatDate, withTimeout } from "@/lib/utils";
 import {
   STATO_SEGNALAZIONE_LABELS,
   CATEGORIA_SEGNALAZIONE_LABELS,
@@ -81,26 +81,34 @@ export function SegnalazioneDetail({
     if (!testo.trim()) return;
     setError(null);
     startTransition(async () => {
-      const result = await aggiungiRispostaAction({ segnalazioneId: segnalazione.id, testo });
-      if (!result.success) {
-        setError(result.error);
-        return;
+      try {
+        const result = await withTimeout(aggiungiRispostaAction({ segnalazioneId: segnalazione.id, testo }));
+        if (!result.success) {
+          setError(result.error);
+          return;
+        }
+        setTesto("");
+        router.refresh();
+      } catch {
+        setError("Qualcosa è andato storto, riprova.");
       }
-      setTesto("");
-      router.refresh();
     });
   }
 
   function handleRichiediPreventivo(partnerId: string) {
     setPreventivoError(null);
     startPreventivoTransition(async () => {
-      const result = await richiediPreventivoAction({ segnalazioneId: segnalazione.id, partnerId });
-      if (!result.success) {
-        setPreventivoError(result.error);
-        return;
+      try {
+        const result = await withTimeout(richiediPreventivoAction({ segnalazioneId: segnalazione.id, partnerId }));
+        if (!result.success) {
+          setPreventivoError(result.error);
+          return;
+        }
+        setRichiestoAPartnerId(partnerId);
+        router.refresh();
+      } catch {
+        setPreventivoError("Qualcosa è andato storto, riprova.");
       }
-      setRichiestoAPartnerId(partnerId);
-      router.refresh();
     });
   }
 

@@ -6,6 +6,7 @@ import { creaChecklistAction } from "@/app/actions/checklist";
 import { TIPO_CHECKLIST_LABELS } from "@/lib/labels";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { withTimeout } from "@/lib/utils";
 
 export function ChecklistForm({ contrattoId }: { contrattoId: string }) {
   const router = useRouter();
@@ -20,14 +21,18 @@ export function ChecklistForm({ contrattoId }: { contrattoId: string }) {
     setSuccess(false);
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
-      const result = await creaChecklistAction(formData);
-      if (!result.success) {
-        setError(result.error);
-        return;
+      try {
+        const result = await withTimeout(creaChecklistAction(formData));
+        if (!result.success) {
+          setError(result.error);
+          return;
+        }
+        setSuccess(true);
+        formRef.current?.reset();
+        router.refresh();
+      } catch {
+        setError("Qualcosa è andato storto, riprova.");
       }
-      setSuccess(true);
-      formRef.current?.reset();
-      router.refresh();
     });
   }
 

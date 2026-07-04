@@ -9,6 +9,7 @@ import { partnerSchema, type PartnerInput, type PartnerFormInput } from "@/lib/v
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CATEGORIA_INTERVENTO_LABELS } from "@/lib/labels";
+import { withTimeout } from "@/lib/utils";
 
 export interface PartnerEsistente {
   id: string;
@@ -47,13 +48,19 @@ export function PartnerForm({ partner, onSuccess }: { partner?: PartnerEsistente
 
   async function onSubmit(data: PartnerInput) {
     setServerError(null);
-    const result = partner ? await aggiornaPartnerAction(partner.id, data) : await creaPartnerAction(data);
-    if (!result.success) {
-      setServerError(result.error);
-      return;
+    try {
+      const result = partner
+        ? await withTimeout(aggiornaPartnerAction(partner.id, data))
+        : await withTimeout(creaPartnerAction(data));
+      if (!result.success) {
+        setServerError(result.error);
+        return;
+      }
+      router.refresh();
+      onSuccess?.();
+    } catch {
+      setServerError("Qualcosa è andato storto, riprova.");
     }
-    router.refresh();
-    onSuccess?.();
   }
 
   return (

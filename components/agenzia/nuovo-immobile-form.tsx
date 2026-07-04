@@ -9,6 +9,7 @@ import { nuovoImmobileSchema, type NuovoImmobileInput, type NuovoImmobileFormInp
 import { TIPO_IMMOBILE_LABELS } from "@/lib/labels";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { withTimeout } from "@/lib/utils";
 
 type Proprietario = { id: string; user: { nome: string; cognome: string; email: string } };
 type Condominio = { id: string; nome: string; comune: string };
@@ -39,25 +40,29 @@ export function NuovoImmobileForm({
 
   async function onSubmit(data: NuovoImmobileInput) {
     setServerError(null);
-    const result = await creaImmobileAction(data);
+    try {
+      const result = await withTimeout(creaImmobileAction(data));
 
-    if (!result.success) {
-      if (result.fieldErrors) {
-        for (const [field, message] of Object.entries(result.fieldErrors)) {
-          setError(field as keyof NuovoImmobileFormInput, { message });
+      if (!result.success) {
+        if (result.fieldErrors) {
+          for (const [field, message] of Object.entries(result.fieldErrors)) {
+            setError(field as keyof NuovoImmobileFormInput, { message });
+          }
         }
+        setServerError(result.error);
+        return;
       }
-      setServerError(result.error);
-      return;
-    }
 
-    if (onSuccess) {
-      onSuccess(result.immobile);
-      return;
-    }
+      if (onSuccess) {
+        onSuccess(result.immobile);
+        return;
+      }
 
-    router.push("/agenzia/immobili");
-    router.refresh();
+      router.push("/agenzia/immobili");
+      router.refresh();
+    } catch {
+      setServerError("Qualcosa è andato storto, riprova.");
+    }
   }
 
   return (

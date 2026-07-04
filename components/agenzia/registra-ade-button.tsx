@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { registraContrattoAdEAction, rinnovaRegistrazioneAction } from "@/app/actions/contratti";
 import { Button } from "@/components/ui/button";
+import { withTimeout } from "@/lib/utils";
 
 export function RegistraAdEButton({ contrattoId }: { contrattoId: string }) {
   const [isPending, startTransition] = useTransition();
@@ -12,12 +13,16 @@ export function RegistraAdEButton({ contrattoId }: { contrattoId: string }) {
   function handleClick() {
     setError(null);
     startTransition(async () => {
-      const result = await registraContrattoAdEAction(contrattoId);
-      if (!result.success) {
-        setError(result.error);
-        return;
+      try {
+        const result = await withTimeout(registraContrattoAdEAction(contrattoId));
+        if (!result.success) {
+          setError(result.error);
+          return;
+        }
+        setProtocollo(result.protocollo);
+      } catch {
+        setError("Qualcosa è andato storto, riprova.");
       }
-      setProtocollo(result.protocollo);
     });
   }
 
@@ -44,12 +49,16 @@ export function RinnovaRegistrazioneButton({ contrattoId }: { contrattoId: strin
   function handleClick() {
     setError(null);
     startTransition(async () => {
-      const result = await rinnovaRegistrazioneAction(contrattoId);
-      if (!result.success) {
-        setError(result.error);
-        return;
+      try {
+        const result = await withTimeout(rinnovaRegistrazioneAction(contrattoId));
+        if (!result.success) {
+          setError(result.error);
+          return;
+        }
+        setProtocollo(result.protocolloRinnovo);
+      } catch {
+        setError("Qualcosa è andato storto, riprova.");
       }
-      setProtocollo(result.protocolloRinnovo);
     });
   }
 

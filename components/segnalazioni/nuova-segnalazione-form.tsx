@@ -13,6 +13,7 @@ import {
 import { Input, Label, Select, Textarea, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CATEGORIA_SEGNALAZIONE_LABELS, CATEGORIA_INTERVENTO_LABELS } from "@/lib/labels";
+import { withTimeout } from "@/lib/utils";
 import type { CategoriaSegnalazione } from "@prisma/client";
 
 type ImmobileOption = { id: string; indirizzo: string; comune: string; condominioId: string | null };
@@ -52,21 +53,25 @@ export function NuovaSegnalazioneForm({
 
   async function onSubmit(data: NuovaSegnalazioneInput) {
     setServerError(null);
-    const result = await creaSegnalazioneAction(data);
-    if (!result.success) {
-      setServerError(result.error);
-      return;
+    try {
+      const result = await withTimeout(creaSegnalazioneAction(data));
+      if (!result.success) {
+        setServerError(result.error);
+        return;
+      }
+      reset({
+        immobileId: data.immobileId,
+        titolo: "",
+        descrizione: "",
+        priorita: "MEDIA",
+        categoria: undefined,
+        categoriaIntervento: undefined,
+      });
+      router.refresh();
+      setEsito(result.destinatari);
+    } catch {
+      setServerError("Qualcosa è andato storto, riprova.");
     }
-    reset({
-      immobileId: data.immobileId,
-      titolo: "",
-      descrizione: "",
-      priorita: "MEDIA",
-      categoria: undefined,
-      categoriaIntervento: undefined,
-    });
-    router.refresh();
-    setEsito(result.destinatari);
   }
 
   if (esito) {

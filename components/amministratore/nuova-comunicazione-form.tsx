@@ -8,6 +8,7 @@ import { creaComunicazioneAction } from "@/app/actions/condomini";
 import { nuovaComunicazioneSchema, type NuovaComunicazioneInput } from "@/lib/validations/condominio";
 import { Input, Label, Textarea, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { withTimeout } from "@/lib/utils";
 
 export function NuovaComunicazioneForm({
   condominioId,
@@ -34,14 +35,18 @@ export function NuovaComunicazioneForm({
   async function onSubmit(data: NuovaComunicazioneInput) {
     setServerError(null);
     setInviata(false);
-    const result = await creaComunicazioneAction(data);
-    if (!result.success) {
-      setServerError(result.error);
-      return;
+    try {
+      const result = await withTimeout(creaComunicazioneAction(data));
+      if (!result.success) {
+        setServerError(result.error);
+        return;
+      }
+      setInviata(true);
+      reset({ condominioId: condominioId ?? "", titolo: "", testo: "" });
+      router.refresh();
+    } catch {
+      setServerError("Qualcosa è andato storto, riprova.");
     }
-    setInviata(true);
-    reset({ condominioId: condominioId ?? "", titolo: "", testo: "" });
-    router.refresh();
   }
 
   return (

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from "@/components/ui/table";
 import { PartnerForm, type PartnerEsistente } from "@/components/admin/partner-form";
 import { CATEGORIA_INTERVENTO_LABELS } from "@/lib/labels";
+import { withTimeout } from "@/lib/utils";
 
 export function PartnerManager({ partner }: { partner: PartnerEsistente[] }) {
   const router = useRouter();
@@ -28,8 +29,12 @@ export function PartnerManager({ partner }: { partner: PartnerEsistente[] }) {
 
   function handleToggle(id: string) {
     startTransition(async () => {
-      await togglePartnerAttivoAction(id);
-      router.refresh();
+      try {
+        await withTimeout(togglePartnerAttivoAction(id));
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+      }
     });
   }
 

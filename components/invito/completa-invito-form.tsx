@@ -9,6 +9,7 @@ import { completaInvitoAction } from "@/app/actions/inviti";
 import { completaInvitoSchema, type CompletaInvitoInput } from "@/lib/validations/invito";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { withTimeout } from "@/lib/utils";
 
 export function CompletaInvitoForm({ token, email }: { token: string; email: string }) {
   const router = useRouter();
@@ -24,20 +25,26 @@ export function CompletaInvitoForm({ token, email }: { token: string; email: str
 
   async function onSubmit(data: CompletaInvitoInput) {
     setServerError(null);
-    const result = await completaInvitoAction(data);
-    if (!result.success) {
-      setServerError(result.error);
-      return;
-    }
+    try {
+      const result = await withTimeout(completaInvitoAction(data));
+      if (!result.success) {
+        setServerError(result.error);
+        return;
+      }
 
-    const signInResult = await signIn("credentials", { email: result.email, password: data.password, redirect: false });
-    if (signInResult?.error) {
-      router.push("/login");
-      return;
-    }
+      const signInResult = await withTimeout(
+        signIn("credentials", { email: result.email, password: data.password, redirect: false })
+      );
+      if (signInResult?.error) {
+        router.push("/login");
+        return;
+      }
 
-    router.push("/inquilino");
-    router.refresh();
+      router.push("/inquilino");
+      router.refresh();
+    } catch {
+      setServerError("Qualcosa è andato storto, riprova.");
+    }
   }
 
   return (

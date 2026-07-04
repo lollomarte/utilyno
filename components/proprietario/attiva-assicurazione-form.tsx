@@ -12,6 +12,7 @@ import {
 } from "@/lib/validations/assicurazione";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { withTimeout } from "@/lib/utils";
 
 export function AttivaAssicurazioneForm({ immobileId, onSuccess }: { immobileId: string; onSuccess?: () => void }) {
   const router = useRouter();
@@ -27,13 +28,17 @@ export function AttivaAssicurazioneForm({ immobileId, onSuccess }: { immobileId:
 
   async function onSubmit(data: AttivaAssicurazioneInput) {
     setServerError(null);
-    const result = await attivaAssicurazioneAction(data);
-    if (!result.success) {
-      setServerError(result.error);
-      return;
+    try {
+      const result = await withTimeout(attivaAssicurazioneAction(data));
+      if (!result.success) {
+        setServerError(result.error);
+        return;
+      }
+      router.refresh();
+      onSuccess?.();
+    } catch {
+      setServerError("Qualcosa è andato storto, riprova.");
     }
-    router.refresh();
-    onSuccess?.();
   }
 
   return (

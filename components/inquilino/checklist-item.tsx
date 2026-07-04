@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { firmaChecklistInquilinoAction } from "@/app/actions/checklist";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/utils";
+import { formatDate, withTimeout } from "@/lib/utils";
 import { TIPO_CHECKLIST_LABELS } from "@/lib/labels";
 import type { TipoChecklist } from "@prisma/client";
 
@@ -31,12 +31,16 @@ export function ChecklistItem({
   function handleFirma() {
     setError(null);
     startTransition(async () => {
-      const result = await firmaChecklistInquilinoAction(id);
-      if (!result.success) {
-        setError(result.error);
-        return;
+      try {
+        const result = await withTimeout(firmaChecklistInquilinoAction(id));
+        if (!result.success) {
+          setError(result.error);
+          return;
+        }
+        setFirmata(new Date());
+      } catch {
+        setError("Qualcosa è andato storto, riprova.");
       }
-      setFirmata(new Date());
     });
   }
 
