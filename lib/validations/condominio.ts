@@ -10,21 +10,6 @@ export const nuovoCondominioSchema = z.object({
 export type NuovoCondominioInput = z.infer<typeof nuovoCondominioSchema>;
 export type NuovoCondominioFormInput = z.input<typeof nuovoCondominioSchema>;
 
-export const DESTINATARIO_SEGNALAZIONE_OPTIONS = ["INQUILINO", "PROPRIETARIO", "ENTRAMBI"] as const;
-export type DestinatarioSegnalazione = (typeof DESTINATARIO_SEGNALAZIONE_OPTIONS)[number];
-
-export const segnalazioneCondominialeSchema = z.object({
-  condominioId: z.string().min(1, "Seleziona un condominio"),
-  immobileId: z.string().optional(),
-  destinatario: z.enum(DESTINATARIO_SEGNALAZIONE_OPTIONS).default("INQUILINO"),
-  titolo: z.string().min(1, "Il titolo è obbligatorio").max(120),
-  descrizione: z.string().min(1, "La descrizione è obbligatoria").max(2000),
-  priorita: z.enum(["BASSA", "MEDIA", "ALTA"]),
-});
-
-export type SegnalazioneCondominialeInput = z.infer<typeof segnalazioneCondominialeSchema>;
-export type SegnalazioneCondominialeFormInput = z.input<typeof segnalazioneCondominialeSchema>;
-
 export const nuovaComunicazioneSchema = z.object({
   condominioId: z.string().min(1, "Seleziona un condominio"),
   titolo: z.string().min(1, "Il titolo è obbligatorio").max(120),

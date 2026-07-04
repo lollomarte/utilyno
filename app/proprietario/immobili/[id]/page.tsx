@@ -1,15 +1,10 @@
 import { notFound } from "next/navigation";
 import { requireProprietario } from "@/lib/auth-helpers";
 import { getImmobileDetailForProprietario } from "@/lib/data/proprietario";
+import { SegnalazioniTable } from "@/components/segnalazioni/segnalazioni-table";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import {
-  StatoContrattoBadge,
-  StatoPagamentoBadge,
-  StatoDepositoBadge,
-  StatoAssicurazioneBadge,
-  StatoTicketBadge,
-} from "@/components/ui/badge";
+import { StatoContrattoBadge, StatoPagamentoBadge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   TIPO_IMMOBILE_LABELS,
@@ -17,7 +12,6 @@ import {
   STATO_PAGAMENTO_LABELS,
   STATO_DEPOSITO_LABELS,
   STATO_ASSICURAZIONE_LABELS,
-  STATO_TICKET_LABELS,
 } from "@/lib/labels";
 
 export default async function ImmobileDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -145,33 +139,14 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
         )}
       </Card>
 
-      <Card>
-        <CardHeader title="Manutenzioni segnalate" />
-        {immobile.ticket.length === 0 ? (
-          <EmptyState message="Nessuna segnalazione di manutenzione." />
+      <Card className="p-0">
+        <div className="p-6 pb-0">
+          <CardHeader title="Segnalazioni su questo immobile" />
+        </div>
+        {immobile.segnalazioni.length === 0 ? (
+          <EmptyState message="Nessuna segnalazione per questo immobile." />
         ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Titolo</TableHeaderCell>
-                <TableHeaderCell>Data</TableHeaderCell>
-                <TableHeaderCell>Priorità</TableHeaderCell>
-                <TableHeaderCell>Stato</TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {immobile.ticket.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell>{t.titolo}</TableCell>
-                  <TableCell>{formatDate(t.createdAt)}</TableCell>
-                  <TableCell>{t.priorita}</TableCell>
-                  <TableCell>
-                    <StatoTicketBadge stato={t.stato} label={STATO_TICKET_LABELS[t.stato]} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <SegnalazioniTable segnalazioni={immobile.segnalazioni} basePath="/proprietario/segnalazioni" showImmobile={false} />
         )}
       </Card>
     </div>

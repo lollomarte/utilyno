@@ -1,22 +1,22 @@
-import { requireProprietario } from "@/lib/auth-helpers";
-import { getImmobiliForProprietario } from "@/lib/data/proprietario";
+import { requireAgenzia } from "@/lib/auth-helpers";
+import { getImmobiliForAgenzia } from "@/lib/data/agenzia";
 import { getSegnalazioniPerUser } from "@/lib/data/segnalazioni";
 import { SegnalazioniPageClient } from "@/components/segnalazioni/segnalazioni-page-client";
 
 export default async function SegnalazioniPage() {
-  const { session, proprietario } = await requireProprietario();
+  const { session, agenzia } = await requireAgenzia();
   const [segnalazioni, immobili] = await Promise.all([
     getSegnalazioniPerUser(session.user.id),
-    getImmobiliForProprietario(proprietario.id),
+    getImmobiliForAgenzia(agenzia.id),
   ]);
 
   return (
     <SegnalazioniPageClient
       title="Segnalazioni"
-      description="Segnalazioni relative ai tuoi immobili"
+      description="Segnalazioni relative agli immobili in gestione"
       segnalazioni={segnalazioni}
       immobili={immobili}
-      basePath="/proprietario/segnalazioni"
+      basePath="/agenzia/segnalazioni"
     />
   );
 }

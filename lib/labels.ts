@@ -75,8 +75,9 @@ export const STATO_SEGNALAZIONE_LABELS: Record<string, string> = {
   RISOLTA: "Risolta",
 };
 
-export const STATO_TICKET_LABELS: Record<string, string> = {
-  APERTO: "Aperto",
-  IN_LAVORAZIONE: "In lavorazione",
-  RISOLTO: "Risolto",
+export const CATEGORIA_SEGNALAZIONE_LABELS: Record<string, string> = {
+  PROBLEMA_UNITA: "Problema nell'unità",
+  PROBLEMA_CONDOMINIALE: "Problema condominiale",
+  PROBLEMA_MISTO: "Problema misto (unità/condominio)",
+  PROBLEMA_CONTRATTUALE: "Questione contrattuale",
 };

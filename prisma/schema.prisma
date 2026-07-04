@@ -87,10 +87,11 @@ enum StatoSegnalazione {
   RISOLTA
 }
 
-enum StatoTicket {
-  APERTO
-  IN_LAVORAZIONE
-  RISOLTO
+enum CategoriaSegnalazione {
+  PROBLEMA_UNITA
+  PROBLEMA_CONDOMINIALE
+  PROBLEMA_MISTO
+  PROBLEMA_CONTRATTUALE
 }
 
 // ---------- Models ----------
@@ -105,11 +106,14 @@ model User {
   telefono     String?
   createdAt    DateTime @default(now())
 
-  agenzia        Agenzia?
-  amministratore Amministratore?
-  proprietario   Proprietario?
-  inquilino      Inquilino?
-  letture        LetturaComunicazione[]
+  agenzia              Agenzia?
+  amministratore       Amministratore?
+  proprietario         Proprietario?
+  inquilino            Inquilino?
+  letture              LetturaComunicazione[]
+  segnalazioniCreate   Segnalazione[]             @relation("SegnalazioniCreate")
+  segnalazioniRicevute SegnalazioneDestinatario[]
+  segnalazioniRisposte SegnalazioneRisposta[]
 }
 
 model Agenzia {
@@ -138,19 +142,18 @@ model Amministratore {
 }
 
 model Condominio {
-  id               String   @id @default(cuid())
+  id               String         @id @default(cuid())
   amministratoreId String
   amministratore   Amministratore @relation(fields: [amministratoreId], references: [id], onDelete: Cascade)
 
-  nome         String
-  indirizzo    String
-  comune       String
-  numeroUnita  Int
-  createdAt    DateTime @default(now())
+  nome        String
+  indirizzo   String
+  comune      String
+  numeroUnita Int
+  createdAt   DateTime @default(now())
 
-  immobili       Immobile[]
-  segnalazioni   SegnalazioneCondominiale[]
-  comunicazioni  ComunicazioneCondominiale[]
+  immobili      Immobile[]
+  comunicazioni ComunicazioneCondominiale[]
 }
 
 model Proprietario {
@@ -170,53 +173,51 @@ model Inquilino {
   codiceFiscale String @unique
 
   contratti Contratto[]
-  ticket    Ticket[]
   inviti    InvitoInquilino[]
 }
 
 model Immobile {
-  id             String        @id @default(cuid())
+  id             String       @id @default(cuid())
   proprietarioId String
-  proprietario   Proprietario  @relation(fields: [proprietarioId], references: [id], onDelete: Cascade)
+  proprietario   Proprietario @relation(fields: [proprietarioId], references: [id], onDelete: Cascade)
   agenziaId      String
-  agenzia        Agenzia       @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
+  agenzia        Agenzia      @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
   condominioId   String?
-  condominio     Condominio?   @relation(fields: [condominioId], references: [id], onDelete: SetNull)
+  condominio     Condominio?  @relation(fields: [condominioId], references: [id], onDelete: SetNull)
 
-  indirizzo      String
-  comune         String
-  provincia      String
-  datiCatastali  String
-  superficieMq   Float
-  tipoImmobile   TipoImmobile
-  apeClasse      String?
-  valoreStimato  Float
-  createdAt      DateTime      @default(now())
+  indirizzo     String
+  comune        String
+  provincia     String
+  datiCatastali String
+  superficieMq  Float
+  tipoImmobile  TipoImmobile
+  apeClasse     String?
+  valoreStimato Float
+  createdAt     DateTime     @default(now())
 
-  contratti      Contratto[]
-  utenze         Utenza[]
-  assicurazioni  Assicurazione[]
-  ticket         Ticket[]
-  documenti      Documento[]
-  segnalazioni   SegnalazioneCondominiale[]
+  contratti     Contratto[]
+  utenze        Utenza[]
+  assicurazioni Assicurazione[]
+  documenti     Documento[]
+  segnalazioni  Segnalazione[]
 }
 
 model Contratto {
-  id                            String          @id @default(cuid())
-  immobileId                    String
-  immobile                      Immobile        @relation(fields: [immobileId], references: [id], onDelete: Cascade)
-  inquilinoId                   String
-  inquilino                     Inquilino       @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
-  agenziaId                     String
-  agenzia                       Agenzia         @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  immobileId  String
+  immobile    Immobile  @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+  inquilinoId String
+  inquilino   Inquilino @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
+  agenziaId   String
+  agenzia     Agenzia   @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
 
-  tipoContratto                 TipoContratto
-  dataInizio                    DateTime
-  dataFine                      DateTime
-  canoneMensile                 Float
-  regimeFiscale                 RegimeFiscale
-  stato                         StatoContratto  @default(BOZZA)
-  dataRegistrazioneAdE          DateTime?
+  tipoContratto                  TipoContratto
+  dataInizio                     DateTime
+  dataFine                       DateTime
+  canoneMensile                  Float
+  regimeFiscale                  RegimeFiscale
+  stato                          StatoContratto @default(BOZZA)
+  dataRegistrazioneAdE           DateTime?
   dataUltimoRinnovoRegistrazione DateTime?
   depositoImporto                Float
   depositoStato                  StatoDeposito  @default(NON_VERSATO)
@@ -224,16 +225,16 @@ model Contratto {
   dataRestituzioneDeposito       DateTime?
   createdAt                      DateTime       @default(now())
 
-  pagamenti  Pagamento[]
-  documenti  Documento[]
-  checklist  ChecklistImmobile[]
-  inviti     InvitoInquilino[]
+  pagamenti Pagamento[]
+  documenti Documento[]
+  checklist ChecklistImmobile[]
+  inviti    InvitoInquilino[]
 }
 
 model Pagamento {
-  id              String         @id @default(cuid())
-  contrattoId     String
-  contratto       Contratto      @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  contrattoId String
+  contratto   Contratto @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
 
   importo         Float
   dataScadenza    DateTime
@@ -243,9 +244,9 @@ model Pagamento {
 }
 
 model Utenza {
-  id              String      @id @default(cuid())
-  immobileId      String
-  immobile        Immobile    @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  immobileId String
+  immobile   Immobile @relation(fields: [immobileId], references: [id], onDelete: Cascade)
 
   tipo            TipoUtenza
   fornitore       String
@@ -254,22 +255,22 @@ model Utenza {
 }
 
 model Assicurazione {
-  id               String             @id @default(cuid())
-  immobileId       String
-  immobile         Immobile           @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  immobileId String
+  immobile   Immobile @relation(fields: [immobileId], references: [id], onDelete: Cascade)
 
-  tipo             String
-  fornitore        String
-  premioAnnuale    Float
-  stato            StatoAssicurazione @default(ATTIVA)
-  dataScadenza     DateTime
-  commissioneLoqo  Float
+  tipo            String
+  fornitore       String
+  premioAnnuale   Float
+  stato           StatoAssicurazione @default(ATTIVA)
+  dataScadenza    DateTime
+  commissioneLoqo Float
 }
 
 model ChecklistImmobile {
-  id               String        @id @default(cuid())
-  contrattoId      String
-  contratto        Contratto     @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  contrattoId String
+  contratto   Contratto @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
 
   tipo                TipoChecklist
   fotoUrls            String[]
@@ -281,21 +282,48 @@ model ChecklistImmobile {
   dataCompilazione    DateTime      @default(now())
 }
 
-model SegnalazioneCondominiale {
-  id               String            @id @default(cuid())
-  condominioId     String
-  condominio       Condominio        @relation(fields: [condominioId], references: [id], onDelete: Cascade)
-  amministratoreId String
-  immobileId       String?
-  immobile         Immobile?         @relation(fields: [immobileId], references: [id], onDelete: SetNull)
+model Segnalazione {
+  id          String                 @id @default(cuid())
+  titolo      String
+  descrizione String
+  categoria   CategoriaSegnalazione?
+  priorita    String
+  stato       StatoSegnalazione      @default(APERTA)
 
-  titolo               String
-  descrizione           String
-  stato                 StatoSegnalazione @default(APERTA)
-  priorita              String
-  notificaInquilino     Boolean           @default(true)
-  notificaProprietario  Boolean           @default(false)
-  createdAt             DateTime          @default(now())
+  creatoDaUserId String
+  creatoDa       User   @relation("SegnalazioniCreate", fields: [creatoDaUserId], references: [id], onDelete: Cascade)
+
+  immobileId String
+  immobile   Immobile @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  destinatari SegnalazioneDestinatario[]
+  risposte    SegnalazioneRisposta[]
+}
+
+model SegnalazioneDestinatario {
+  id             String       @id @default(cuid())
+  segnalazioneId String
+  segnalazione   Segnalazione @relation(fields: [segnalazioneId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  letto       Boolean   @default(false)
+  dataLettura DateTime?
+
+  @@unique([segnalazioneId, userId])
+}
+
+model SegnalazioneRisposta {
+  id             String       @id @default(cuid())
+  segnalazioneId String
+  segnalazione   Segnalazione @relation(fields: [segnalazioneId], references: [id], onDelete: Cascade)
+  autoreUserId   String
+  autore         User         @relation(fields: [autoreUserId], references: [id], onDelete: Cascade)
+
+  testo     String
+  createdAt DateTime @default(now())
 }
 
 model ComunicazioneCondominiale {
@@ -336,20 +364,6 @@ model InvitoInquilino {
   createdAt DateTime  @default(now())
 }
 
-model Ticket {
-  id          String      @id @default(cuid())
-  immobileId  String
-  immobile    Immobile    @relation(fields: [immobileId], references: [id], onDelete: Cascade)
-  inquilinoId String
-  inquilino   Inquilino   @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
-
-  titolo      String
-  descrizione String
-  stato       StatoTicket @default(APERTO)
-  priorita    String
-  createdAt   DateTime    @default(now())
-}
-
 model Documento {
   id          String     @id @default(cuid())
   contrattoId String?
@@ -357,8 +371,8 @@ model Documento {
   immobileId  String?
   immobile    Immobile?  @relation(fields: [immobileId], references: [id], onDelete: Cascade)
 
-  nome        String
-  url         String
-  tipo        String
-  uploadedAt  DateTime   @default(now())
+  nome       String
+  url        String
+  tipo       String
+  uploadedAt DateTime @default(now())
 }

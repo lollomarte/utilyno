@@ -1,18 +1,22 @@
 import { requireAmministratore } from "@/lib/auth-helpers";
-import {
-  getSegnalazioniForAmministratore,
-  getCondominiForAmministratore,
-  getImmobiliPerSegnalazione,
-} from "@/lib/data/amministratore";
-import { SegnalazioniPageClient } from "@/components/amministratore/segnalazioni-page-client";
+import { getImmobiliPerSegnalazione } from "@/lib/data/amministratore";
+import { getSegnalazioniPerUser } from "@/lib/data/segnalazioni";
+import { SegnalazioniPageClient } from "@/components/segnalazioni/segnalazioni-page-client";
 
 export default async function SegnalazioniPage() {
-  const { amministratore } = await requireAmministratore();
-  const [segnalazioni, condomini, immobili] = await Promise.all([
-    getSegnalazioniForAmministratore(amministratore.id),
-    getCondominiForAmministratore(amministratore.id),
+  const { session, amministratore } = await requireAmministratore();
+  const [segnalazioni, immobili] = await Promise.all([
+    getSegnalazioniPerUser(session.user.id),
     getImmobiliPerSegnalazione(amministratore.id),
   ]);
 
-  return <SegnalazioniPageClient segnalazioni={segnalazioni} condomini={condomini} immobili={immobili} />;
+  return (
+    <SegnalazioniPageClient
+      title="Segnalazioni condominiali"
+      description="Gestisci problematiche, interventi e stato delle segnalazioni"
+      segnalazioni={segnalazioni}
+      immobili={immobili}
+      basePath="/amministratore/segnalazioni"
+    />
+  );
 }

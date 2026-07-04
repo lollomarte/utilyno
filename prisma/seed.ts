@@ -25,8 +25,9 @@ async function main() {
   console.log("Pulizia database...");
   await prisma.documento.deleteMany();
   await prisma.checklistImmobile.deleteMany();
-  await prisma.ticket.deleteMany();
-  await prisma.segnalazioneCondominiale.deleteMany();
+  await prisma.segnalazioneRisposta.deleteMany();
+  await prisma.segnalazioneDestinatario.deleteMany();
+  await prisma.segnalazione.deleteMany();
   await prisma.assicurazione.deleteMany();
   await prisma.utenza.deleteMany();
   await prisma.pagamento.deleteMany();
@@ -417,89 +418,66 @@ async function main() {
     ],
   });
 
-  // ---------- Ticket ----------
-  await prisma.ticket.createMany({
-    data: [
-      {
-        immobileId: immobili[0].id,
-        inquilinoId: inquilini[0].id,
-        titolo: "Perdita rubinetto cucina",
-        descrizione: "Il rubinetto della cucina perde acqua costantemente, servirebbe un idraulico.",
-        stato: "APERTO",
-        priorita: "ALTA",
+  // ---------- Segnalazioni: problemi di unità (aperte dall'inquilino, vanno al proprietario) ----------
+  const segnalazioniUnita = [
+    { immobile: immobili[0], inquilino: inquilini[0], titolo: "Perdita rubinetto cucina", descrizione: "Il rubinetto della cucina perde acqua costantemente, servirebbe un idraulico.", stato: StatoSegnalazione.APERTA, priorita: "ALTA" },
+    { immobile: immobili[1], inquilino: inquilini[1], titolo: "Caldaia non si accende", descrizione: "La caldaia non parte da ieri sera, niente acqua calda.", stato: StatoSegnalazione.IN_LAVORAZIONE, priorita: "ALTA" },
+    { immobile: immobili[2], inquilino: inquilini[2], titolo: "Citofono guasto", descrizione: "Il citofono non suona, bisogna sostituire il pulsante esterno.", stato: StatoSegnalazione.APERTA, priorita: "MEDIA" },
+    { immobile: immobili[5], inquilino: inquilini[4], titolo: "Tapparella bloccata", descrizione: "La tapparella della camera da letto si è bloccata a metà.", stato: StatoSegnalazione.RISOLTA, priorita: "BASSA" },
+  ];
+  for (const s of segnalazioniUnita) {
+    const proprietario = proprietari.find((p) => p.id === s.immobile.proprietarioId)!;
+    await prisma.segnalazione.create({
+      data: {
+        titolo: s.titolo,
+        descrizione: s.descrizione,
+        categoria: "PROBLEMA_UNITA",
+        stato: s.stato,
+        priorita: s.priorita,
+        creatoDaUserId: s.inquilino.userId,
+        immobileId: s.immobile.id,
+        destinatari: {
+          create: [
+            { userId: s.inquilino.userId, letto: true, dataLettura: new Date() },
+            { userId: proprietario.userId, letto: false },
+          ],
+        },
       },
-      {
-        immobileId: immobili[1].id,
-        inquilinoId: inquilini[1].id,
-        titolo: "Caldaia non si accende",
-        descrizione: "La caldaia non parte da ieri sera, niente acqua calda.",
-        stato: "IN_LAVORAZIONE",
-        priorita: "ALTA",
-      },
-      {
-        immobileId: immobili[2].id,
-        inquilinoId: inquilini[2].id,
-        titolo: "Citofono guasto",
-        descrizione: "Il citofono non suona, bisogna sostituire il pulsante esterno.",
-        stato: "APERTO",
-        priorita: "MEDIA",
-      },
-      {
-        immobileId: immobili[5].id,
-        inquilinoId: inquilini[4].id,
-        titolo: "Tapparella bloccata",
-        descrizione: "La tapparella della camera da letto si è bloccata a metà.",
-        stato: "RISOLTO",
-        priorita: "BASSA",
-      },
-    ],
-  });
+    });
+  }
 
-  // ---------- Segnalazioni condominiali (4-5) ----------
-  await prisma.segnalazioneCondominiale.createMany({
-    data: [
-      {
-        condominioId: condominio1.id,
-        amministratoreId: amministratore1.id,
-        titolo: "Infiltrazione tetto scala B",
-        descrizione: "Segnalata infiltrazione d'acqua dal tetto in corrispondenza della scala B, ultimo piano.",
-        stato: StatoSegnalazione.IN_LAVORAZIONE,
-        priorita: "ALTA",
+  // ---------- Segnalazioni: problemi condominiali (aperte dall'amministratore, vanno a proprietario + inquilino) ----------
+  const segnalazioniCondominiali = [
+    { immobile: immobili[1], amministratore: amministratore1, titolo: "Infiltrazione tetto scala B", descrizione: "Segnalata infiltrazione d'acqua dal tetto in corrispondenza della scala B, ultimo piano.", stato: StatoSegnalazione.IN_LAVORAZIONE, priorita: "ALTA" },
+    { immobile: immobili[1], amministratore: amministratore1, titolo: "Ascensore fuori servizio", descrizione: "L'ascensore principale è bloccato al piano terra, necessario intervento tecnico.", stato: StatoSegnalazione.APERTA, priorita: "ALTA" },
+    { immobile: immobili[3], amministratore: amministratore1, titolo: "Manutenzione giardino condominiale", descrizione: "Il giardino condominiale necessita di potatura e manutenzione ordinaria.", stato: StatoSegnalazione.APERTA, priorita: "BASSA" },
+    { immobile: immobili[5], amministratore: amministratore2, titolo: "Sostituzione lampade scale", descrizione: "Diverse lampade delle scale condominiali sono fulminate e vanno sostituite.", stato: StatoSegnalazione.RISOLTA, priorita: "MEDIA" },
+    { immobile: immobili[8], amministratore: amministratore2, titolo: "Rumori molesti impianto idrico", descrizione: "Alcuni condomini segnalano rumori anomali provenienti dall'impianto idrico centrale.", stato: StatoSegnalazione.IN_LAVORAZIONE, priorita: "MEDIA" },
+  ];
+  for (const s of segnalazioniCondominiali) {
+    const proprietario = proprietari.find((p) => p.id === s.immobile.proprietarioId)!;
+    const contrattoAttivo = contratti.find((c) => c.immobileId === s.immobile.id && c.stato === "ATTIVO");
+    const inquilinoAttivo = contrattoAttivo ? inquilini.find((i) => i.id === contrattoAttivo.inquilinoId) : undefined;
+
+    await prisma.segnalazione.create({
+      data: {
+        titolo: s.titolo,
+        descrizione: s.descrizione,
+        categoria: "PROBLEMA_CONDOMINIALE",
+        stato: s.stato,
+        priorita: s.priorita,
+        creatoDaUserId: s.amministratore.userId,
+        immobileId: s.immobile.id,
+        destinatari: {
+          create: [
+            { userId: s.amministratore.userId, letto: true, dataLettura: new Date() },
+            { userId: proprietario.userId, letto: false },
+            ...(inquilinoAttivo ? [{ userId: inquilinoAttivo.userId, letto: false }] : []),
+          ],
+        },
       },
-      {
-        condominioId: condominio1.id,
-        amministratoreId: amministratore1.id,
-        titolo: "Ascensore fuori servizio",
-        descrizione: "L'ascensore principale è bloccato al piano terra, necessario intervento tecnico.",
-        stato: StatoSegnalazione.APERTA,
-        priorita: "ALTA",
-      },
-      {
-        condominioId: condominio2.id,
-        amministratoreId: amministratore1.id,
-        titolo: "Manutenzione giardino condominiale",
-        descrizione: "Il giardino condominiale necessita di potatura e manutenzione ordinaria.",
-        stato: StatoSegnalazione.APERTA,
-        priorita: "BASSA",
-      },
-      {
-        condominioId: condominio3.id,
-        amministratoreId: amministratore2.id,
-        titolo: "Sostituzione lampade scale",
-        descrizione: "Diverse lampade delle scale condominiali sono fulminate e vanno sostituite.",
-        stato: StatoSegnalazione.RISOLTA,
-        priorita: "MEDIA",
-      },
-      {
-        condominioId: condominio3.id,
-        amministratoreId: amministratore2.id,
-        titolo: "Rumori molesti impianto idrico",
-        descrizione: "Alcuni condomini segnalano rumori anomali provenienti dall'impianto idrico centrale.",
-        stato: StatoSegnalazione.IN_LAVORAZIONE,
-        priorita: "MEDIA",
-      },
-    ],
-  });
+    });
+  }
 
   console.log("Seed completato con successo.");
 }

@@ -13,13 +13,14 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/agenzia": LayoutDashboard,
   "/agenzia/immobili": Building2,
   "/agenzia/contratti": FileText,
+  "/agenzia/segnalazioni": MessageSquareWarning,
   "/amministratore": LayoutDashboard,
   "/amministratore/condomini": Building2,
   "/amministratore/segnalazioni": MessageSquareWarning,
   "/proprietario": LayoutDashboard,
   "/proprietario/segnalazioni": MessageSquareWarning,
   "/inquilino": LayoutDashboard,
-  "/inquilino/ticket": MessageSquareWarning,
+  "/inquilino/segnalazioni": MessageSquareWarning,
 };
 
 export function getNavIcon(href: string): LucideIcon {

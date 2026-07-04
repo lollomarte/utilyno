@@ -2,22 +2,28 @@ import Link from "next/link";
 import { Building2, Home, MessageSquareWarning } from "lucide-react";
 import { requireAmministratore } from "@/lib/auth-helpers";
 import { getAmministratoreDashboardStats, getCondominiForAmministratore } from "@/lib/data/amministratore";
+import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
+import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 
 export default async function AmministratoreDashboardPage() {
-  const { amministratore } = await requireAmministratore();
-  const [stats, condomini] = await Promise.all([
-    getAmministratoreDashboardStats(amministratore.id),
+  const { session, amministratore } = await requireAmministratore();
+  const [stats, condomini, nonLette] = await Promise.all([
+    getAmministratoreDashboardStats(amministratore.id, session.user.id),
     getCondominiForAmministratore(amministratore.id),
+    getSegnalazioniNonLette(session.user.id),
   ]);
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">{amministratore.ragioneSociale}</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
+          <p className="mt-1 text-sm text-slate-500">{amministratore.ragioneSociale}</p>
+        </div>
+        <SegnalazioniNonLetteBadge count={nonLette} href="/amministratore/segnalazioni" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

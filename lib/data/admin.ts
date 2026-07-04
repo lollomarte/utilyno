@@ -75,10 +75,21 @@ export async function getAmministratoriConPortfolio() {
   const amministratori = await prisma.amministratore.findMany({
     include: {
       user: true,
-      condomini: { select: { numeroUnita: true, _count: { select: { segnalazioni: true } } } },
+      condomini: { select: { id: true, numeroUnita: true } },
     },
     orderBy: { ragioneSociale: "asc" },
   });
+
+  const segnalazioni = await prisma.segnalazione.findMany({
+    where: { immobile: { condominioId: { not: null } } },
+    select: { immobile: { select: { condominioId: true } } },
+  });
+  const conteggioPerCondominio = new Map<string, number>();
+  for (const s of segnalazioni) {
+    const cid = s.immobile.condominioId;
+    if (!cid) continue;
+    conteggioPerCondominio.set(cid, (conteggioPerCondominio.get(cid) ?? 0) + 1);
+  }
 
   return amministratori.map((a) => ({
     id: a.id,
@@ -87,6 +98,6 @@ export async function getAmministratoriConPortfolio() {
     email: a.user.email,
     numeroCondomini: a.condomini.length,
     unitaTotali: a.condomini.reduce((sum, c) => sum + c.numeroUnita, 0),
-    segnalazioniTotali: a.condomini.reduce((sum, c) => sum + c._count.segnalazioni, 0),
+    segnalazioniTotali: a.condomini.reduce((sum, c) => sum + (conteggioPerCondominio.get(c.id) ?? 0), 0),
   }));
 }

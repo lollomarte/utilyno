@@ -7,21 +7,24 @@ import {
   getAndamentoIncassiAgenzia,
   getDistribuzionePagamentiAgenzia,
 } from "@/lib/data/agenzia";
+import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { StatCard, type StatTrend } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { IncassiChart } from "@/components/charts/incassi-chart";
 import { PagamentiDonut } from "@/components/charts/pagamenti-donut";
+import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default async function AgenziaDashboardPage() {
-  const { agenzia } = await requireAgenzia();
-  const [stats, contrattiInScadenza, leadReListing, andamentoIncassi, distribuzionePagamenti] = await Promise.all([
+  const { session, agenzia } = await requireAgenzia();
+  const [stats, contrattiInScadenza, leadReListing, andamentoIncassi, distribuzionePagamenti, nonLette] = await Promise.all([
     getAgenziaDashboardStats(agenzia.id),
     getContrattiInScadenza(agenzia.id, 60),
     getContrattiInScadenza(agenzia.id, 90),
     getAndamentoIncassiAgenzia(agenzia.id),
     getDistribuzionePagamentiAgenzia(agenzia.id),
+    getSegnalazioniNonLette(session.user.id),
   ]);
 
   const meseCorrente = andamentoIncassi[andamentoIncassi.length - 1]?.importo ?? 0;
@@ -36,9 +39,12 @@ export default async function AgenziaDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">{agenzia.ragioneSociale}</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
+          <p className="mt-1 text-sm text-slate-500">{agenzia.ragioneSociale}</p>
+        </div>
+        <SegnalazioniNonLetteBadge count={nonLette} href="/agenzia/segnalazioni" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

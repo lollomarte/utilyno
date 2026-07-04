@@ -9,8 +9,10 @@ import {
   getDocumentiPerProprietario,
   getAndamentoIncassiProprietario,
 } from "@/lib/data/proprietario";
+import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
 import { AssicurazioneCta } from "@/components/proprietario/assicurazione-cta";
+import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
@@ -35,12 +37,13 @@ function countdown(data: Date) {
 
 export default async function ProprietarioDashboardPage() {
   const { session, proprietario } = await requireProprietario();
-  const [immobili, stats, comunicazioni, documenti, andamentoIncassi] = await Promise.all([
+  const [immobili, stats, comunicazioni, documenti, andamentoIncassi, nonLette] = await Promise.all([
     getImmobiliForProprietario(proprietario.id),
     getProprietarioDashboardStats(proprietario.id),
     getComunicazioniPerProprietario(proprietario.id, session.user.id),
     getDocumentiPerProprietario(proprietario.id),
     getAndamentoIncassiProprietario(proprietario.id),
+    getSegnalazioniNonLette(session.user.id),
   ]);
 
   const rendimenti = immobili.map((immobile) => {
@@ -83,9 +86,12 @@ export default async function ProprietarioDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">Panoramica del tuo portfolio immobiliare</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
+          <p className="mt-1 text-sm text-slate-500">Panoramica del tuo portfolio immobiliare</p>
+        </div>
+        <SegnalazioniNonLetteBadge count={nonLette} href="/proprietario/segnalazioni" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

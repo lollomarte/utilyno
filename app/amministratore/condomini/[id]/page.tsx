@@ -1,12 +1,11 @@
 import { notFound } from "next/navigation";
 import { requireAmministratore } from "@/lib/auth-helpers";
-import { getCondominioDetail, getComunicazioniForCondominio } from "@/lib/data/amministratore";
+import { getCondominioDetail, getComunicazioniForCondominio, getSegnalazioniPerCondominio } from "@/lib/data/amministratore";
 import { NuovaComunicazioneForm } from "@/components/amministratore/nuova-comunicazione-form";
+import { SegnalazioniTable } from "@/components/segnalazioni/segnalazioni-table";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { StatoSegnalazioneBadge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
-import { STATO_SEGNALAZIONE_LABELS } from "@/lib/labels";
 
 export default async function CondominioDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -17,7 +16,10 @@ export default async function CondominioDetailPage({ params }: { params: Promise
     notFound();
   }
 
-  const comunicazioni = await getComunicazioniForCondominio(id, amministratore.id);
+  const [comunicazioni, segnalazioni] = await Promise.all([
+    getComunicazioniForCondominio(id, amministratore.id),
+    getSegnalazioniPerCondominio(id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -71,47 +73,14 @@ export default async function CondominioDetailPage({ params }: { params: Promise
         )}
       </Card>
 
-      <Card>
-        <CardHeader title="Segnalazioni condominiali" />
-        {condominio.segnalazioni.length === 0 ? (
+      <Card className="p-0">
+        <div className="p-6 pb-0">
+          <CardHeader title="Segnalazioni condominiali" />
+        </div>
+        {segnalazioni.length === 0 ? (
           <EmptyState message="Nessuna segnalazione per questo condominio." />
         ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Titolo</TableHeaderCell>
-                <TableHeaderCell>Unità</TableHeaderCell>
-                <TableHeaderCell>Destinatari</TableHeaderCell>
-                <TableHeaderCell>Data</TableHeaderCell>
-                <TableHeaderCell>Priorità</TableHeaderCell>
-                <TableHeaderCell>Stato</TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {condominio.segnalazioni.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell>{s.titolo}</TableCell>
-                  <TableCell>{s.immobile?.indirizzo ?? "Generale"}</TableCell>
-                  <TableCell>
-                    {!s.immobileId
-                      ? "-"
-                      : s.notificaInquilino && s.notificaProprietario
-                        ? "Inquilino + Proprietario"
-                        : s.notificaInquilino
-                          ? "Inquilino"
-                          : s.notificaProprietario
-                            ? "Proprietario"
-                            : "-"}
-                  </TableCell>
-                  <TableCell>{formatDate(s.createdAt)}</TableCell>
-                  <TableCell>{s.priorita}</TableCell>
-                  <TableCell>
-                    <StatoSegnalazioneBadge stato={s.stato} label={STATO_SEGNALAZIONE_LABELS[s.stato]} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <SegnalazioniTable segnalazioni={segnalazioni} basePath="/amministratore/segnalazioni" />
         )}
       </Card>
 

@@ -4,7 +4,7 @@ import type { NavItem } from "@/components/layout/sidebar";
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/inquilino", label: "Dashboard" },
-  { href: "/inquilino/ticket", label: "Segnalazioni" },
+  { href: "/inquilino/segnalazioni", label: "Segnalazioni" },
 ];
 
 export default async function InquilinoLayout({ children }: { children: React.ReactNode }) {

@@ -1,17 +1,14 @@
 import { Euro, CalendarClock, FileClock } from "lucide-react";
 import { requireInquilino } from "@/lib/auth-helpers";
-import {
-  getContrattoAttivoForInquilino,
-  getUtenzeForImmobile,
-  getSegnalazioniPerInquilino,
-  getComunicazioniPerInquilino,
-} from "@/lib/data/inquilino";
+import { getContrattoAttivoForInquilino, getUtenzeForImmobile, getComunicazioniPerInquilino } from "@/lib/data/inquilino";
+import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
 import { ChecklistItem } from "@/components/inquilino/checklist-item";
+import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { StatoPagamentoBadge, StatoUtenzaBadge, StatoDepositoBadge, StatoSegnalazioneBadge } from "@/components/ui/badge";
+import { StatoPagamentoBadge, StatoUtenzaBadge, StatoDepositoBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   TIPO_CONTRATTO_LABELS,
@@ -20,7 +17,6 @@ import {
   TIPO_UTENZA_LABELS,
   STATO_UTENZA_LABELS,
   STATO_DEPOSITO_LABELS,
-  STATO_SEGNALAZIONE_LABELS,
 } from "@/lib/labels";
 
 export default async function InquilinoDashboardPage() {
@@ -35,10 +31,10 @@ export default async function InquilinoDashboardPage() {
     );
   }
 
-  const [utenze, segnalazioni, comunicazioni] = await Promise.all([
+  const [utenze, comunicazioni, nonLette] = await Promise.all([
     getUtenzeForImmobile(contratto.immobileId),
-    getSegnalazioniPerInquilino(contratto.immobileId),
     getComunicazioniPerInquilino(contratto.immobile.condominioId, session.user.id),
+    getSegnalazioniNonLette(session.user.id),
   ]);
   const prossimaScadenza = contratto.pagamenti
     .filter((p) => p.stato === "PROGRAMMATO" || p.stato === "IN_RITARDO")
@@ -46,11 +42,14 @@ export default async function InquilinoDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900">Il tuo contratto</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {contratto.immobile.indirizzo}, {contratto.immobile.comune}
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">Il tuo contratto</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {contratto.immobile.indirizzo}, {contratto.immobile.comune}
+          </p>
+        </div>
+        <SegnalazioniNonLetteBadge count={nonLette} href="/inquilino/segnalazioni" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -191,25 +190,6 @@ export default async function InquilinoDashboardPage() {
         )}
       </Card>
 
-      <Card>
-        <CardHeader title="Segnalazioni ricevute" description="Segnalazioni condominiali relative alla tua unità" />
-        {segnalazioni.length === 0 ? (
-          <EmptyState message="Nessuna segnalazione ricevuta." />
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            {segnalazioni.map((s) => (
-              <li key={s.id} className="py-3">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm font-medium text-slate-900">{s.titolo}</span>
-                  <StatoSegnalazioneBadge stato={s.stato} label={STATO_SEGNALAZIONE_LABELS[s.stato]} />
-                </div>
-                <p className="mt-1 text-sm text-slate-500">{s.descrizione}</p>
-                <p className="mt-1 text-xs text-slate-400">{formatDate(s.createdAt)}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
     </div>
   );
 }

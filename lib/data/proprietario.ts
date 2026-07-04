@@ -72,14 +72,6 @@ export async function getComunicazioniPerProprietario(proprietarioId: string, us
   });
 }
 
-export async function getSegnalazioniPerProprietario(proprietarioId: string) {
-  return prisma.segnalazioneCondominiale.findMany({
-    where: { notificaProprietario: true, immobile: { proprietarioId } },
-    include: { immobile: true },
-    orderBy: { createdAt: "desc" },
-  });
-}
-
 /** Totale incassato (pagamenti PAGATO) mese per mese, ultimi 6 mesi incluso quello corrente. */
 export async function getAndamentoIncassiProprietario(proprietarioId: string) {
   const now = new Date();
@@ -112,7 +104,10 @@ export async function getImmobileDetailForProprietario(immobileId: string, propr
         orderBy: { createdAt: "desc" },
       },
       assicurazioni: { orderBy: { dataScadenza: "asc" } },
-      ticket: { orderBy: { createdAt: "desc" } },
+      segnalazioni: {
+        include: { creatoDa: true, _count: { select: { risposte: true } } },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }
