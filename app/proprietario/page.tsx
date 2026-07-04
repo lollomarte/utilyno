@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { addYears, differenceInCalendarDays } from "date-fns";
+import { Building2, Euro, Users, TrendingUp } from "lucide-react";
 import { requireProprietario } from "@/lib/auth-helpers";
 import {
   getImmobiliForProprietario,
@@ -7,6 +8,7 @@ import {
   getSegnalazioniPerProprietario,
   getComunicazioniPerProprietario,
   getDocumentiPerProprietario,
+  getAndamentoIncassiProprietario,
 } from "@/lib/data/proprietario";
 import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
 import { AssicurazioneCta } from "@/components/proprietario/assicurazione-cta";
@@ -14,6 +16,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { Badge, StatoSegnalazioneBadge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
+import { IncassiChart } from "@/components/charts/incassi-chart";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import { TIPO_IMMOBILE_LABELS, STATO_SEGNALAZIONE_LABELS, STATO_DEPOSITO_LABELS, STATO_ASSICURAZIONE_LABELS } from "@/lib/labels";
 
@@ -33,12 +36,13 @@ function countdown(data: Date) {
 
 export default async function ProprietarioDashboardPage() {
   const { session, proprietario } = await requireProprietario();
-  const [immobili, stats, segnalazioni, comunicazioni, documenti] = await Promise.all([
+  const [immobili, stats, segnalazioni, comunicazioni, documenti, andamentoIncassi] = await Promise.all([
     getImmobiliForProprietario(proprietario.id),
     getProprietarioDashboardStats(proprietario.id),
     getSegnalazioniPerProprietario(proprietario.id),
     getComunicazioniPerProprietario(proprietario.id, session.user.id),
     getDocumentiPerProprietario(proprietario.id),
+    getAndamentoIncassiProprietario(proprietario.id),
   ]);
 
   const rendimenti = immobili.map((immobile) => {
@@ -87,19 +91,26 @@ export default async function ProprietarioDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Immobili" value={String(stats.numeroImmobili)} />
-        <StatCard label="Canone medio" value={formatCurrency(stats.canoneMedio)} />
+        <StatCard label="Immobili" value={String(stats.numeroImmobili)} icon={Building2} />
+        <StatCard label="Canone medio" value={formatCurrency(stats.canoneMedio)} icon={Euro} />
         <StatCard
           label="Occupazione"
           value={`${stats.immobiliOccupati}/${stats.numeroImmobili}`}
           hint="Immobili con contratto attivo"
+          icon={Users}
         />
         <StatCard
           label="Yield lordo medio"
           value={yieldMedioPortafoglio !== null ? `${(yieldMedioPortafoglio * 100).toFixed(2)}%` : "-"}
           hint="Canone annuo / valore stimato"
+          icon={TrendingUp}
         />
       </div>
+
+      <Card>
+        <CardHeader title="Andamento incassi" description="Ultimi 6 mesi, tutti gli immobili" />
+        <IncassiChart data={andamentoIncassi} />
+      </Card>
 
       <Card>
         <CardHeader title="I tuoi immobili" description="Rendimento lordo calcolato su canone annuo e valore stimato" />

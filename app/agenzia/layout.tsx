@@ -1,7 +1,8 @@
 import { requireAgenzia } from "@/lib/auth-helpers";
 import { PortalShell } from "@/components/layout/portal-shell";
+import type { NavItem } from "@/components/layout/sidebar";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: NavItem[] = [
   { href: "/agenzia", label: "Dashboard" },
   { href: "/agenzia/immobili", label: "Immobili" },
   { href: "/agenzia/contratti", label: "Contratti" },

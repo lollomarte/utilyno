@@ -23,6 +23,20 @@ export async function getAdminDashboardStats() {
   };
 }
 
+export async function getDistribuzionePagamenti() {
+  const [pagato, inRitardo, insoluto] = await Promise.all([
+    prisma.pagamento.count({ where: { stato: "PAGATO" } }),
+    prisma.pagamento.count({ where: { stato: "IN_RITARDO" } }),
+    prisma.pagamento.count({ where: { stato: "INSOLUTO" } }),
+  ]);
+
+  return [
+    { name: "Pagato", value: pagato },
+    { name: "In ritardo", value: inRitardo },
+    { name: "Insoluto", value: insoluto },
+  ];
+}
+
 export async function getAgenziaDetailForAdmin(agenziaId: string) {
   return prisma.agenzia.findUnique({
     where: { id: agenziaId },

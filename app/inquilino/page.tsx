@@ -1,3 +1,4 @@
+import { Euro, CalendarClock, FileClock } from "lucide-react";
 import { requireInquilino } from "@/lib/auth-helpers";
 import {
   getContrattoAttivoForInquilino,
@@ -53,14 +54,15 @@ export default async function InquilinoDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Canone mensile" value={formatCurrency(contratto.canoneMensile)} />
+        <StatCard label="Canone mensile" value={formatCurrency(contratto.canoneMensile)} icon={Euro} />
         <StatCard
           label="Prossima scadenza"
           value={prossimaScadenza ? formatDate(prossimaScadenza.dataScadenza) : "-"}
           tone={prossimaScadenza?.stato === "IN_RITARDO" ? "danger" : "default"}
           hint={prossimaScadenza ? formatCurrency(prossimaScadenza.importo) : undefined}
+          icon={CalendarClock}
         />
-        <StatCard label="Scadenza contratto" value={formatDate(contratto.dataFine)} />
+        <StatCard label="Scadenza contratto" value={formatDate(contratto.dataFine)} icon={FileClock} />
       </div>
 
       <Card>

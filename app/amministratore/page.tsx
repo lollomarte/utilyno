@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Building2, Home, MessageSquareWarning } from "lucide-react";
 import { requireAmministratore } from "@/lib/auth-helpers";
 import { getAmministratoreDashboardStats, getCondominiForAmministratore } from "@/lib/data/amministratore";
 import { StatCard } from "@/components/ui/stat-card";
@@ -20,12 +21,13 @@ export default async function AmministratoreDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Condomini gestiti" value={String(stats.numeroCondomini)} />
-        <StatCard label="Unità totali" value={String(stats.unitaTotali)} />
+        <StatCard label="Condomini gestiti" value={String(stats.numeroCondomini)} icon={Building2} />
+        <StatCard label="Unità totali" value={String(stats.unitaTotali)} icon={Home} />
         <StatCard
           label="Segnalazioni aperte"
           value={String(stats.segnalazioniAperte)}
           tone={stats.segnalazioniAperte > 0 ? "warning" : "default"}
+          icon={MessageSquareWarning}
         />
       </div>
 

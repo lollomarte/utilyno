@@ -1,7 +1,8 @@
 import { requireInquilino } from "@/lib/auth-helpers";
 import { PortalShell } from "@/components/layout/portal-shell";
+import type { NavItem } from "@/components/layout/sidebar";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: NavItem[] = [
   { href: "/inquilino", label: "Dashboard" },
   { href: "/inquilino/ticket", label: "Segnalazioni" },
 ];

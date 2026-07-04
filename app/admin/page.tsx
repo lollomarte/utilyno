@@ -1,15 +1,18 @@
 import Link from "next/link";
-import { getAdminDashboardStats, getAgenzieConPortfolio, getAmministratoriConPortfolio } from "@/lib/data/admin";
+import { Building2, Users, FileText, AlertTriangle, Euro, PiggyBank } from "lucide-react";
+import { getAdminDashboardStats, getAgenzieConPortfolio, getAmministratoriConPortfolio, getDistribuzionePagamenti } from "@/lib/data/admin";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
+import { PagamentiDonut } from "@/components/charts/pagamenti-donut";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function AdminDashboardPage() {
-  const [stats, agenzie, amministratori] = await Promise.all([
+  const [stats, agenzie, amministratori, distribuzionePagamenti] = await Promise.all([
     getAdminDashboardStats(),
     getAgenzieConPortfolio(),
     getAmministratoriConPortfolio(),
+    getDistribuzionePagamenti(),
   ]);
 
   return (
@@ -20,17 +23,38 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Agenzie" value={String(stats.numeroAgenzie)} />
-        <StatCard label="Amministratori di condominio" value={String(stats.numeroAmministratori)} />
-        <StatCard label="Contratti totali" value={String(stats.numeroContratti)} hint={`${stats.contrattiAttivi} attivi`} />
+        <StatCard label="Agenzie" value={String(stats.numeroAgenzie)} icon={Building2} />
+        <StatCard label="Amministratori di condominio" value={String(stats.numeroAmministratori)} icon={Users} />
+        <StatCard
+          label="Contratti totali"
+          value={String(stats.numeroContratti)}
+          hint={`${stats.contrattiAttivi} attivi`}
+          icon={FileText}
+        />
         <StatCard
           label="Pagamenti in ritardo"
           value={String(stats.pagamentiInRitardo)}
           tone={stats.pagamentiInRitardo > 0 ? "danger" : "default"}
+          icon={AlertTriangle}
         />
-        <StatCard label="Volume transitato stimato" value={formatCurrency(stats.volumeIncassato)} hint="Totale storico incassato" />
-        <StatCard label="Pool depositi totale" value={formatCurrency(stats.poolDepositiTotale)} hint="Depositi cauzionali versati" />
+        <StatCard
+          label="Volume transitato stimato"
+          value={formatCurrency(stats.volumeIncassato)}
+          hint="Totale storico incassato"
+          icon={Euro}
+        />
+        <StatCard
+          label="Pool depositi totale"
+          value={formatCurrency(stats.poolDepositiTotale)}
+          hint="Depositi cauzionali versati"
+          icon={PiggyBank}
+        />
       </div>
+
+      <Card>
+        <CardHeader title="Distribuzione stato pagamenti" description="Tutti i contratti della piattaforma" />
+        <PagamentiDonut data={distribuzionePagamenti} />
+      </Card>
 
       <Card>
         <CardHeader title="Agenzie e relativo portfolio" />

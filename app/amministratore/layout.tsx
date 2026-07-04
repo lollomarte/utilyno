@@ -1,7 +1,8 @@
 import { requireAmministratore } from "@/lib/auth-helpers";
 import { PortalShell } from "@/components/layout/portal-shell";
+import type { NavItem } from "@/components/layout/sidebar";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: NavItem[] = [
   { href: "/amministratore", label: "Dashboard" },
   { href: "/amministratore/condomini", label: "Condomini" },
   { href: "/amministratore/segnalazioni", label: "Segnalazioni" },

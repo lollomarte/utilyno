@@ -1,4 +1,5 @@
-import { addDays } from "date-fns";
+import { addDays, startOfMonth, endOfMonth, subMonths, format } from "date-fns";
+import { it } from "date-fns/locale";
 import { prisma } from "@/lib/prisma";
 
 export async function getImmobiliForProprietario(proprietarioId: string) {
@@ -77,6 +78,26 @@ export async function getSegnalazioniPerProprietario(proprietarioId: string) {
     include: { immobile: true },
     orderBy: { createdAt: "desc" },
   });
+}
+
+/** Totale incassato (pagamenti PAGATO) mese per mese, ultimi 6 mesi incluso quello corrente. */
+export async function getAndamentoIncassiProprietario(proprietarioId: string) {
+  const now = new Date();
+  const mesi = Array.from({ length: 6 }, (_, i) => subMonths(now, 5 - i));
+
+  return Promise.all(
+    mesi.map(async (mese) => {
+      const agg = await prisma.pagamento.aggregate({
+        _sum: { importo: true },
+        where: {
+          stato: "PAGATO",
+          dataPagamento: { gte: startOfMonth(mese), lte: endOfMonth(mese) },
+          contratto: { immobile: { proprietarioId } },
+        },
+      });
+      return { mese: format(mese, "MMM", { locale: it }), importo: agg._sum.importo ?? 0 };
+    })
+  );
 }
 
 export async function getImmobileDetailForProprietario(immobileId: string, proprietarioId: string) {

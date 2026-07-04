@@ -1,7 +1,8 @@
 import { requireAdmin } from "@/lib/auth-helpers";
 import { PortalShell } from "@/components/layout/portal-shell";
+import type { NavItem } from "@/components/layout/sidebar";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/agenzie", label: "Agenzie" },
 ];

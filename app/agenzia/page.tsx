@@ -1,16 +1,38 @@
 import Link from "next/link";
+import { FileText, Euro, CalendarClock, AlertTriangle } from "lucide-react";
 import { requireAgenzia } from "@/lib/auth-helpers";
-import { getAgenziaDashboardStats, getContrattiInScadenza } from "@/lib/data/agenzia";
-import { StatCard } from "@/components/ui/stat-card";
+import {
+  getAgenziaDashboardStats,
+  getContrattiInScadenza,
+  getAndamentoIncassiAgenzia,
+  getDistribuzionePagamentiAgenzia,
+} from "@/lib/data/agenzia";
+import { StatCard, type StatTrend } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
+import { IncassiChart } from "@/components/charts/incassi-chart";
+import { PagamentiDonut } from "@/components/charts/pagamenti-donut";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default async function AgenziaDashboardPage() {
   const { agenzia } = await requireAgenzia();
-  const stats = await getAgenziaDashboardStats(agenzia.id);
-  const contrattiInScadenza = await getContrattiInScadenza(agenzia.id, 60);
-  const leadReListing = await getContrattiInScadenza(agenzia.id, 90);
+  const [stats, contrattiInScadenza, leadReListing, andamentoIncassi, distribuzionePagamenti] = await Promise.all([
+    getAgenziaDashboardStats(agenzia.id),
+    getContrattiInScadenza(agenzia.id, 60),
+    getContrattiInScadenza(agenzia.id, 90),
+    getAndamentoIncassiAgenzia(agenzia.id),
+    getDistribuzionePagamentiAgenzia(agenzia.id),
+  ]);
+
+  const meseCorrente = andamentoIncassi[andamentoIncassi.length - 1]?.importo ?? 0;
+  const mesePrecedente = andamentoIncassi[andamentoIncassi.length - 2]?.importo ?? 0;
+  const trendIncassi: StatTrend | undefined =
+    mesePrecedente > 0
+      ? {
+          value: `${Math.abs(Math.round(((meseCorrente - mesePrecedente) / mesePrecedente) * 100))}% vs mese scorso`,
+          direction: meseCorrente >= mesePrecedente ? "up" : "down",
+        }
+      : undefined;
 
   return (
     <div className="space-y-8">
@@ -20,18 +42,36 @@ export default async function AgenziaDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Contratti attivi" value={String(stats.contrattiAttivi)} />
-        <StatCard label="Canoni incassati questo mese" value={formatCurrency(stats.canoniIncassatiMese)} />
+        <StatCard label="Contratti attivi" value={String(stats.contrattiAttivi)} icon={FileText} />
+        <StatCard
+          label="Canoni incassati questo mese"
+          value={formatCurrency(stats.canoniIncassatiMese)}
+          icon={Euro}
+          trend={trendIncassi}
+        />
         <StatCard
           label="In scadenza nei prossimi 60gg"
           value={String(stats.contrattiInScadenza)}
           tone={stats.contrattiInScadenza > 0 ? "warning" : "default"}
+          icon={CalendarClock}
         />
         <StatCard
           label="Pagamenti in ritardo"
           value={String(stats.pagamentiInRitardo)}
           tone={stats.pagamentiInRitardo > 0 ? "danger" : "default"}
+          icon={AlertTriangle}
         />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader title="Andamento incassi" description="Ultimi 6 mesi" />
+          <IncassiChart data={andamentoIncassi} />
+        </Card>
+        <Card>
+          <CardHeader title="Distribuzione stato pagamenti" description="Tutti i contratti dell'agenzia" />
+          <PagamentiDonut data={distribuzionePagamenti} />
+        </Card>
       </div>
 
       <Card>
