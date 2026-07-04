@@ -142,7 +142,7 @@ export function NuovoContrattoWizard({
             <span
               className={cn(
                 "flex h-6 w-6 items-center justify-center rounded-full text-xs",
-                index === step ? "bg-slate-900 text-white" : "bg-slate-200 text-slate-500"
+                index === step ? "bg-primary text-white" : "bg-slate-200 text-slate-500"
               )}
             >
               {index + 1}

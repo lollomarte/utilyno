@@ -19,7 +19,7 @@ export default async function NonAutorizzatoPage() {
           </p>
           <Link
             href={portalHref}
-            className="inline-flex items-center justify-center rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            className="touch-target inline-flex items-center justify-center rounded-control bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
           >
             Torna al tuo portale
           </Link>
