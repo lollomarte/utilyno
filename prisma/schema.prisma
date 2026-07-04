@@ -402,6 +402,8 @@ model Partner {
   createdAt         DateTime            @default(now())
 
   richiestePreventivo RichiestaPreventivo[]
+
+  @@index([categoria, attivo])
 }
 
 model RichiestaPreventivo {
@@ -421,6 +423,7 @@ model RichiestaPreventivo {
 
   @@index([partnerId])
   @@index([richiedenteUserId])
+  @@index([stato])
 }
 
 model ComunicazioneCondominiale {
@@ -478,4 +481,7 @@ model Documento {
   url        String
   tipo       String
   uploadedAt DateTime @default(now())
+
+  @@index([contrattoId])
+  @@index([immobileId])
 }
