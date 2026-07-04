@@ -11,7 +11,7 @@ import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { PagamentiDonut } from "@/components/charts/pagamenti-donut";
+import { PagamentiDonut } from "@/components/charts/pagamenti-donut-dynamic";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function AdminDashboardPage() {

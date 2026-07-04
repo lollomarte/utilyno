@@ -21,7 +21,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { Badge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
-import { IncassiChart } from "@/components/charts/incassi-chart";
+import { IncassiChart } from "@/components/charts/incassi-chart-dynamic";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import { TIPO_IMMOBILE_LABELS, STATO_DEPOSITO_LABELS, STATO_ASSICURAZIONE_LABELS } from "@/lib/labels";
 
