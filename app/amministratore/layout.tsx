@@ -6,6 +6,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/amministratore", label: "Dashboard" },
   { href: "/amministratore/condomini", label: "Condomini" },
   { href: "/amministratore/segnalazioni", label: "Segnalazioni" },
+  { href: "/amministratore/comunicazioni", label: "Comunicazioni" },
 ];
 
 export default async function AmministratoreLayout({ children }: { children: React.ReactNode }) {

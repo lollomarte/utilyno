@@ -1,4 +1,18 @@
-import { LayoutDashboard, Building2, FileText, MessageSquareWarning, UserRound, Handshake } from "lucide-react";
+import {
+  LayoutDashboard,
+  Building2,
+  FileText,
+  MessageSquareWarning,
+  UserRound,
+  Handshake,
+  Users,
+  PiggyBank,
+  Megaphone,
+  Wallet,
+  FileStack,
+  Zap,
+  ClipboardCheck,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 /**
@@ -10,6 +24,9 @@ import type { LucideIcon } from "lucide-react";
 const NAV_ICONS: Record<string, LucideIcon> = {
   "/admin": LayoutDashboard,
   "/admin/agenzie": Building2,
+  "/admin/amministratori": Users,
+  "/admin/contratti": FileText,
+  "/admin/depositi": PiggyBank,
   "/admin/lead": Handshake,
   "/agenzia": LayoutDashboard,
   "/agenzia/immobili": Building2,
@@ -18,10 +35,19 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/amministratore": LayoutDashboard,
   "/amministratore/condomini": Building2,
   "/amministratore/segnalazioni": MessageSquareWarning,
+  "/amministratore/comunicazioni": Megaphone,
   "/proprietario": LayoutDashboard,
+  "/proprietario/immobili": Building2,
+  "/proprietario/contratti": FileText,
+  "/proprietario/pagamenti": Wallet,
   "/proprietario/segnalazioni": MessageSquareWarning,
+  "/proprietario/documenti": FileStack,
   "/inquilino": LayoutDashboard,
+  "/inquilino/contratto": FileText,
+  "/inquilino/pagamenti": Wallet,
+  "/inquilino/utenze": Zap,
   "/inquilino/segnalazioni": MessageSquareWarning,
+  "/inquilino/checklist": ClipboardCheck,
 };
 
 export function getNavIcon(href: string): LucideIcon {

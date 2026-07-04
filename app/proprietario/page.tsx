@@ -16,14 +16,12 @@ import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
 import { AssicurazioneCta } from "@/components/proprietario/assicurazione-cta";
 import { PagamentiInRitardoList } from "@/components/pagamenti/pagamenti-in-ritardo-list";
-import { GestisciRestituzioneDepositoButton } from "@/components/depositi/gestisci-restituzione-deposito-button";
 import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { Badge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
 import { IncassiChart } from "@/components/charts/incassi-chart";
-import { calcolaInteressiLegali } from "@/lib/depositi/calcolaInteressiLegali";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import { TIPO_IMMOBILE_LABELS, STATO_DEPOSITO_LABELS, STATO_ASSICURAZIONE_LABELS } from "@/lib/labels";
 
@@ -123,7 +121,7 @@ export default async function ProprietarioDashboardPage() {
 
       <PagamentiInRitardoList
         description="Canoni scaduti non ancora saldati sui tuoi immobili"
-        righe={pagamentiInRitardo.map((p) => ({
+        righe={pagamentiInRitardo.slice(0, 5).map((p) => ({
           id: p.id,
           importo: p.importo,
           dataScadenza: p.dataScadenza,
@@ -138,8 +136,13 @@ export default async function ProprietarioDashboardPage() {
         <IncassiChart data={andamentoIncassi} />
       </Card>
 
-      <Card>
-        <CardHeader title="I tuoi immobili" description="Rendimento lordo calcolato su canone annuo e valore stimato" />
+      <Card className="p-0">
+        <div className="flex items-center justify-between p-6 pb-0">
+          <CardHeader title="I tuoi immobili" description="Anteprima — i primi 3, per rendimento lordo" />
+          <Link href="/proprietario/immobili" className="whitespace-nowrap text-sm font-medium text-primary hover:underline">
+            Vedi tutto
+          </Link>
+        </div>
         {immobili.length === 0 ? (
           <EmptyState message="Nessun immobile associato." />
         ) : (
@@ -154,7 +157,7 @@ export default async function ProprietarioDashboardPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rendimenti.map(({ immobile, yieldLordo }) => (
+              {rendimenti.slice(0, 3).map(({ immobile, yieldLordo }) => (
                 <TableRow key={immobile.id}>
                   <TableCell>
                     <Link href={`/proprietario/immobili/${immobile.id}`} className="font-medium text-slate-900 hover:underline">
@@ -178,67 +181,26 @@ export default async function ProprietarioDashboardPage() {
         )}
       </Card>
 
-      <Card>
-        <CardHeader title="Depositi cauzionali" description="Stato del deposito per ogni contratto attivo" />
-        {contrattiAttivi.length === 0 ? (
-          <EmptyState message="Nessun contratto attivo." />
-        ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Immobile</TableHeaderCell>
-                <TableHeaderCell>Importo</TableHeaderCell>
-                <TableHeaderCell>Stato</TableHeaderCell>
-                <TableHeaderCell>Interessi legali maturati</TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {contrattiAttivi.map((contratto) => (
-                <TableRow key={contratto.id}>
-                  <TableCell>
-                    {contratto.immobile.indirizzo}, {contratto.immobile.comune}
-                  </TableCell>
-                  <TableCell>{formatCurrency(contratto.depositoImporto)}</TableCell>
-                  <TableCell>
-                    <StatoDepositoBadge stato={contratto.depositoStato} label={STATO_DEPOSITO_LABELS[contratto.depositoStato]} />
-                  </TableCell>
-                  <TableCell>{formatCurrency(contratto.interessiLegaliMaturati)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
-
-      <Card>
-        <CardHeader
-          title="Depositi da restituire"
-          description="Contratti conclusi con deposito ancora da restituire all'inquilino"
-        />
+      <Card className="p-0">
+        <div className="flex items-center justify-between p-6 pb-0">
+          <CardHeader title="Depositi da restituire" description="Anteprima — contratti conclusi con deposito ancora da restituire" />
+          <Link href="/proprietario/pagamenti" className="whitespace-nowrap text-sm font-medium text-primary hover:underline">
+            Vedi tutto
+          </Link>
+        </div>
         {depositiDaRestituire.length === 0 ? (
           <EmptyState message="Nessun deposito in attesa di restituzione." />
         ) : (
-          <ul className="divide-y divide-slate-100">
-            {depositiDaRestituire.map((contratto) => (
-              <li key={contratto.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-900">
-                    {contratto.immobile.indirizzo}, {contratto.immobile.comune}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-500">
-                    {contratto.inquilino.user.nome} {contratto.inquilino.user.cognome} &middot; contratto concluso il{" "}
-                    {formatDate(contratto.dataFine)}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Deposito {formatCurrency(contratto.depositoImporto)} &middot;{" "}
-                    <StatoDepositoBadge stato={contratto.depositoStato} label={STATO_DEPOSITO_LABELS[contratto.depositoStato]} />
-                  </p>
-                </div>
-                <GestisciRestituzioneDepositoButton
-                  contrattoId={contratto.id}
-                  depositoImporto={contratto.depositoImporto}
-                  interessiStimati={calcolaInteressiLegali(contratto.depositoImporto, contratto.dataInizio, contratto.dataFine)}
-                />
+          <ul className="divide-y divide-slate-100 px-6 pb-2">
+            {depositiDaRestituire.slice(0, 3).map((contratto) => (
+              <li key={contratto.id} className="py-3">
+                <p className="text-sm font-medium text-slate-900">
+                  {contratto.immobile.indirizzo}, {contratto.immobile.comune}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Deposito {formatCurrency(contratto.depositoImporto)} &middot;{" "}
+                  <StatoDepositoBadge stato={contratto.depositoStato} label={STATO_DEPOSITO_LABELS[contratto.depositoStato]} />
+                </p>
               </li>
             ))}
           </ul>
@@ -251,7 +213,7 @@ export default async function ProprietarioDashboardPage() {
           <EmptyState message="Nessuna scadenza registrata." />
         ) : (
           <ul className="divide-y divide-slate-100">
-            {scadenze.map((s, index) => {
+            {scadenze.slice(0, 5).map((s, index) => {
               const { label, tone } = countdown(s.data);
               return (
                 <li key={index} className="flex items-center justify-between gap-4 py-3">
@@ -312,40 +274,12 @@ export default async function ProprietarioDashboardPage() {
       </Card>
 
       <Card>
-        <CardHeader title="Prossimi incassi" />
-        {stats.prossimiIncassi.length === 0 ? (
-          <EmptyState message="Nessun incasso previsto nei prossimi 30 giorni." />
-        ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Immobile</TableHeaderCell>
-                <TableHeaderCell>Scadenza</TableHeaderCell>
-                <TableHeaderCell>Importo</TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {stats.prossimiIncassi.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>
-                    {p.contratto.immobile.indirizzo}, {p.contratto.immobile.comune}
-                  </TableCell>
-                  <TableCell>{formatDate(p.dataScadenza)}</TableCell>
-                  <TableCell>{formatCurrency(p.importo)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
-
-      <Card>
         <CardHeader title="Comunicazioni" description="Comunicazioni inviate dagli amministratori dei tuoi condomini" />
         {comunicazioni.length === 0 ? (
           <EmptyState message="Nessuna comunicazione ricevuta." />
         ) : (
           <ul className="divide-y divide-slate-100">
-            {comunicazioni.map((c) => (
+            {comunicazioni.slice(0, 3).map((c) => (
               <ComunicazioneItem
                 key={c.id}
                 id={c.id}
@@ -359,8 +293,13 @@ export default async function ProprietarioDashboardPage() {
         )}
       </Card>
 
-      <Card>
-        <CardHeader title="Documenti" description="Documenti collegati ai tuoi immobili e contratti" />
+      <Card className="p-0">
+        <div className="flex items-center justify-between p-6 pb-0">
+          <CardHeader title="Documenti" description="Anteprima — gli ultimi 3 caricati" />
+          <Link href="/proprietario/documenti" className="whitespace-nowrap text-sm font-medium text-primary hover:underline">
+            Vedi tutto
+          </Link>
+        </div>
         {documenti.length === 0 ? (
           <EmptyState message="Nessun documento disponibile." />
         ) : (
@@ -374,7 +313,7 @@ export default async function ProprietarioDashboardPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {documenti.map((doc) => {
+              {documenti.slice(0, 3).map((doc) => {
                 const immobile = doc.immobile ?? doc.contratto?.immobile;
                 return (
                   <TableRow key={doc.id}>

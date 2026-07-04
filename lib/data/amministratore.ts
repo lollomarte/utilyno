@@ -133,6 +133,15 @@ export async function getSegnalazioniPerCondominio(condominioId: string) {
   });
 }
 
+/** Tutte le comunicazioni inviate dall'amministratore, su tutti i condomini gestiti. */
+export async function getComunicazioniPerAmministratore(amministratoreId: string) {
+  return prisma.comunicazioneCondominiale.findMany({
+    where: { condominio: { amministratoreId } },
+    include: { condominio: true },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 export async function getComunicazioniForCondominio(condominioId: string, amministratoreId: string) {
   const condominio = await prisma.condominio.findFirst({ where: { id: condominioId, amministratoreId } });
   if (!condominio) return [];

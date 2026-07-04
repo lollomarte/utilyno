@@ -55,7 +55,7 @@ export default async function AdminDashboardPage() {
         <StatCard
           label="Pool depositi totale"
           value={formatCurrency(stats.poolDepositiTotale)}
-          hint={`${stats.numeroDepositiVersati} depositi versati · floating gestito in attesa di restituzione`}
+          hint={`${stats.numeroDepositiVersati} depositi versati`}
           icon={PiggyBank}
         />
       </div>
@@ -65,11 +65,13 @@ export default async function AdminDashboardPage() {
         <PagamentiDonut data={distribuzionePagamenti} />
       </Card>
 
-      <Card>
-        <CardHeader
-          title="Pool depositi per agenzia"
-          description="Depositi cauzionali attualmente versati (VERSATO), per agenzia: la liquidità che in produzione transiterebbe su Partner 1"
-        />
+      <Card className="p-0">
+        <div className="flex items-center justify-between p-6 pb-0">
+          <CardHeader title="Depositi per agenzia" description="Anteprima — le prime 3 agenzie per depositi versati" />
+          <Link href="/admin/depositi" className="whitespace-nowrap text-sm font-medium text-primary hover:underline">
+            Vedi tutto
+          </Link>
+        </div>
         {poolDepositiPerAgenzia.length === 0 ? (
           <EmptyState message="Nessun deposito versato al momento." />
         ) : (
@@ -82,7 +84,7 @@ export default async function AdminDashboardPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {poolDepositiPerAgenzia.map((a) => (
+              {poolDepositiPerAgenzia.slice(0, 3).map((a) => (
                 <TableRow key={a.id}>
                   <TableCell className="font-medium text-slate-900">{a.ragioneSociale}</TableCell>
                   <TableCell>{a.numeroDepositi}</TableCell>
@@ -94,8 +96,13 @@ export default async function AdminDashboardPage() {
         )}
       </Card>
 
-      <Card>
-        <CardHeader title="Agenzie e relativo portfolio" />
+      <Card className="p-0">
+        <div className="flex items-center justify-between p-6 pb-0">
+          <CardHeader title="Agenzie e relativo portfolio" description="Anteprima — le prime 3 agenzie" />
+          <Link href="/admin/agenzie" className="whitespace-nowrap text-sm font-medium text-primary hover:underline">
+            Vedi tutto
+          </Link>
+        </div>
         {agenzie.length === 0 ? (
           <EmptyState message="Nessuna agenzia registrata." />
         ) : (
@@ -109,7 +116,7 @@ export default async function AdminDashboardPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {agenzie.map((agenzia) => (
+              {agenzie.slice(0, 3).map((agenzia) => (
                 <TableRow key={agenzia.id}>
                   <TableCell>
                     <Link href={`/admin/agenzie/${agenzia.id}`} className="font-medium text-slate-900 hover:underline">
@@ -126,8 +133,13 @@ export default async function AdminDashboardPage() {
         )}
       </Card>
 
-      <Card>
-        <CardHeader title="Amministratori di condominio" />
+      <Card className="p-0">
+        <div className="flex items-center justify-between p-6 pb-0">
+          <CardHeader title="Amministratori di condominio" description="Anteprima — i primi 3 amministratori" />
+          <Link href="/admin/amministratori" className="whitespace-nowrap text-sm font-medium text-primary hover:underline">
+            Vedi tutto
+          </Link>
+        </div>
         {amministratori.length === 0 ? (
           <EmptyState message="Nessun amministratore di condominio registrato." />
         ) : (
@@ -141,9 +153,13 @@ export default async function AdminDashboardPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {amministratori.map((a) => (
+              {amministratori.slice(0, 3).map((a) => (
                 <TableRow key={a.id}>
-                  <TableCell className="font-medium text-slate-900">{a.ragioneSociale}</TableCell>
+                  <TableCell>
+                    <Link href={`/admin/amministratori/${a.id}`} className="font-medium text-slate-900 hover:underline">
+                      {a.ragioneSociale}
+                    </Link>
+                  </TableCell>
                   <TableCell>{a.numeroCondomini}</TableCell>
                   <TableCell>{a.unitaTotali}</TableCell>
                   <TableCell>{a.segnalazioniTotali}</TableCell>

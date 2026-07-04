@@ -5,6 +5,9 @@ import type { NavItem } from "@/components/layout/sidebar";
 const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/agenzie", label: "Agenzie" },
+  { href: "/admin/amministratori", label: "Amministratori" },
+  { href: "/admin/contratti", label: "Contratti" },
+  { href: "/admin/depositi", label: "Depositi" },
   { href: "/admin/lead", label: "Lead e Partner" },
 ];
 

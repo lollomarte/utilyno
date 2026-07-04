@@ -4,7 +4,11 @@ import type { NavItem } from "@/components/layout/sidebar";
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/proprietario", label: "Dashboard" },
+  { href: "/proprietario/immobili", label: "Immobili" },
+  { href: "/proprietario/contratti", label: "Contratti" },
+  { href: "/proprietario/pagamenti", label: "Pagamenti e Depositi" },
   { href: "/proprietario/segnalazioni", label: "Segnalazioni" },
+  { href: "/proprietario/documenti", label: "Documenti" },
 ];
 
 export default async function ProprietarioLayout({ children }: { children: React.ReactNode }) {

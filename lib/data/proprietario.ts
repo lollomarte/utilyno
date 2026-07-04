@@ -56,6 +56,28 @@ export async function getProprietarioDashboardStats(proprietarioId: string) {
   };
 }
 
+/** Tutti i contratti (qualsiasi stato) sugli immobili del proprietario, con inquilino e pagamenti. */
+export async function getContrattiForProprietario(proprietarioId: string) {
+  return prisma.contratto.findMany({
+    where: { immobile: { proprietarioId } },
+    include: {
+      immobile: true,
+      inquilino: { include: { user: true } },
+      pagamenti: { orderBy: { dataScadenza: "asc" } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+/** Tutti i pagamenti (qualsiasi stato) sugli immobili del proprietario, per la vista "Pagamenti e Depositi". */
+export async function getPagamentiPerProprietario(proprietarioId: string) {
+  return prisma.pagamento.findMany({
+    where: { contratto: { immobile: { proprietarioId } } },
+    include: { contratto: { include: { immobile: true } } },
+    orderBy: { dataScadenza: "desc" },
+  });
+}
+
 export async function getDepositiDaRestituire(proprietarioId: string) {
   return prisma.contratto.findMany({
     where: {

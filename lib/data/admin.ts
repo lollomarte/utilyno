@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { StatoContratto } from "@prisma/client";
 
 export async function getAdminDashboardStats() {
   const [
@@ -106,6 +107,52 @@ export async function getAgenzieConPortfolio() {
     numeroContratti: agenzia._count.contratti,
     canoniMensiliAttivi: agenzia.contratti.reduce((sum, c) => sum + c.canoneMensile, 0),
   }));
+}
+
+export async function getAmministratoreDetailForAdmin(amministratoreId: string) {
+  const amministratore = await prisma.amministratore.findUnique({
+    where: { id: amministratoreId },
+    include: {
+      user: true,
+      condomini: {
+        include: { _count: { select: { immobili: true } } },
+        orderBy: { nome: "asc" },
+      },
+    },
+  });
+  if (!amministratore) return null;
+
+  const segnalazioni = await prisma.segnalazione.findMany({
+    where: { immobile: { condominioId: { in: amministratore.condomini.map((c) => c.id) } } },
+    select: { immobile: { select: { condominioId: true } } },
+  });
+  const conteggioPerCondominio = new Map<string, number>();
+  for (const s of segnalazioni) {
+    const cid = s.immobile.condominioId;
+    if (!cid) continue;
+    conteggioPerCondominio.set(cid, (conteggioPerCondominio.get(cid) ?? 0) + 1);
+  }
+
+  return {
+    ...amministratore,
+    condomini: amministratore.condomini.map((c) => ({
+      ...c,
+      segnalazioniTotali: conteggioPerCondominio.get(c.id) ?? 0,
+    })),
+  };
+}
+
+/** Tutti i contratti della piattaforma, con agenzia/immobile/inquilino: registro globale per l'Admin. */
+export async function getContrattiGlobali(filtri: { stato?: StatoContratto } = {}) {
+  return prisma.contratto.findMany({
+    where: { ...(filtri.stato && { stato: filtri.stato }) },
+    include: {
+      agenzia: true,
+      immobile: true,
+      inquilino: { include: { user: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 }
 
 export async function getAmministratoriConPortfolio() {

@@ -98,8 +98,16 @@ export default async function AgenziaDashboardPage() {
         }))}
       />
 
-      <Card>
-        <CardHeader title="Contratti in scadenza nei prossimi 60 giorni" description="Promemoria operativo per rinnovi e adempimenti" />
+      <Card className="p-0">
+        <div className="flex items-center justify-between p-6 pb-0">
+          <CardHeader
+            title="Contratti in scadenza nei prossimi 60 giorni"
+            description="Anteprima — promemoria operativo per rinnovi e adempimenti"
+          />
+          <Link href="/agenzia/contratti" className="whitespace-nowrap text-sm font-medium text-primary hover:underline">
+            Vedi tutto
+          </Link>
+        </div>
         {contrattiInScadenza.length === 0 ? (
           <EmptyState message="Nessun contratto in scadenza a breve." />
         ) : (
@@ -112,7 +120,7 @@ export default async function AgenziaDashboardPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {contrattiInScadenza.map((c) => (
+              {contrattiInScadenza.slice(0, 3).map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
                     <Link href={`/agenzia/contratti/${c.id}`} className="font-medium text-slate-900 hover:underline">
@@ -130,11 +138,16 @@ export default async function AgenziaDashboardPage() {
         )}
       </Card>
 
-      <Card>
-        <CardHeader
-          title="Opportunità di re-listing"
-          description="Contratti in scadenza nei prossimi 90 giorni: potenziali immobili da rimettere sul mercato"
-        />
+      <Card className="p-0">
+        <div className="flex items-center justify-between p-6 pb-0">
+          <CardHeader
+            title="Opportunità di re-listing"
+            description="Anteprima — contratti in scadenza nei prossimi 90 giorni"
+          />
+          <Link href="/agenzia/contratti" className="whitespace-nowrap text-sm font-medium text-primary hover:underline">
+            Vedi tutto
+          </Link>
+        </div>
         {leadReListing.length === 0 ? (
           <EmptyState message="Nessuna opportunità di re-listing nei prossimi 90 giorni." />
         ) : (
@@ -148,7 +161,7 @@ export default async function AgenziaDashboardPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {leadReListing.map((c) => (
+              {leadReListing.slice(0, 3).map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
                     <Link href={`/agenzia/contratti/${c.id}`} className="font-medium text-slate-900 hover:underline">

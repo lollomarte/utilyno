@@ -6,10 +6,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { creaComunicazioneAction } from "@/app/actions/condomini";
 import { nuovaComunicazioneSchema, type NuovaComunicazioneInput } from "@/lib/validations/condominio";
-import { Input, Label, Textarea, FieldError } from "@/components/ui/input";
+import { Input, Label, Textarea, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export function NuovaComunicazioneForm({ condominioId }: { condominioId: string }) {
+export function NuovaComunicazioneForm({
+  condominioId,
+  condomini,
+}: {
+  /** Condominio fisso (usato nel dettaglio di un singolo condominio). */
+  condominioId?: string;
+  /** Se presente, mostra un selettore condominio invece di un valore fisso (vista aggregata Comunicazioni). */
+  condomini?: { id: string; nome: string; comune: string }[];
+}) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [inviata, setInviata] = useState(false);
@@ -20,7 +28,7 @@ export function NuovaComunicazioneForm({ condominioId }: { condominioId: string 
     formState: { errors, isSubmitting },
   } = useForm<NuovaComunicazioneInput>({
     resolver: zodResolver(nuovaComunicazioneSchema),
-    defaultValues: { condominioId },
+    defaultValues: { condominioId: condominioId ?? "" },
   });
 
   async function onSubmit(data: NuovaComunicazioneInput) {
@@ -32,13 +40,28 @@ export function NuovaComunicazioneForm({ condominioId }: { condominioId: string 
       return;
     }
     setInviata(true);
-    reset({ condominioId, titolo: "", testo: "" });
+    reset({ condominioId: condominioId ?? "", titolo: "", testo: "" });
     router.refresh();
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <input type="hidden" {...register("condominioId")} />
+      {condomini ? (
+        <div>
+          <Label htmlFor="condominioId">Condominio</Label>
+          <Select id="condominioId" {...register("condominioId")}>
+            <option value="">Seleziona...</option>
+            {condomini.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome} - {c.comune}
+              </option>
+            ))}
+          </Select>
+          <FieldError message={errors.condominioId?.message} />
+        </div>
+      ) : (
+        <input type="hidden" {...register("condominioId")} />
+      )}
       <div>
         <Label htmlFor="titolo">Titolo</Label>
         <Input id="titolo" {...register("titolo")} />
