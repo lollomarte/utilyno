@@ -8,6 +8,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Label, Select } from "@/components/ui/input";
 import { TIPO_UTENZA_LABELS } from "@/lib/labels";
+import { withTimeout } from "@/lib/utils";
 
 export function AttivaUtenzaButton({
   immobileId,
@@ -34,14 +35,19 @@ export function AttivaUtenzaButton({
   async function handleConferma() {
     setIsSubmitting(true);
     setError(null);
-    const result = await attivaUtenzaAction({ immobileId, tipo, fornitore });
-    setIsSubmitting(false);
-    if (!result.success) {
-      setError(result.error);
-      return;
+    try {
+      const result = await withTimeout(attivaUtenzaAction({ immobileId, tipo, fornitore }));
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+      setAttivata(true);
+    } catch {
+      setError("Qualcosa è andato storto, riprova.");
+    } finally {
+      setIsSubmitting(false);
     }
-    router.refresh();
-    setAttivata(true);
   }
 
   return (

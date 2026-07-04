@@ -6,7 +6,7 @@ import { gestisciRestituzioneDepositoAction } from "@/app/actions/depositi";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Label, Textarea } from "@/components/ui/input";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, withTimeout } from "@/lib/utils";
 
 type Step = "scelta" | "conferma-restituzione" | "contestazione";
 
@@ -38,14 +38,19 @@ export function GestisciRestituzioneDepositoButton({
   async function handleConfermaRestituzione() {
     setIsSubmitting(true);
     setError(null);
-    const result = await gestisciRestituzioneDepositoAction({ contrattoId, esito: "RESTITUITO" });
-    setIsSubmitting(false);
-    if (!result.success) {
-      setError(result.error);
-      return;
+    try {
+      const result = await withTimeout(gestisciRestituzioneDepositoAction({ contrattoId, esito: "RESTITUITO" }));
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+      setEsitoConfermato("RESTITUITO");
+    } catch {
+      setError("Qualcosa è andato storto, riprova.");
+    } finally {
+      setIsSubmitting(false);
     }
-    router.refresh();
-    setEsitoConfermato("RESTITUITO");
   }
 
   async function handleConfermaContestazione() {
@@ -55,14 +60,19 @@ export function GestisciRestituzioneDepositoButton({
     }
     setIsSubmitting(true);
     setError(null);
-    const result = await gestisciRestituzioneDepositoAction({ contrattoId, esito: "IN_CONTESTAZIONE", note });
-    setIsSubmitting(false);
-    if (!result.success) {
-      setError(result.error);
-      return;
+    try {
+      const result = await withTimeout(gestisciRestituzioneDepositoAction({ contrattoId, esito: "IN_CONTESTAZIONE", note }));
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+      setEsitoConfermato("IN_CONTESTAZIONE");
+    } catch {
+      setError("Qualcosa è andato storto, riprova.");
+    } finally {
+      setIsSubmitting(false);
     }
-    router.refresh();
-    setEsitoConfermato("IN_CONTESTAZIONE");
   }
 
   const totaleRestituzione = depositoImporto + interessiStimati;

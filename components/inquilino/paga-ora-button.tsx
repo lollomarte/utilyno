@@ -6,7 +6,7 @@ import { pagaOraAction } from "@/app/actions/pagamenti";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Label, Select } from "@/components/ui/input";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, withTimeout } from "@/lib/utils";
 import { METODO_PAGAMENTO_LABELS } from "@/lib/labels";
 import type { METODO_PAGAMENTO_OPTIONS } from "@/lib/validations/pagamento";
 
@@ -39,14 +39,19 @@ export function PagaOraButton({
   async function handleConferma() {
     setIsSubmitting(true);
     setError(null);
-    const result = await pagaOraAction({ pagamentoId, metodo });
-    setIsSubmitting(false);
-    if (!result.success) {
-      setError(result.error);
-      return;
+    try {
+      const result = await withTimeout(pagaOraAction({ pagamentoId, metodo }));
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+      setEsito({ dataAccredito: result.dataAccredito });
+    } catch {
+      setError("Qualcosa è andato storto, riprova.");
+    } finally {
+      setIsSubmitting(false);
     }
-    router.refresh();
-    setEsito({ dataAccredito: result.dataAccredito });
   }
 
   return (
