@@ -5,7 +5,6 @@ import { requireProprietario } from "@/lib/auth-helpers";
 import {
   getImmobiliForProprietario,
   getProprietarioDashboardStats,
-  getSegnalazioniPerProprietario,
   getComunicazioniPerProprietario,
   getDocumentiPerProprietario,
   getAndamentoIncassiProprietario,
@@ -15,10 +14,10 @@ import { AssicurazioneCta } from "@/components/proprietario/assicurazione-cta";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { Badge, StatoSegnalazioneBadge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
+import { Badge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
 import { IncassiChart } from "@/components/charts/incassi-chart";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
-import { TIPO_IMMOBILE_LABELS, STATO_SEGNALAZIONE_LABELS, STATO_DEPOSITO_LABELS, STATO_ASSICURAZIONE_LABELS } from "@/lib/labels";
+import { TIPO_IMMOBILE_LABELS, STATO_DEPOSITO_LABELS, STATO_ASSICURAZIONE_LABELS } from "@/lib/labels";
 
 type Scadenza = {
   tipo: string;
@@ -36,10 +35,9 @@ function countdown(data: Date) {
 
 export default async function ProprietarioDashboardPage() {
   const { session, proprietario } = await requireProprietario();
-  const [immobili, stats, segnalazioni, comunicazioni, documenti, andamentoIncassi] = await Promise.all([
+  const [immobili, stats, comunicazioni, documenti, andamentoIncassi] = await Promise.all([
     getImmobiliForProprietario(proprietario.id),
     getProprietarioDashboardStats(proprietario.id),
-    getSegnalazioniPerProprietario(proprietario.id),
     getComunicazioniPerProprietario(proprietario.id, session.user.id),
     getDocumentiPerProprietario(proprietario.id),
     getAndamentoIncassiProprietario(proprietario.id),
@@ -293,28 +291,6 @@ export default async function ProprietarioDashboardPage() {
                 createdAt={c.createdAt}
                 letta={c.letture.length > 0}
               />
-            ))}
-          </ul>
-        )}
-      </Card>
-
-      <Card>
-        <CardHeader title="Segnalazioni ricevute" description="Segnalazioni condominiali relative ai tuoi immobili" />
-        {segnalazioni.length === 0 ? (
-          <EmptyState message="Nessuna segnalazione ricevuta." />
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            {segnalazioni.map((s) => (
-              <li key={s.id} className="py-3">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm font-medium text-slate-900">
-                    {s.titolo} &middot; {s.immobile?.indirizzo}
-                  </span>
-                  <StatoSegnalazioneBadge stato={s.stato} label={STATO_SEGNALAZIONE_LABELS[s.stato]} />
-                </div>
-                <p className="mt-1 text-sm text-slate-500">{s.descrizione}</p>
-                <p className="mt-1 text-xs text-slate-400">{formatDate(s.createdAt)}</p>
-              </li>
             ))}
           </ul>
         )}

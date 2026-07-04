@@ -35,6 +35,11 @@ export function TableCell({ children, className }: { children: React.ReactNode; 
   return <td className={cn("whitespace-nowrap px-4 py-3 text-slate-700", className)}>{children}</td>;
 }
 
-export function EmptyState({ message }: { message: string }) {
-  return <div className="px-4 py-10 text-center text-sm text-slate-400">{message}</div>;
+export function EmptyState({ message, action }: { message: string; action?: React.ReactNode }) {
+  return (
+    <div className="flex flex-col items-center gap-4 px-4 py-10 text-center text-sm text-slate-400">
+      <p>{message}</p>
+      {action}
+    </div>
+  );
 }

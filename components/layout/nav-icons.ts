@@ -17,6 +17,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/amministratore/condomini": Building2,
   "/amministratore/segnalazioni": MessageSquareWarning,
   "/proprietario": LayoutDashboard,
+  "/proprietario/segnalazioni": MessageSquareWarning,
   "/inquilino": LayoutDashboard,
   "/inquilino/ticket": MessageSquareWarning,
 };

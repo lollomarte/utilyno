@@ -16,7 +16,15 @@ import { Button } from "@/components/ui/button";
 type Condominio = { id: string; nome: string; comune: string };
 type Immobile = { id: string; indirizzo: string; condominioId: string | null; contratti: { id: string }[] };
 
-export function NuovaSegnalazioneForm({ condomini, immobili }: { condomini: Condominio[]; immobili: Immobile[] }) {
+export function NuovaSegnalazioneForm({
+  condomini,
+  immobili,
+  onSuccess,
+}: {
+  condomini: Condominio[];
+  immobili: Immobile[];
+  onSuccess?: () => void;
+}) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
@@ -60,6 +68,7 @@ export function NuovaSegnalazioneForm({ condomini, immobili }: { condomini: Cond
     }
     reset({ condominioId: data.condominioId, titolo: "", descrizione: "", priorita: "MEDIA", destinatario: "INQUILINO", immobileId: "" });
     router.refresh();
+    onSuccess?.();
   }
 
   return (
