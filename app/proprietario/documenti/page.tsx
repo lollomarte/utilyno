@@ -11,7 +11,7 @@ export default async function ProprietarioDocumentiPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Documenti</h1>
+        <h1 className="text-xl font-semibold text-ink">Documenti</h1>
         <p className="mt-1 text-sm text-slate-500">Documenti collegati ai tuoi immobili e contratti</p>
       </div>
 
@@ -37,7 +37,7 @@ export default async function ProprietarioDocumentiPage() {
                     <TableCell>{immobile ? `${immobile.indirizzo}, ${immobile.comune}` : "-"}</TableCell>
                     <TableCell>{formatDate(doc.uploadedAt)}</TableCell>
                     <TableCell>
-                      <a href={doc.url} download className="font-medium text-slate-900 hover:underline">
+                      <a href={doc.url} download className="font-medium text-ink hover:underline">
                         Scarica
                       </a>
                     </TableCell>

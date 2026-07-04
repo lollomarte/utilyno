@@ -15,7 +15,7 @@ export default async function ComunicazioniPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Comunicazioni</h1>
+        <h1 className="text-xl font-semibold text-ink">Comunicazioni</h1>
         <p className="mt-1 text-sm text-slate-500">Comunicazioni inviate a tutto il condominio, su tutti i condomini gestiti</p>
       </div>
 
@@ -33,7 +33,7 @@ export default async function ComunicazioniPage() {
             {comunicazioni.map((c) => (
               <li key={c.id} className="py-3">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="text-sm font-medium text-slate-900">{c.titolo}</p>
+                  <p className="text-sm font-medium text-ink">{c.titolo}</p>
                   <span className="whitespace-nowrap text-xs text-slate-400">{formatDate(c.createdAt)}</span>
                 </div>
                 <p className="mt-1 text-sm text-slate-500">{c.testo}</p>

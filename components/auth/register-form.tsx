@@ -162,7 +162,7 @@ export function RegisterForm() {
           </div>
         )}
 
-        {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+        {serverError && <p className="text-sm text-danger">{serverError}</p>}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Creazione account..." : "Registrati"}
@@ -170,7 +170,7 @@ export function RegisterForm() {
       </form>
       <p className="mt-6 text-center text-sm text-slate-500">
         Hai già un account?{" "}
-        <Link href="/login" className="font-medium text-slate-900 underline">
+        <Link href="/login" className="font-medium text-ink underline">
           Accedi
         </Link>
       </p>

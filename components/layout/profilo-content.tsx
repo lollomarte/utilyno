@@ -13,7 +13,7 @@ export function ProfiloContent({ nome, cognome, role }: { nome: string; cognome:
           {initials}
         </div>
         <div>
-          <p className="text-lg font-semibold text-slate-900">
+          <p className="text-lg font-semibold text-ink">
             {nome} {cognome}
           </p>
           <p className="mt-1 text-sm text-slate-500">{ROLE_LABELS[role] ?? role}</p>

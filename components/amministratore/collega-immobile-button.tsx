@@ -61,7 +61,7 @@ export function CollegaImmobileButton({
             onClick={() => setTab("esistente")}
             className={cn(
               "border-b-2 px-1 pb-2 text-sm font-medium",
-              tab === "esistente" ? "border-primary text-slate-900" : "border-transparent text-slate-500"
+              tab === "esistente" ? "border-primary text-ink" : "border-transparent text-slate-500"
             )}
           >
             Immobile esistente
@@ -71,7 +71,7 @@ export function CollegaImmobileButton({
             onClick={() => setTab("nuovo")}
             className={cn(
               "border-b-2 px-1 pb-2 text-sm font-medium",
-              tab === "nuovo" ? "border-primary text-slate-900" : "border-transparent text-slate-500"
+              tab === "nuovo" ? "border-primary text-ink" : "border-transparent text-slate-500"
             )}
           >
             Nuovo immobile
@@ -139,7 +139,7 @@ function CollegaEsistenteForm({
         </Select>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <Button onClick={handleConferma} disabled={isSubmitting} className="w-full">
         {isSubmitting ? "Collegamento..." : "Collega immobile"}
@@ -267,7 +267,7 @@ function CreaImmobileForm({
           <FieldError message={errors.proprietarioId?.message} />
         </div>
       ) : (
-        <div className="space-y-4 rounded-md bg-slate-50 p-4">
+        <div className="space-y-4 rounded-md bg-surface-muted p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Nuovo proprietario</p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
@@ -304,7 +304,7 @@ function CreaImmobileForm({
         </div>
       )}
 
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+      {serverError && <p className="text-sm text-danger">{serverError}</p>}
 
       <Button type="submit" disabled={isSubmitting} className="w-full">
         {isSubmitting ? "Creazione in corso..." : "Crea e collega immobile"}

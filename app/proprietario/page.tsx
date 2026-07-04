@@ -96,7 +96,7 @@ export default async function ProprietarioDashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
+          <h1 className="text-xl font-semibold text-ink">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-500">Panoramica del tuo portfolio immobiliare</p>
         </div>
         <SegnalazioniNonLetteBadge count={nonLette} href="/proprietario/segnalazioni" />
@@ -160,7 +160,7 @@ export default async function ProprietarioDashboardPage() {
               {rendimenti.slice(0, 3).map(({ immobile, yieldLordo }) => (
                 <TableRow key={immobile.id}>
                   <TableCell>
-                    <Link href={`/proprietario/immobili/${immobile.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/proprietario/immobili/${immobile.id}`} className="font-medium text-ink hover:underline">
                       {immobile.indirizzo}, {immobile.comune}
                     </Link>
                   </TableCell>
@@ -194,7 +194,7 @@ export default async function ProprietarioDashboardPage() {
           <ul className="divide-y divide-slate-100 px-6 pb-2">
             {depositiDaRestituire.slice(0, 3).map((contratto) => (
               <li key={contratto.id} className="py-3">
-                <p className="text-sm font-medium text-slate-900">
+                <p className="text-sm font-medium text-ink">
                   {contratto.immobile.indirizzo}, {contratto.immobile.comune}
                 </p>
                 <p className="mt-1 text-xs text-slate-400">
@@ -218,15 +218,15 @@ export default async function ProprietarioDashboardPage() {
               return (
                 <li key={index} className="flex items-center justify-between gap-4 py-3">
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{s.tipo}</p>
+                    <p className="text-sm font-medium text-ink">{s.tipo}</p>
                     <p className="text-sm text-slate-500">{s.immobile}</p>
                     <p className="text-xs text-slate-400">{formatDate(s.data)}</p>
                   </div>
                   <span
                     className={cn(
                       "shrink-0 text-sm font-medium",
-                      tone === "danger" && "text-red-600",
-                      tone === "warning" && "text-amber-600",
+                      tone === "danger" && "text-danger",
+                      tone === "warning" && "text-warning",
                       tone === "neutral" && "text-slate-500"
                     )}
                   >
@@ -250,7 +250,7 @@ export default async function ProprietarioDashboardPage() {
               return (
                 <li key={immobile.id} className="flex items-center justify-between gap-4 py-3">
                   <div>
-                    <p className="text-sm font-medium text-slate-900">
+                    <p className="text-sm font-medium text-ink">
                       {immobile.indirizzo}, {immobile.comune}
                     </p>
                     {assicurazione ? (
@@ -321,7 +321,7 @@ export default async function ProprietarioDashboardPage() {
                     <TableCell>{immobile ? `${immobile.indirizzo}, ${immobile.comune}` : "-"}</TableCell>
                     <TableCell>{formatDate(doc.uploadedAt)}</TableCell>
                     <TableCell>
-                      <a href={doc.url} download className="font-medium text-slate-900 hover:underline">
+                      <a href={doc.url} download className="font-medium text-ink hover:underline">
                         Scarica
                       </a>
                     </TableCell>

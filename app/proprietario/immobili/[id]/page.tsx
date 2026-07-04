@@ -32,7 +32,7 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">
+        <h1 className="text-xl font-semibold text-ink">
           {immobile.indirizzo}, {immobile.comune}
         </h1>
         <p className="mt-1 text-sm text-slate-500">{TIPO_IMMOBILE_LABELS[immobile.tipoImmobile]}</p>

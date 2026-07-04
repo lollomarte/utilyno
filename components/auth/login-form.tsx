@@ -47,14 +47,14 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
           <Input id="password" type="password" autoComplete="current-password" {...register("password")} />
           <FieldError message={errors.password?.message} />
         </div>
-        {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+        {serverError && <p className="text-sm text-danger">{serverError}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Accesso in corso..." : "Accedi"}
         </Button>
       </form>
       <p className="mt-6 text-center text-sm text-slate-500">
         Non hai un account?{" "}
-        <Link href="/register" className="font-medium text-slate-900 underline">
+        <Link href="/register" className="font-medium text-ink underline">
           Registrati
         </Link>
       </p>

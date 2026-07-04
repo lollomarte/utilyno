@@ -16,7 +16,7 @@ export function UserBlock({
   return (
     <div className={cn("flex items-center gap-4", className)}>
       <div className="text-right">
-        <p className="text-sm font-medium text-slate-900">
+        <p className="text-sm font-medium text-ink">
           {nome} {cognome}
         </p>
         <p className="text-xs text-slate-500">{roleLabel}</p>

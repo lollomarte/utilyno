@@ -31,7 +31,7 @@ export function ComunicazioneItem({
   return (
     <li className="py-3">
       <div className="flex items-center justify-between gap-4">
-        <span className="text-sm font-medium text-slate-900">{titolo}</span>
+        <span className="text-sm font-medium text-ink">{titolo}</span>
         {letta ? <Badge tone="neutral">Letta</Badge> : <Badge tone="info">Nuova</Badge>}
       </div>
       <p className="mt-1 text-sm text-slate-500">{testo}</p>
@@ -42,7 +42,7 @@ export function ComunicazioneItem({
             type="button"
             onClick={handleMarkRead}
             disabled={isPending}
-            className="text-xs font-medium text-slate-600 underline hover:text-slate-900 disabled:text-slate-400"
+            className="text-xs font-medium text-slate-600 underline hover:text-ink disabled:text-slate-400"
           >
             {isPending ? "..." : "Segna come letta"}
           </button>

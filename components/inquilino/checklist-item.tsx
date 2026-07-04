@@ -43,7 +43,7 @@ export function ChecklistItem({
   return (
     <li className="py-3">
       <div className="flex items-center justify-between gap-4">
-        <span className="text-sm font-medium text-slate-900">
+        <span className="text-sm font-medium text-ink">
           {TIPO_CHECKLIST_LABELS[tipo]} &middot; {fotoCount} foto
         </span>
         <span className="text-xs text-slate-400">{formatDate(dataCompilazione)}</span>
@@ -54,14 +54,14 @@ export function ChecklistItem({
           Firma proprietario: {firmaProprietarioAt ? `confermata il ${formatDate(firmaProprietarioAt)}` : "da confermare"}
         </p>
         {firmata ? (
-          <p className="text-xs text-emerald-700">Firmata da te il {formatDate(firmata)}</p>
+          <p className="text-xs text-accent">Firmata da te il {formatDate(firmata)}</p>
         ) : (
           <Button type="button" variant="secondary" onClick={handleFirma} disabled={isPending}>
             {isPending ? "..." : "Firma checklist"}
           </Button>
         )}
       </div>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-danger">{error}</p>}
     </li>
   );
 }

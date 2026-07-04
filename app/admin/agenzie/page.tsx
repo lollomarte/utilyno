@@ -10,7 +10,7 @@ export default async function AgenzieListPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Agenzie</h1>
+        <h1 className="text-xl font-semibold text-ink">Agenzie</h1>
         <p className="mt-1 text-sm text-slate-500">Elenco delle agenzie affiliate a LOQO</p>
       </div>
 
@@ -33,7 +33,7 @@ export default async function AgenzieListPage() {
               {agenzie.map((agenzia) => (
                 <TableRow key={agenzia.id}>
                   <TableCell>
-                    <Link href={`/admin/agenzie/${agenzia.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/admin/agenzie/${agenzia.id}`} className="font-medium text-ink hover:underline">
                       {agenzia.ragioneSociale}
                     </Link>
                   </TableCell>

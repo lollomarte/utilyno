@@ -53,7 +53,7 @@ export function AttivaUtenzaButton({
       <Modal open={open} onClose={handleClose} title={`Attiva utenza ${TIPO_UTENZA_LABELS[tipo]}`}>
         {attivata ? (
           <div className="space-y-4">
-            <p className="text-sm font-medium text-slate-900">
+            <p className="text-sm font-medium text-ink">
               Utenza {TIPO_UTENZA_LABELS[tipo]} attivata con {fornitore}.
             </p>
             <Button onClick={handleClose}>Chiudi</Button>
@@ -72,7 +72,7 @@ export function AttivaUtenzaButton({
               <p className="mt-1 text-xs text-slate-400">Simulazione: nessuna richiesta reale verrà inviata al fornitore.</p>
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
 
             <Button onClick={handleConferma} disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Attivazione..." : "Conferma attivazione"}

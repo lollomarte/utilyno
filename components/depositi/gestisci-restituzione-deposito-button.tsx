@@ -85,7 +85,7 @@ export function GestisciRestituzioneDepositoButton({
 
         {esitoConfermato === "IN_CONTESTAZIONE" && (
           <div className="space-y-4">
-            <div className="rounded-control bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
+            <div className="rounded-control bg-warning/10 p-4 text-sm text-warning ring-1 ring-inset ring-warning/30">
               Contestazione aperta. L&apos;inquilino vedrà lo stato &quot;In contestazione&quot; nel proprio portale.
             </div>
             <Button onClick={handleClose}>Chiudi</Button>
@@ -97,15 +97,15 @@ export function GestisciRestituzioneDepositoButton({
             <div className="rounded-control bg-surface-muted p-4 text-sm">
               <p className="flex justify-between py-1">
                 <span className="text-slate-500">Deposito versato</span>
-                <span className="font-medium text-slate-900">{formatCurrency(depositoImporto)}</span>
+                <span className="font-medium text-ink">{formatCurrency(depositoImporto)}</span>
               </p>
               <p className="flex justify-between py-1">
                 <span className="text-slate-500">Interessi legali maturati (0,5% annuo pro-rata)</span>
-                <span className="font-medium text-slate-900">{formatCurrency(interessiStimati)}</span>
+                <span className="font-medium text-ink">{formatCurrency(interessiStimati)}</span>
               </p>
               <p className="mt-1 flex justify-between border-t border-slate-200 py-1 pt-2">
                 <span className="font-medium text-slate-700">Totale restituibile</span>
-                <span className="font-semibold text-slate-900">{formatCurrency(totaleRestituzione)}</span>
+                <span className="font-semibold text-ink">{formatCurrency(totaleRestituzione)}</span>
               </p>
             </div>
 
@@ -126,7 +126,7 @@ export function GestisciRestituzioneDepositoButton({
               Confermi la restituzione di <strong>{formatCurrency(totaleRestituzione)}</strong> (deposito +
               interessi legali maturati) all&apos;inquilino?
             </p>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
             <div className="flex gap-2">
               <Button variant="secondary" onClick={() => setStep("scelta")} disabled={isSubmitting}>
                 Indietro
@@ -150,7 +150,7 @@ export function GestisciRestituzioneDepositoButton({
                 placeholder="Es. danni riscontrati in fase di uscita, da quantificare..."
               />
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
             <div className="flex gap-2">
               <Button variant="secondary" onClick={() => setStep("scelta")} disabled={isSubmitting}>
                 Indietro

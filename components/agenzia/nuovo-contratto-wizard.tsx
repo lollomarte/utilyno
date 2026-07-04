@@ -136,7 +136,7 @@ export function NuovoContrattoWizard({
             key={label}
             className={cn(
               "flex items-center gap-2",
-              index === step ? "font-semibold text-slate-900" : "text-slate-400"
+              index === step ? "font-semibold text-ink" : "text-slate-400"
             )}
           >
             <span
@@ -162,7 +162,7 @@ export function NuovoContrattoWizard({
               </Button>
             </div>
             {immobili.length === 0 ? (
-              <p className="rounded-md bg-slate-50 p-4 text-sm text-slate-500">
+              <p className="rounded-md bg-surface-muted p-4 text-sm text-slate-500">
                 Non hai ancora nessun immobile. Usa &quot;Aggiungi nuovo immobile&quot; per crearne uno senza perdere
                 i dati già inseriti in questo wizard.
               </p>
@@ -234,7 +234,7 @@ export function NuovoContrattoWizard({
                 ))}
               </div>
             ) : (
-              <div className="space-y-4 rounded-md bg-slate-50 p-4">
+              <div className="space-y-4 rounded-md bg-surface-muted p-4">
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Nuovo inquilino</p>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
@@ -261,7 +261,7 @@ export function NuovoContrattoWizard({
                       value={form.inquilinoEmail ?? ""}
                       onChange={(e) => setForm((prev) => ({ ...prev, inquilinoEmail: e.target.value }))}
                     />
-                    {fieldErrors.inquilinoEmail && <p className="mt-1 text-xs text-red-600">{fieldErrors.inquilinoEmail}</p>}
+                    {fieldErrors.inquilinoEmail && <p className="mt-1 text-xs text-danger">{fieldErrors.inquilinoEmail}</p>}
                   </div>
                   <div>
                     <Label htmlFor="inquilinoCodiceFiscale">Codice fiscale</Label>
@@ -394,13 +394,13 @@ export function NuovoContrattoWizard({
             <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 text-sm">
               <div>
                 <dt className="text-xs font-medium uppercase text-slate-400">Immobile</dt>
-                <dd className="mt-1 text-slate-900">
+                <dd className="mt-1 text-ink">
                   {selectedImmobile ? `${selectedImmobile.indirizzo}, ${selectedImmobile.comune}` : "-"}
                 </dd>
               </div>
               <div>
                 <dt className="text-xs font-medium uppercase text-slate-400">Inquilino</dt>
-                <dd className="mt-1 text-slate-900">
+                <dd className="mt-1 text-ink">
                   {form.inquilinoMode === "nuovo"
                     ? `${form.inquilinoNome ?? ""} ${form.inquilinoCognome ?? ""} (nuovo account)`
                     : selectedInquilino
@@ -410,30 +410,30 @@ export function NuovoContrattoWizard({
               </div>
               <div>
                 <dt className="text-xs font-medium uppercase text-slate-400">Tipo contratto</dt>
-                <dd className="mt-1 text-slate-900">{form.tipoContratto && TIPO_CONTRATTO_LABELS[form.tipoContratto]}</dd>
+                <dd className="mt-1 text-ink">{form.tipoContratto && TIPO_CONTRATTO_LABELS[form.tipoContratto]}</dd>
               </div>
               <div>
                 <dt className="text-xs font-medium uppercase text-slate-400">Regime fiscale</dt>
-                <dd className="mt-1 text-slate-900">{form.regimeFiscale && REGIME_FISCALE_LABELS[form.regimeFiscale]}</dd>
+                <dd className="mt-1 text-ink">{form.regimeFiscale && REGIME_FISCALE_LABELS[form.regimeFiscale]}</dd>
               </div>
               <div>
                 <dt className="text-xs font-medium uppercase text-slate-400">Periodo</dt>
-                <dd className="mt-1 text-slate-900">
+                <dd className="mt-1 text-ink">
                   {form.dataInizio} &rarr; {form.dataFine}
                 </dd>
               </div>
               <div>
                 <dt className="text-xs font-medium uppercase text-slate-400">Canone mensile</dt>
-                <dd className="mt-1 text-slate-900">{form.canoneMensile ? formatCurrency(form.canoneMensile) : "-"}</dd>
+                <dd className="mt-1 text-ink">{form.canoneMensile ? formatCurrency(form.canoneMensile) : "-"}</dd>
               </div>
               <div>
                 <dt className="text-xs font-medium uppercase text-slate-400">Deposito cauzionale</dt>
-                <dd className="mt-1 text-slate-900">
+                <dd className="mt-1 text-ink">
                   {form.depositoImporto !== undefined ? formatCurrency(form.depositoImporto) : "-"}
                 </dd>
               </div>
             </dl>
-            {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+            {error && <p className="mt-4 text-sm text-danger">{error}</p>}
           </div>
         )}
       </Card>
@@ -464,7 +464,7 @@ export function NuovoContrattoWizard({
             seguente password provvisoria. Comunicala all&apos;inquilino in modo sicuro: non sarà più visibile dopo questo
             passaggio.
           </p>
-          <p className="rounded-md bg-slate-100 px-4 py-3 font-mono text-sm text-slate-900">
+          <p className="rounded-md bg-slate-100 px-4 py-3 font-mono text-sm text-ink">
             {esitoCreazione?.inquilinoTemporaryPassword}
           </p>
           <Button

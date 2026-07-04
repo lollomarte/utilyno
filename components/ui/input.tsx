@@ -1,8 +1,9 @@
 import { InputHTMLAttributes, forwardRef, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const fieldClasses =
-  "block w-full rounded-control border-0 px-3 py-2 text-sm text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-primary disabled:bg-slate-50 disabled:text-slate-400 min-h-[44px]";
+  "block w-full rounded-control border-0 px-3 py-2 text-sm text-ink ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-primary disabled:bg-surface-muted disabled:text-slate-400 min-h-[44px] aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => <input ref={ref} className={cn(fieldClasses, className)} {...props} />
@@ -29,5 +30,10 @@ export function Label({ children, htmlFor }: { children: React.ReactNode; htmlFo
 
 export function FieldError({ message }: { message?: string }) {
   if (!message) return null;
-  return <p className="mt-1 text-xs text-red-600">{message}</p>;
+  return (
+    <p className="mt-1.5 flex items-start gap-1 text-xs font-medium text-danger">
+      <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      <span>{message}</span>
+    </p>
+  );
 }

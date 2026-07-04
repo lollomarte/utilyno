@@ -142,7 +142,7 @@ export function NuovoImmobileForm({
           <FieldError message={errors.proprietarioId?.message} />
         </div>
       ) : (
-        <div className="space-y-4 rounded-md bg-slate-50 p-4">
+        <div className="space-y-4 rounded-md bg-surface-muted p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Nuovo proprietario</p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
@@ -179,7 +179,7 @@ export function NuovoImmobileForm({
         </div>
       )}
 
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+      {serverError && <p className="text-sm text-danger">{serverError}</p>}
 
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Creazione in corso..." : "Crea immobile"}

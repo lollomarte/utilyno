@@ -43,7 +43,7 @@ export function SegnalazioniTable({
         {segnalazioni.map((s) => (
           <TableRow key={s.id}>
             <TableCell>
-              <Link href={`${basePath}/${s.id}`} className="inline-flex items-center gap-2 font-medium text-slate-900 hover:underline">
+              <Link href={`${basePath}/${s.id}`} className="inline-flex items-center gap-2 font-medium text-ink hover:underline">
                 {s.nonLetta && <span className="h-2 w-2 shrink-0 rounded-full bg-info" aria-label="Non letta" />}
                 {s.titolo}
               </Link>

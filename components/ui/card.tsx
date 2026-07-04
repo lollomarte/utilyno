@@ -7,7 +7,7 @@ export function Card({ children, className, id }: { children: React.ReactNode; c
 export function CardHeader({ title, description }: { title: string; description?: string }) {
   return (
     <div className="mb-4">
-      <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+      <h2 className="text-base font-semibold text-ink">{title}</h2>
       {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
     </div>
   );
@@ -19,7 +19,7 @@ export function DescriptionList({ items }: { items: { label: string; value: Reac
       {items.map((item) => (
         <div key={item.label}>
           <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">{item.label}</dt>
-          <dd className="mt-1 text-sm text-slate-900">{item.value}</dd>
+          <dd className="mt-1 text-sm text-ink">{item.value}</dd>
         </div>
       ))}
     </dl>

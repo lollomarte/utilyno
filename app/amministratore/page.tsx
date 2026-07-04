@@ -27,7 +27,7 @@ export default async function AmministratoreDashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
+          <h1 className="text-xl font-semibold text-ink">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-500">{amministratore.ragioneSociale}</p>
         </div>
         <SegnalazioniNonLetteBadge count={nonLette} href="/amministratore/segnalazioni" />
@@ -68,7 +68,7 @@ export default async function AmministratoreDashboardPage() {
               {condomini.slice(0, 5).map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
-                    <Link href={`/amministratore/condomini/${c.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/amministratore/condomini/${c.id}`} className="font-medium text-ink hover:underline">
                       {c.nome}
                     </Link>
                   </TableCell>
@@ -122,7 +122,7 @@ export default async function AmministratoreDashboardPage() {
             {comunicazioni.slice(0, 3).map((c) => (
               <li key={c.id} className="py-3">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="text-sm font-medium text-slate-900">{c.titolo}</p>
+                  <p className="text-sm font-medium text-ink">{c.titolo}</p>
                   <span className="whitespace-nowrap text-xs text-slate-400">{formatDate(c.createdAt)}</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-400">{c.condominio.nome}</p>

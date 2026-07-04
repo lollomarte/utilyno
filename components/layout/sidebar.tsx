@@ -23,7 +23,7 @@ export function Sidebar({ portalLabel, items }: { portalLabel: string; items: Na
   return (
     <aside className="hidden h-full w-64 shrink-0 flex-col bg-primary text-slate-100 md:flex">
       <div className="flex h-16 shrink-0 items-center gap-2 border-b border-white/10 px-6">
-        <span className="text-lg font-semibold tracking-tight text-white">LOQO</span>
+        <span className="font-display text-xl font-semibold tracking-tight text-white">LOQO</span>
         <span className="text-xs text-slate-400">{portalLabel}</span>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4">
@@ -35,7 +35,7 @@ export function Sidebar({ portalLabel, items }: { portalLabel: string; items: Na
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-control px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-control px-3 py-2 text-sm font-medium transition-colors duration-150",
                 isActive ? "bg-primary-soft text-white" : "text-slate-300 hover:bg-primary-soft hover:text-white"
               )}
             >

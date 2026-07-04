@@ -55,14 +55,14 @@ export function Modal({
       <div
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "max-h-[90vh] w-full overflow-y-auto rounded-t-sheet bg-surface p-6 shadow-elevated transition-transform duration-250 ease-out md:max-w-lg md:rounded-sheet",
+          "max-h-[90vh] w-full overflow-y-auto rounded-t-sheet bg-surface p-6 shadow-sheet transition-transform duration-250 ease-out md:max-w-lg md:rounded-sheet",
           entered ? "translate-y-0" : "translate-y-full md:translate-y-4"
         )}
         style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
       >
         <div className="mx-auto mb-4 h-1.5 w-10 shrink-0 rounded-full bg-slate-200 md:hidden" aria-hidden="true" />
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+          <h2 className="font-display text-lg font-semibold text-ink">{title}</h2>
           <button
             type="button"
             onClick={onClose}

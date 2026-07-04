@@ -31,7 +31,7 @@ export default async function ContrattiPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Contratti</h1>
+        <h1 className="text-xl font-semibold text-ink">Contratti</h1>
         <Link href="/agenzia/contratti/nuovo">
           <Button>Nuovo contratto</Button>
         </Link>
@@ -102,7 +102,7 @@ export default async function ContrattiPage({
               {contratti.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
-                    <Link href={`/agenzia/contratti/${c.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/agenzia/contratti/${c.id}`} className="font-medium text-ink hover:underline">
                       {c.immobile.indirizzo}, {c.immobile.comune}
                     </Link>
                   </TableCell>

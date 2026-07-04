@@ -39,7 +39,7 @@ export function GeneraInvitoButton({ contrattoId }: { contrattoId: string }) {
       </Button>
       {link && (
         <div className="mt-3 space-y-2">
-          <p className="break-all rounded-md bg-slate-100 px-3 py-2 font-mono text-xs text-slate-900">{link}</p>
+          <p className="break-all rounded-md bg-slate-100 px-3 py-2 font-mono text-xs text-ink">{link}</p>
           <div className="flex items-center gap-3">
             <Button type="button" variant="secondary" onClick={handleCopy}>
               {copiato ? "Copiato" : "Copia link"}
@@ -48,7 +48,7 @@ export function GeneraInvitoButton({ contrattoId }: { contrattoId: string }) {
           </div>
         </div>
       )}
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-danger">{error}</p>}
     </div>
   );
 }

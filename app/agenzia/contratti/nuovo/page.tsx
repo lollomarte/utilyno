@@ -14,7 +14,7 @@ export default async function NuovoContrattoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Nuovo contratto</h1>
+        <h1 className="text-xl font-semibold text-ink">Nuovo contratto</h1>
         <p className="mt-1 text-sm text-slate-500">Crea un nuovo contratto di locazione in pochi passaggi.</p>
       </div>
       <NuovoContrattoWizard

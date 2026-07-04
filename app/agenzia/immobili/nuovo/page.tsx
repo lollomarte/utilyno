@@ -10,7 +10,7 @@ export default async function NuovoImmobilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Nuovo immobile</h1>
+        <h1 className="text-xl font-semibold text-ink">Nuovo immobile</h1>
         <p className="mt-1 text-sm text-slate-500">
           Registra un nuovo immobile nel portfolio. Se il proprietario non è ancora a sistema puoi crearlo al volo.
         </p>

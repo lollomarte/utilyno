@@ -15,7 +15,7 @@ export default async function AmministratoreDetailPage({ params }: { params: Pro
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">{amministratore.ragioneSociale}</h1>
+        <h1 className="text-xl font-semibold text-ink">{amministratore.ragioneSociale}</h1>
         <p className="mt-1 text-sm text-slate-500">{amministratore.piva}</p>
       </div>
 
@@ -52,7 +52,7 @@ export default async function AmministratoreDetailPage({ params }: { params: Pro
             <TableBody>
               {amministratore.condomini.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell className="font-medium text-slate-900">{c.nome}</TableCell>
+                  <TableCell className="font-medium text-ink">{c.nome}</TableCell>
                   <TableCell>{c.comune}</TableCell>
                   <TableCell>{c.numeroUnita}</TableCell>
                   <TableCell>{c._count.immobili}</TableCell>

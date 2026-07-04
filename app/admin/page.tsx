@@ -27,7 +27,7 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
+        <h1 className="text-xl font-semibold text-ink">Dashboard</h1>
         <p className="mt-1 text-sm text-slate-500">Vista aggregata sulla piattaforma LOQO</p>
       </div>
 
@@ -86,7 +86,7 @@ export default async function AdminDashboardPage() {
             <TableBody>
               {poolDepositiPerAgenzia.slice(0, 3).map((a) => (
                 <TableRow key={a.id}>
-                  <TableCell className="font-medium text-slate-900">{a.ragioneSociale}</TableCell>
+                  <TableCell className="font-medium text-ink">{a.ragioneSociale}</TableCell>
                   <TableCell>{a.numeroDepositi}</TableCell>
                   <TableCell>{formatCurrency(a.totale)}</TableCell>
                 </TableRow>
@@ -119,7 +119,7 @@ export default async function AdminDashboardPage() {
               {agenzie.slice(0, 3).map((agenzia) => (
                 <TableRow key={agenzia.id}>
                   <TableCell>
-                    <Link href={`/admin/agenzie/${agenzia.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/admin/agenzie/${agenzia.id}`} className="font-medium text-ink hover:underline">
                       {agenzia.ragioneSociale}
                     </Link>
                   </TableCell>
@@ -156,7 +156,7 @@ export default async function AdminDashboardPage() {
               {amministratori.slice(0, 3).map((a) => (
                 <TableRow key={a.id}>
                   <TableCell>
-                    <Link href={`/admin/amministratori/${a.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/admin/amministratori/${a.id}`} className="font-medium text-ink hover:underline">
                       {a.ragioneSociale}
                     </Link>
                   </TableCell>

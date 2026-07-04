@@ -43,7 +43,7 @@ export default async function LeadPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Lead e Partner</h1>
+        <h1 className="text-xl font-semibold text-ink">Lead e Partner</h1>
         <p className="mt-1 text-sm text-slate-500">Traffico generato dalle segnalazioni verso i partner convenzionati</p>
       </div>
 

@@ -72,7 +72,7 @@ export function NuovaSegnalazioneForm({
   if (esito) {
     return (
       <div className="space-y-4">
-        <p className="text-sm font-medium text-slate-900">Segnalazione inviata.</p>
+        <p className="text-sm font-medium text-ink">Segnalazione inviata.</p>
         {esito.length > 0 ? (
           <div className="rounded-control bg-accent-soft p-4 text-sm text-slate-700">
             <p className="font-medium">Inviata a:</p>
@@ -159,7 +159,7 @@ export function NuovaSegnalazioneForm({
           <option value="ALTA">Alta</option>
         </Select>
       </div>
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+      {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" disabled={isSubmitting || !immobileId}>
         {isSubmitting ? "Invio in corso..." : "Crea segnalazione"}
       </Button>

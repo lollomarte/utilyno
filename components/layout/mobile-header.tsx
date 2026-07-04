@@ -11,7 +11,7 @@ export function MobileHeader({ navItems }: { navItems: NavItem[] }) {
 
   return (
     <header className="flex h-12 shrink-0 items-center border-b border-slate-200 bg-white px-4 md:hidden">
-      <h1 className="text-[17px] font-semibold text-slate-900">{active?.label ?? "LOQO"}</h1>
+      <h1 className="text-[17px] font-semibold text-ink">{active?.label ?? "LOQO"}</h1>
     </header>
   );
 }

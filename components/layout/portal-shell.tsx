@@ -23,7 +23,7 @@ export function PortalShell({
   const mobileNavItems: NavItem[] = [...navItems, { href: `${navItems[0]?.href ?? ""}/profilo`, label: "Profilo" }];
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-surface-muted">
       <Sidebar portalLabel={portalLabel} items={navItems} />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <MobileHeader navItems={mobileNavItems} />

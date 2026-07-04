@@ -39,7 +39,7 @@ export default async function CondominioDetailPage({ params }: { params: Promise
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">{condominio.nome}</h1>
+        <h1 className="text-xl font-semibold text-ink">{condominio.nome}</h1>
         <p className="mt-1 text-sm text-slate-500">
           {condominio.indirizzo}, {condominio.comune}
         </p>
@@ -155,7 +155,7 @@ export default async function CondominioDetailPage({ params }: { params: Promise
           <ul className="divide-y divide-slate-100">
             {comunicazioni.map((c) => (
               <li key={c.id} className="py-3">
-                <p className="text-sm font-medium text-slate-900">{c.titolo}</p>
+                <p className="text-sm font-medium text-ink">{c.titolo}</p>
                 <p className="mt-1 text-sm text-slate-500">{c.testo}</p>
                 <p className="mt-1 text-xs text-slate-400">{formatDate(c.createdAt)}</p>
               </li>

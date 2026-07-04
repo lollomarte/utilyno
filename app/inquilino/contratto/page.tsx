@@ -20,7 +20,7 @@ export default async function InquilinoContrattoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Il tuo contratto</h1>
+        <h1 className="text-xl font-semibold text-ink">Il tuo contratto</h1>
         <p className="mt-1 text-sm text-slate-500">
           {contratto.immobile.indirizzo}, {contratto.immobile.comune}
         </p>
@@ -56,7 +56,7 @@ export default async function InquilinoContrattoPage() {
           ]}
         />
         {contratto.depositoStato === "IN_CONTESTAZIONE" && (
-          <div className="mt-4 rounded-control bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
+          <div className="mt-4 rounded-control bg-warning/10 p-4 text-sm text-warning ring-1 ring-inset ring-warning/30">
             <p className="font-medium">Il tuo deposito è momentaneamente bloccato per una contestazione.</p>
             {contratto.depositoNote && <p className="mt-1">{contratto.depositoNote}</p>}
           </div>

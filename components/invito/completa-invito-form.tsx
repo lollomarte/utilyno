@@ -57,7 +57,7 @@ export function CompletaInvitoForm({ token, email }: { token: string; email: str
         <Input id="confermaPassword" type="password" autoComplete="new-password" {...register("confermaPassword")} />
         <FieldError message={errors.confermaPassword?.message} />
       </div>
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+      {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Attivazione in corso..." : "Attiva il mio account"}
       </Button>

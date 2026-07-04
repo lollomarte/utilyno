@@ -24,7 +24,7 @@ export default async function AgenziaImmobileDetailPage({ params }: { params: Pr
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">
+        <h1 className="text-xl font-semibold text-ink">
           {immobile.indirizzo}, {immobile.comune}
         </h1>
         <p className="mt-1 text-sm text-slate-500">{TIPO_IMMOBILE_LABELS[immobile.tipoImmobile]}</p>
@@ -65,7 +65,7 @@ export default async function AgenziaImmobileDetailPage({ params }: { params: Pr
               {immobile.contratti.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
-                    <Link href={`/agenzia/contratti/${c.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/agenzia/contratti/${c.id}`} className="font-medium text-ink hover:underline">
                       {c.inquilino.user.nome} {c.inquilino.user.cognome}
                     </Link>
                   </TableCell>

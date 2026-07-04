@@ -3,9 +3,9 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 const COLORS: Record<string, string> = {
-  Pagato: "#059669",
-  "In ritardo": "#d97706",
-  Insoluto: "#dc2626",
+  Pagato: "#1f7a5c",
+  "In ritardo": "#96692c",
+  Insoluto: "#b23a2e",
 };
 
 export function PagamentiDonut({ data }: { data: { name: string; value: number }[] }) {

@@ -52,7 +52,7 @@ export function NuovoCondominioForm() {
           <FieldError message={errors.numeroUnita?.message} />
         </div>
       </div>
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+      {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Creazione in corso..." : "Crea condominio"}
       </Button>

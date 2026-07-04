@@ -27,7 +27,7 @@ export default async function ProprietarioPagamentiPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Pagamenti e Depositi</h1>
+        <h1 className="text-xl font-semibold text-ink">Pagamenti e Depositi</h1>
         <p className="mt-1 text-sm text-slate-500">Storico incassi e stato dei depositi cauzionali sui tuoi immobili</p>
       </div>
 
@@ -40,7 +40,7 @@ export default async function ProprietarioPagamentiPage() {
             {depositiDaRestituire.map((contratto) => (
               <li key={contratto.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-900">
+                  <p className="text-sm font-medium text-ink">
                     {contratto.immobile.indirizzo}, {contratto.immobile.comune}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">

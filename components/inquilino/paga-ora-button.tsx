@@ -56,7 +56,7 @@ export function PagaOraButton({
       <Modal open={open} onClose={handleClose} title="Paga canone">
         {esito ? (
           <div className="space-y-4">
-            <p className="text-sm font-medium text-slate-900">Pagamento registrato con successo.</p>
+            <p className="text-sm font-medium text-ink">Pagamento registrato con successo.</p>
             <div className="rounded-control bg-accent-soft p-4 text-sm text-slate-700">
               Il proprietario riceverà l&apos;accredito entro il <strong>{formatDate(esito.dataAccredito)}</strong>.
             </div>
@@ -67,15 +67,15 @@ export function PagaOraButton({
             <div className="rounded-control bg-surface-muted p-4 text-sm">
               <p className="flex justify-between py-1">
                 <span className="text-slate-500">Immobile</span>
-                <span className="font-medium text-slate-900">{indirizzo}</span>
+                <span className="font-medium text-ink">{indirizzo}</span>
               </p>
               <p className="flex justify-between py-1">
                 <span className="text-slate-500">Scadenza</span>
-                <span className="font-medium text-slate-900">{formatDate(dataScadenza)}</span>
+                <span className="font-medium text-ink">{formatDate(dataScadenza)}</span>
               </p>
               <p className="flex justify-between py-1">
                 <span className="text-slate-500">Importo</span>
-                <span className="font-medium text-slate-900">{formatCurrency(importo)}</span>
+                <span className="font-medium text-ink">{formatCurrency(importo)}</span>
               </p>
             </div>
 
@@ -91,7 +91,7 @@ export function PagaOraButton({
               <p className="mt-1 text-xs text-slate-400">Simulazione: nessun addebito reale verrà effettuato.</p>
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
 
             <Button onClick={handleConferma} disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Elaborazione..." : `Conferma pagamento di ${formatCurrency(importo)}`}

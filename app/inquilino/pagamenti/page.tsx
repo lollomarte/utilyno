@@ -30,7 +30,7 @@ export default async function InquilinoPagamentiPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Pagamenti</h1>
+        <h1 className="text-xl font-semibold text-ink">Pagamenti</h1>
         <p className="mt-1 text-sm text-slate-500">Storico canoni per {contratto.immobile.indirizzo}, {contratto.immobile.comune}</p>
       </div>
 

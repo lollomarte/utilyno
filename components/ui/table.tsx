@@ -1,3 +1,4 @@
+import { Stamp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Table({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -9,7 +10,7 @@ export function Table({ children, className }: { children: React.ReactNode; clas
 }
 
 export function TableHead({ children }: { children: React.ReactNode }) {
-  return <thead className="bg-slate-50">{children}</thead>;
+  return <thead className="bg-surface-muted">{children}</thead>;
 }
 
 export function TableBody({ children }: { children: React.ReactNode }) {
@@ -17,7 +18,7 @@ export function TableBody({ children }: { children: React.ReactNode }) {
 }
 
 export function TableRow({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <tr className={cn("hover:bg-slate-50", className)}>{children}</tr>;
+  return <tr className={cn("hover:bg-surface-muted", className)}>{children}</tr>;
 }
 
 export function TableHeaderCell({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -37,8 +38,11 @@ export function TableCell({ children, className }: { children: React.ReactNode; 
 
 export function EmptyState({ message, action }: { message: string; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-4 px-4 py-10 text-center text-sm text-slate-400">
-      <p>{message}</p>
+    <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-sunken text-ink-subtle" aria-hidden="true">
+        <Stamp className="h-5 w-5" strokeWidth={1.75} />
+      </div>
+      <p className="text-sm text-slate-400">{message}</p>
       {action}
     </div>
   );

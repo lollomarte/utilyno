@@ -49,7 +49,7 @@ export function AttivaAssicurazioneForm({ immobileId, onSuccess }: { immobileId:
         <Input id="premioAnnuale" type="number" min="0" step="1" {...register("premioAnnuale")} />
         <FieldError message={errors.premioAnnuale?.message} />
       </div>
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+      {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Attivazione in corso..." : "Attiva copertura"}
       </Button>

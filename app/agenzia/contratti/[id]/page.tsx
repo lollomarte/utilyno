@@ -32,7 +32,7 @@ export default async function ContrattoDetailPage({ params }: { params: Promise<
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">
+          <h1 className="text-xl font-semibold text-ink">
             {contratto.immobile.indirizzo}, {contratto.immobile.comune}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -156,7 +156,7 @@ export default async function ContrattoDetailPage({ params }: { params: Promise<
             {contratto.checklist.map((c) => (
               <li key={c.id} className="py-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-slate-900">
+                  <span className="font-medium text-ink">
                     {TIPO_CHECKLIST_LABELS[c.tipo]} &middot; {c.fotoUrls.length} foto
                   </span>
                   <span className="text-slate-400">{formatDate(c.dataCompilazione)}</span>

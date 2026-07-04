@@ -21,7 +21,7 @@ export default async function ProprietarioImmobiliPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Immobili</h1>
+        <h1 className="text-xl font-semibold text-ink">Immobili</h1>
         <p className="mt-1 text-sm text-slate-500">Rendimento lordo calcolato su canone annuo e valore stimato</p>
       </div>
 
@@ -43,7 +43,7 @@ export default async function ProprietarioImmobiliPage() {
               {rendimenti.map(({ immobile, yieldLordo }) => (
                 <TableRow key={immobile.id}>
                   <TableCell>
-                    <Link href={`/proprietario/immobili/${immobile.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/proprietario/immobili/${immobile.id}`} className="font-medium text-ink hover:underline">
                       {immobile.indirizzo}, {immobile.comune}
                     </Link>
                   </TableCell>

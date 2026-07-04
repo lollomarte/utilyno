@@ -9,8 +9,8 @@ export default async function NonAutorizzatoPage() {
   const portalHref = session?.user ? await resolvePortalForSession(session.user.id, session.user.role) : null;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center">
-      <h1 className="text-2xl font-semibold text-slate-900">Accesso non autorizzato</h1>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-muted px-4 text-center">
+      <h1 className="text-2xl font-semibold text-ink">Accesso non autorizzato</h1>
 
       {portalHref ? (
         <>

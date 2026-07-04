@@ -9,7 +9,7 @@ export default async function AmministratoriPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Amministratori di condominio</h1>
+        <h1 className="text-xl font-semibold text-ink">Amministratori di condominio</h1>
         <p className="mt-1 text-sm text-slate-500">Tutti gli amministratori di condominio registrati sulla piattaforma</p>
       </div>
 
@@ -31,7 +31,7 @@ export default async function AmministratoriPage() {
               {amministratori.map((a) => (
                 <TableRow key={a.id}>
                   <TableCell>
-                    <Link href={`/admin/amministratori/${a.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/admin/amministratori/${a.id}`} className="font-medium text-ink hover:underline">
                       {a.ragioneSociale}
                     </Link>
                   </TableCell>

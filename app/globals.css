@@ -4,55 +4,62 @@
  * Design tokens LOQO — unica fonte di verità per palette, tipografia,
  * raggi e ombre. Cambiare qui si riflette in tutta l'app grazie alle
  * utility Tailwind generate da @theme (bg-primary, rounded-card, ecc.).
+ *
+ * Palette "blu petrolio": un'identità deliberatamente istituzionale/italiana
+ * (registro, atto notarile) invece dello slate+emerald da SaaS generico.
  */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f6f5f2;
+  --foreground: #12242b;
 
-  /* Font system-native: su iOS/macOS risolve a San Francisco senza
-     caricare alcun font esterno; su Windows/Android a Segoe UI/Roboto. */
+  /* Font system-native per il corpo testo: su iOS/macOS risolve a San
+     Francisco senza caricare alcun font esterno; su Windows/Android a
+     Segoe UI/Roboto. Il serif (--font-newsreader) è riservato a titoli e
+     numeri importanti, caricato via next/font (self-hosted, zero richieste
+     esterne a runtime: non confligge con la scelta mobile-first). */
   --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
 
-  /* Brand — accento blu/verde scuro già in uso, ora centralizzato */
-  --color-primary: #0f172a; /* slate-900: azioni primarie, nav, splash */
-  --color-primary-dark: #020617; /* slate-950: stati hover/active */
-  --color-primary-soft: #1e293b; /* slate-800: superfici scure secondarie */
-  --color-accent: #059669; /* emerald-600: esiti positivi, trend, conferme */
-  --color-accent-soft: #d1fae5; /* emerald-100: sfondo badge/icone accento */
+  /* Brand — blu petrolio: autorevole senza la freddezza dello slate da SaaS */
+  --color-primary: #0e2f3c;
+  --color-primary-dark: #081e27; /* hover/active, sfondi pieni */
+  --color-primary-soft: #143c4c; /* superfici scure secondarie */
+  --color-accent: #1f7a5c; /* verde salvia scuro: esiti positivi, trend, conferme */
+  --color-accent-soft: #e1efe8; /* sfondo badge/icone accento */
 
   /* Superfici */
   --color-surface: #ffffff;
   --color-surface-elevated: #ffffff; /* usata insieme a --shadow-elevated */
-  --color-surface-muted: #f8fafc; /* slate-50 */
-  --color-surface-sunken: #f1f5f9; /* slate-100 */
-  --color-border: #e2e8f0; /* slate-200 */
+  --color-surface-muted: #f6f5f2; /* carta calda, non grigio-blu freddo */
+  --color-surface-sunken: #efeee9;
+  --color-border: #e4e1d9;
 
   /* Testo */
-  --color-ink: #0f172a;
-  --color-ink-muted: #64748b;
-  --color-ink-subtle: #94a3b8;
+  --color-ink: #12242b;
+  --color-ink-muted: #5b6b70;
+  --color-ink-subtle: #8a9599;
 
-  /* Stato */
-  --color-success: #059669;
-  --color-warning: #d97706;
-  --color-danger: #dc2626;
-  --color-info: #2563eb;
+  /* Stato — restano leggibili come rosso/verde/ambra "di famiglia", solo meno saturi/candy */
+  --color-success: #1f7a5c;
+  --color-warning: #96692c; /* più scuro dell'ocra originale: 3.2:1 falliva l'AA su testo piccolo, ora 4.8:1 */
+  --color-danger: #b23a2e;
+  --color-info: #2f5f73;
 
   /* Raggi — 3 livelli riusabili invece di valori improvvisati */
   --radius-control: 10px; /* bottoni, input */
   --radius-card: 12px; /* card, pannelli */
-  --radius-sheet: 20px; /* modali, bottom sheet mobile */
+  --radius-sheet: 22px; /* modali, bottom sheet mobile */
 
-  /* Ombre soft coerenti */
-  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
-  --shadow-elevated: 0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.04);
-  --shadow-sheet: 0 -8px 30px -4px rgb(15 23 42 / 0.18);
+  /* Ombre soft coerenti — 3 livelli distinti per elevazione (card < elevated < sheet) */
+  --shadow-card: 0 1px 2px 0 rgb(14 47 60 / 0.05), 0 1px 3px 0 rgb(14 47 60 / 0.07);
+  --shadow-elevated: 0 4px 12px -2px rgb(14 47 60 / 0.10), 0 2px 4px -2px rgb(14 47 60 / 0.05);
+  --shadow-sheet: 0 -8px 30px -4px rgb(8 30 39 / 0.22);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-system);
+  --font-serif: var(--font-newsreader), Georgia, "Times New Roman", serif;
   --font-mono: var(--font-geist-mono);
 
   --color-primary: var(--color-primary);
@@ -88,6 +95,34 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* Titoli di pagina e numeri in evidenza: serif riservato al "momento importante",
+   non al testo corrente. */
+h1, .font-display {
+  font-family: var(--font-serif);
+  font-feature-settings: "ss01" 1;
+}
+
+/* Cifre tabellari: allinea importi/date in colonna senza un font dedicato
+   (non ha effetto sul testo non numerico, quindi applicabile in modo ampio). */
+.tabular-nums, td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus visibile da tastiera coerente su tutti gli elementi interattivi */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Su sfondi scuri (sidebar, nav attiva) il focus del colore primario si
+   confonderebbe con lo sfondo: qui dev'essere chiaro. */
+.bg-primary :focus-visible,
+.bg-primary-soft :focus-visible,
+.bg-primary-dark :focus-visible {
+  outline-color: #ffffff;
 }
 
 /* Touch target minimo iOS (44x44) per elementi interattivi mobile */

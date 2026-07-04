@@ -99,7 +99,7 @@ export function PartnerForm({ partner, onSuccess }: { partner?: PartnerEsistente
         <Label htmlFor="commissioneMedia">Commissione media stimata per lead (opzionale, solo uso interno)</Label>
         <Input id="commissioneMedia" type="number" step="0.01" {...register("commissioneMedia")} />
       </div>
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+      {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Salvataggio..." : partner ? "Salva modifiche" : "Crea partner"}
       </Button>

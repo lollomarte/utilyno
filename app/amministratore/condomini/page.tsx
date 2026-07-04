@@ -13,7 +13,7 @@ export default async function CondominiPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Condomini</h1>
+          <h1 className="text-xl font-semibold text-ink">Condomini</h1>
           <p className="mt-1 text-sm text-slate-500">I condomini che gestisci</p>
         </div>
         <Link href="/amministratore/condomini/nuovo">
@@ -39,7 +39,7 @@ export default async function CondominiPage() {
               {condomini.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
-                    <Link href={`/amministratore/condomini/${c.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/amministratore/condomini/${c.id}`} className="font-medium text-ink hover:underline">
                       {c.nome}
                     </Link>
                   </TableCell>

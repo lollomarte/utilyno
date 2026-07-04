@@ -35,7 +35,7 @@ export function SplashScreen() {
       )}
       aria-hidden="true"
     >
-      <span className="text-3xl font-semibold tracking-tight text-white">LOQO</span>
+      <span className="font-display text-3xl font-semibold tracking-tight text-white">LOQO</span>
     </div>
   );
 }

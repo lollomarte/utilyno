@@ -46,7 +46,7 @@ export default async function InquilinoDashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
+          <h1 className="text-xl font-semibold text-ink">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-500">
             {contratto.immobile.indirizzo}, {contratto.immobile.comune}
           </p>
@@ -97,7 +97,7 @@ export default async function InquilinoDashboardPage() {
         ) : (
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-slate-900">{formatCurrency(prossimaScadenza.importo)}</p>
+              <p className="text-sm font-medium text-ink">{formatCurrency(prossimaScadenza.importo)}</p>
               <p className="text-sm text-slate-500">Scadenza {formatDate(prossimaScadenza.dataScadenza)}</p>
             </div>
             <StatoPagamentoBadge stato={prossimaScadenza.stato} label={STATO_PAGAMENTO_LABELS[prossimaScadenza.stato]} />
@@ -114,7 +114,7 @@ export default async function InquilinoDashboardPage() {
             </Link>
           </div>
           <p className="text-sm text-slate-600">
-            <span className="text-2xl font-semibold text-slate-900">{utenzeAttive}</span> / {utenze.length} attive
+            <span className="text-2xl font-semibold text-ink">{utenzeAttive}</span> / {utenze.length} attive
           </p>
         </Card>
 
@@ -129,7 +129,7 @@ export default async function InquilinoDashboardPage() {
             <p className="text-sm text-slate-500">Nessuna checklist disponibile.</p>
           ) : (
             <p className="text-sm text-slate-600">
-              <span className="text-2xl font-semibold text-slate-900">{checklistDaFirmare}</span> da firmare
+              <span className="text-2xl font-semibold text-ink">{checklistDaFirmare}</span> da firmare
             </p>
           )}
         </Card>

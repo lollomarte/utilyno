@@ -19,7 +19,7 @@ export default async function InquilinoChecklistPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Checklist immobile</h1>
+        <h1 className="text-xl font-semibold text-ink">Checklist immobile</h1>
         <p className="mt-1 text-sm text-slate-500">Conferma con la tua firma le checklist di ingresso e uscita</p>
       </div>
 

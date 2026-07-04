@@ -20,7 +20,7 @@ export default async function AdminContrattiPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Contratti</h1>
+        <h1 className="text-xl font-semibold text-ink">Contratti</h1>
         <p className="mt-1 text-sm text-slate-500">Registro di tutti i contratti sulla piattaforma, per ogni agenzia</p>
       </div>
 
@@ -68,7 +68,7 @@ export default async function AdminContrattiPage({
               {contratti.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
-                    <Link href={`/admin/agenzie/${c.agenzia.id}`} className="font-medium text-slate-900 hover:underline">
+                    <Link href={`/admin/agenzie/${c.agenzia.id}`} className="font-medium text-ink hover:underline">
                       {c.agenzia.ragioneSociale}
                     </Link>
                   </TableCell>

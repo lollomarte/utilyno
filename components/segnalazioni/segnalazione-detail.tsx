@@ -113,7 +113,7 @@ export function SegnalazioneDetail({
       <Card>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-slate-900">{segnalazione.titolo}</h1>
+            <h1 className="text-xl font-semibold text-ink">{segnalazione.titolo}</h1>
             <p className="mt-1 text-sm text-slate-500">
               {segnalazione.immobile.indirizzo}, {segnalazione.immobile.comune}
               {segnalazione.immobile.condominio && ` · ${segnalazione.immobile.condominio.nome}`}
@@ -174,7 +174,7 @@ export function SegnalazioneDetail({
               {partnerDisponibili.map((p) => (
                 <div key={p.id} className="flex items-center justify-between gap-4 rounded-card border border-slate-200 p-4">
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{p.nome}</p>
+                    <p className="text-sm font-medium text-ink">{p.nome}</p>
                     <p className="text-sm text-slate-500">{p.zonaCopertura}</p>
                   </div>
                   <Button
@@ -187,7 +187,7 @@ export function SegnalazioneDetail({
                   </Button>
                 </div>
               ))}
-              {preventivoError && <p className="text-sm text-red-600">{preventivoError}</p>}
+              {preventivoError && <p className="text-sm text-danger">{preventivoError}</p>}
             </div>
           )}
         </Card>
@@ -202,7 +202,7 @@ export function SegnalazioneDetail({
             {segnalazione.risposte.map((r) => (
               <li key={r.id} className="rounded-card bg-surface-muted p-4">
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm font-medium text-slate-900">
+                  <span className="text-sm font-medium text-ink">
                     {r.autore.nome} {r.autore.cognome} ({ROLE_LABELS[r.autore.role] ?? r.autore.role})
                   </span>
                   <span className="text-xs text-slate-400">{formatDate(r.createdAt)}</span>
@@ -220,7 +220,7 @@ export function SegnalazioneDetail({
             value={testo}
             onChange={(e) => setTesto(e.target.value)}
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
           <Button type="submit" disabled={isPending || !testo.trim()}>
             {isPending ? "Invio in corso..." : "Rispondi"}
           </Button>

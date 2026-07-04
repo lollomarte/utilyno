@@ -2,22 +2,38 @@ import { cn } from "@/lib/utils";
 
 type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";
 
+/**
+ * "Il Timbro": il trattamento di stato ricorrente in tutta l'app (pagamenti,
+ * depositi, contratti, segnalazioni, utenze, richieste preventivo). Un pallino
+ * pieno + un anello interno a media saturazione danno una profondità
+ * "incisa/timbrata" invece del pill piatto da SaaS generico — coerente col
+ * dominio (contratti registrati, sigilli, atti).
+ */
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  neutral: "bg-slate-100 text-slate-700 ring-slate-200",
-  success: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  warning: "bg-amber-50 text-amber-700 ring-amber-200",
-  danger: "bg-red-50 text-red-700 ring-red-200",
-  info: "bg-blue-50 text-blue-700 ring-blue-200",
+  neutral: "bg-slate-100 text-slate-700 ring-slate-300",
+  success: "bg-[var(--color-success)]/10 text-[var(--color-success)] ring-[var(--color-success)]/35",
+  warning: "bg-[var(--color-warning)]/10 text-[var(--color-warning)] ring-[var(--color-warning)]/35",
+  danger: "bg-[var(--color-danger)]/10 text-[var(--color-danger)] ring-[var(--color-danger)]/35",
+  info: "bg-[var(--color-info)]/10 text-[var(--color-info)] ring-[var(--color-info)]/35",
+};
+
+const DOT_CLASSES: Record<BadgeTone, string> = {
+  neutral: "bg-slate-400",
+  success: "bg-[var(--color-success)]",
+  warning: "bg-[var(--color-warning)]",
+  danger: "bg-[var(--color-danger)]",
+  info: "bg-[var(--color-info)]",
 };
 
 export function Badge({ children, tone = "neutral" }: { children: React.ReactNode; tone?: BadgeTone }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset",
         TONE_CLASSES[tone]
       )}
     >
+      <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", DOT_CLASSES[tone])} aria-hidden="true" />
       {children}
     </span>
   );

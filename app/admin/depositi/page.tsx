@@ -11,7 +11,7 @@ export default async function AdminDepositiPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Depositi</h1>
+        <h1 className="text-xl font-semibold text-ink">Depositi</h1>
         <p className="mt-1 text-sm text-slate-500">Depositi cauzionali attualmente in pancia alla piattaforma</p>
       </div>
 
@@ -46,7 +46,7 @@ export default async function AdminDepositiPage() {
             <TableBody>
               {poolDepositiPerAgenzia.map((a) => (
                 <TableRow key={a.id}>
-                  <TableCell className="font-medium text-slate-900">{a.ragioneSociale}</TableCell>
+                  <TableCell className="font-medium text-ink">{a.ragioneSociale}</TableCell>
                   <TableCell>{a.numeroDepositi}</TableCell>
                   <TableCell>{formatCurrency(a.totale)}</TableCell>
                 </TableRow>

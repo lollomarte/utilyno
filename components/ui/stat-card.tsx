@@ -39,10 +39,10 @@ export function StatCard({
       </div>
       <p
         className={cn(
-          "mt-2 text-2xl font-semibold tracking-tight",
-          tone === "warning" && "text-amber-600",
-          tone === "danger" && "text-red-600",
-          tone === "default" && "text-slate-900"
+          "font-display mt-2 text-3xl font-semibold tracking-tight tabular-nums",
+          tone === "warning" && "text-warning",
+          tone === "danger" && "text-danger",
+          tone === "default" && "text-ink"
         )}
       >
         {value}
@@ -53,7 +53,7 @@ export function StatCard({
             <span
               className={cn(
                 "inline-flex items-center gap-0.5 text-xs font-medium",
-                trendIsGood ? "text-accent" : "text-red-600"
+                trendIsGood ? "text-accent" : "text-danger"
               )}
             >
               <TrendIcon className="h-3.5 w-3.5" aria-hidden="true" />
