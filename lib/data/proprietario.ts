@@ -56,6 +56,29 @@ export async function getProprietarioDashboardStats(proprietarioId: string) {
   };
 }
 
+export async function getDepositiDaRestituire(proprietarioId: string) {
+  return prisma.contratto.findMany({
+    where: {
+      immobile: { proprietarioId },
+      stato: { in: ["SCADUTO", "RISOLTO"] },
+      depositoStato: { in: ["VERSATO", "IN_CONTESTAZIONE"] },
+    },
+    include: { immobile: true, inquilino: { include: { user: true } } },
+    orderBy: { dataFine: "desc" },
+  });
+}
+
+export async function getPagamentiInRitardoPerProprietario(proprietarioId: string) {
+  return prisma.pagamento.findMany({
+    where: {
+      stato: { in: ["IN_RITARDO", "INSOLUTO"] },
+      contratto: { immobile: { proprietarioId } },
+    },
+    include: { contratto: { include: { immobile: true, inquilino: { include: { user: true } } } } },
+    orderBy: { dataScadenza: "asc" },
+  });
+}
+
 export async function getComunicazioniPerProprietario(proprietarioId: string, userId: string) {
   const condomini = await prisma.immobile.findMany({
     where: { proprietarioId, condominioId: { not: null } },

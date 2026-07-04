@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { FileText, Euro, CalendarClock, AlertTriangle } from "lucide-react";
 import { requireAgenzia } from "@/lib/auth-helpers";
+import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
 import {
   getAgenziaDashboardStats,
   getContrattiInScadenza,
   getAndamentoIncassiAgenzia,
   getDistribuzionePagamentiAgenzia,
+  getPagamentiInRitardoPerAgenzia,
 } from "@/lib/data/agenzia";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { StatCard, type StatTrend } from "@/components/ui/stat-card";
@@ -13,19 +15,23 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { IncassiChart } from "@/components/charts/incassi-chart";
 import { PagamentiDonut } from "@/components/charts/pagamenti-donut";
+import { PagamentiInRitardoList } from "@/components/pagamenti/pagamenti-in-ritardo-list";
 import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default async function AgenziaDashboardPage() {
   const { session, agenzia } = await requireAgenzia();
-  const [stats, contrattiInScadenza, leadReListing, andamentoIncassi, distribuzionePagamenti, nonLette] = await Promise.all([
-    getAgenziaDashboardStats(agenzia.id),
-    getContrattiInScadenza(agenzia.id, 60),
-    getContrattiInScadenza(agenzia.id, 90),
-    getAndamentoIncassiAgenzia(agenzia.id),
-    getDistribuzionePagamentiAgenzia(agenzia.id),
-    getSegnalazioniNonLette(session.user.id),
-  ]);
+  await aggiornaPagamentiScaduti();
+  const [stats, contrattiInScadenza, leadReListing, andamentoIncassi, distribuzionePagamenti, nonLette, pagamentiInRitardo] =
+    await Promise.all([
+      getAgenziaDashboardStats(agenzia.id),
+      getContrattiInScadenza(agenzia.id, 60),
+      getContrattiInScadenza(agenzia.id, 90),
+      getAndamentoIncassiAgenzia(agenzia.id),
+      getDistribuzionePagamentiAgenzia(agenzia.id),
+      getSegnalazioniNonLette(session.user.id),
+      getPagamentiInRitardoPerAgenzia(agenzia.id),
+    ]);
 
   const meseCorrente = andamentoIncassi[andamentoIncassi.length - 1]?.importo ?? 0;
   const mesePrecedente = andamentoIncassi[andamentoIncassi.length - 2]?.importo ?? 0;
@@ -79,6 +85,18 @@ export default async function AgenziaDashboardPage() {
           <PagamentiDonut data={distribuzionePagamenti} />
         </Card>
       </div>
+
+      <PagamentiInRitardoList
+        description="Canoni scaduti non ancora saldati su tutto il portfolio gestito"
+        righe={pagamentiInRitardo.map((p) => ({
+          id: p.id,
+          importo: p.importo,
+          dataScadenza: p.dataScadenza,
+          stato: p.stato as "IN_RITARDO" | "INSOLUTO",
+          immobile: `${p.contratto.immobile.indirizzo}, ${p.contratto.immobile.comune}`,
+          inquilino: `${p.contratto.inquilino.user.nome} ${p.contratto.inquilino.user.cognome}`,
+        }))}
+      />
 
       <Card>
         <CardHeader title="Contratti in scadenza nei prossimi 60 giorni" description="Promemoria operativo per rinnovi e adempimenti" />

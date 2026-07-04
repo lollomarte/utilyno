@@ -246,6 +246,10 @@ model Contratto {
   depositoStato                  StatoDeposito  @default(NON_VERSATO)
   interessiLegaliMaturati        Float          @default(0)
   dataRestituzioneDeposito       DateTime?
+  /**
+   * Motivazione della contestazione (es. danni riscontrati), impostata quando depositoStato passa a IN_CONTESTAZIONE.
+   */
+  depositoNote                   String?
   createdAt                      DateTime       @default(now())
 
   pagamenti Pagamento[]
@@ -262,6 +266,10 @@ model Pagamento {
   importo         Float
   dataScadenza    DateTime
   dataPagamento   DateTime?
+  /**
+   * Data prevista di accredito al proprietario: +2 giorni lavorativi dal pagamento, simulazione "banca a banca".
+   */
+  dataAccredito   DateTime?
   stato           StatoPagamento @default(PROGRAMMATO)
   metodoPagamento String?
 }

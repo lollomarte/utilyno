@@ -44,6 +44,17 @@ export async function getAgenziaDashboardStats(agenziaId: string) {
   };
 }
 
+export async function getPagamentiInRitardoPerAgenzia(agenziaId: string) {
+  return prisma.pagamento.findMany({
+    where: {
+      stato: { in: ["IN_RITARDO", "INSOLUTO"] },
+      contratto: { agenziaId },
+    },
+    include: { contratto: { include: { immobile: true, inquilino: { include: { user: true } } } } },
+    orderBy: { dataScadenza: "asc" },
+  });
+}
+
 export async function getContrattiInScadenza(agenziaId: string, entroGiorni: number) {
   const now = new Date();
   return prisma.contratto.findMany({

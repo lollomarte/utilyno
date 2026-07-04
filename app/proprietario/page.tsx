@@ -2,22 +2,28 @@ import Link from "next/link";
 import { addYears, differenceInCalendarDays } from "date-fns";
 import { Building2, Euro, Users, TrendingUp } from "lucide-react";
 import { requireProprietario } from "@/lib/auth-helpers";
+import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
 import {
   getImmobiliForProprietario,
   getProprietarioDashboardStats,
   getComunicazioniPerProprietario,
   getDocumentiPerProprietario,
   getAndamentoIncassiProprietario,
+  getPagamentiInRitardoPerProprietario,
+  getDepositiDaRestituire,
 } from "@/lib/data/proprietario";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
 import { AssicurazioneCta } from "@/components/proprietario/assicurazione-cta";
+import { PagamentiInRitardoList } from "@/components/pagamenti/pagamenti-in-ritardo-list";
+import { GestisciRestituzioneDepositoButton } from "@/components/depositi/gestisci-restituzione-deposito-button";
 import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { Badge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
 import { IncassiChart } from "@/components/charts/incassi-chart";
+import { calcolaInteressiLegali } from "@/lib/depositi/calcolaInteressiLegali";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import { TIPO_IMMOBILE_LABELS, STATO_DEPOSITO_LABELS, STATO_ASSICURAZIONE_LABELS } from "@/lib/labels";
 
@@ -37,14 +43,18 @@ function countdown(data: Date) {
 
 export default async function ProprietarioDashboardPage() {
   const { session, proprietario } = await requireProprietario();
-  const [immobili, stats, comunicazioni, documenti, andamentoIncassi, nonLette] = await Promise.all([
-    getImmobiliForProprietario(proprietario.id),
-    getProprietarioDashboardStats(proprietario.id),
-    getComunicazioniPerProprietario(proprietario.id, session.user.id),
-    getDocumentiPerProprietario(proprietario.id),
-    getAndamentoIncassiProprietario(proprietario.id),
-    getSegnalazioniNonLette(session.user.id),
-  ]);
+  await aggiornaPagamentiScaduti();
+  const [immobili, stats, comunicazioni, documenti, andamentoIncassi, nonLette, pagamentiInRitardo, depositiDaRestituire] =
+    await Promise.all([
+      getImmobiliForProprietario(proprietario.id),
+      getProprietarioDashboardStats(proprietario.id),
+      getComunicazioniPerProprietario(proprietario.id, session.user.id),
+      getDocumentiPerProprietario(proprietario.id),
+      getAndamentoIncassiProprietario(proprietario.id),
+      getSegnalazioniNonLette(session.user.id),
+      getPagamentiInRitardoPerProprietario(proprietario.id),
+      getDepositiDaRestituire(proprietario.id),
+    ]);
 
   const rendimenti = immobili.map((immobile) => {
     const contrattoAttivo = immobile.contratti[0];
@@ -110,6 +120,18 @@ export default async function ProprietarioDashboardPage() {
           icon={TrendingUp}
         />
       </div>
+
+      <PagamentiInRitardoList
+        description="Canoni scaduti non ancora saldati sui tuoi immobili"
+        righe={pagamentiInRitardo.map((p) => ({
+          id: p.id,
+          importo: p.importo,
+          dataScadenza: p.dataScadenza,
+          stato: p.stato as "IN_RITARDO" | "INSOLUTO",
+          immobile: `${p.contratto.immobile.indirizzo}, ${p.contratto.immobile.comune}`,
+          inquilino: `${p.contratto.inquilino.user.nome} ${p.contratto.inquilino.user.cognome}`,
+        }))}
+      />
 
       <Card>
         <CardHeader title="Andamento incassi" description="Ultimi 6 mesi, tutti gli immobili" />
@@ -185,6 +207,41 @@ export default async function ProprietarioDashboardPage() {
               ))}
             </TableBody>
           </Table>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Depositi da restituire"
+          description="Contratti conclusi con deposito ancora da restituire all'inquilino"
+        />
+        {depositiDaRestituire.length === 0 ? (
+          <EmptyState message="Nessun deposito in attesa di restituzione." />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {depositiDaRestituire.map((contratto) => (
+              <li key={contratto.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">
+                    {contratto.immobile.indirizzo}, {contratto.immobile.comune}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {contratto.inquilino.user.nome} {contratto.inquilino.user.cognome} &middot; contratto concluso il{" "}
+                    {formatDate(contratto.dataFine)}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Deposito {formatCurrency(contratto.depositoImporto)} &middot;{" "}
+                    <StatoDepositoBadge stato={contratto.depositoStato} label={STATO_DEPOSITO_LABELS[contratto.depositoStato]} />
+                  </p>
+                </div>
+                <GestisciRestituzioneDepositoButton
+                  contrattoId={contratto.id}
+                  depositoImporto={contratto.depositoImporto}
+                  interessiStimati={calcolaInteressiLegali(contratto.depositoImporto, contratto.dataInizio, contratto.dataFine)}
+                />
+              </li>
+            ))}
+          </ul>
         )}
       </Card>
 

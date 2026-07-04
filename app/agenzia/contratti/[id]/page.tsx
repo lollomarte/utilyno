@@ -7,6 +7,8 @@ import { StatoContrattoBadge, StatoPagamentoBadge, StatoDepositoBadge } from "@/
 import { RegistraAdEButton, RinnovaRegistrazioneButton } from "@/components/agenzia/registra-ade-button";
 import { GeneraInvitoButton } from "@/components/agenzia/genera-invito-button";
 import { ChecklistForm } from "@/components/agenzia/checklist-form";
+import { GestisciRestituzioneDepositoButton } from "@/components/depositi/gestisci-restituzione-deposito-button";
+import { calcolaInteressiLegali } from "@/lib/depositi/calcolaInteressiLegali";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   STATO_CONTRATTO_LABELS,
@@ -92,8 +94,20 @@ export default async function ContrattoDetailPage({ params }: { params: Promise<
               label: "Data restituzione",
               value: contratto.dataRestituzioneDeposito ? formatDate(contratto.dataRestituzioneDeposito) : "-",
             },
+            ...(contratto.depositoStato === "IN_CONTESTAZIONE" && contratto.depositoNote
+              ? [{ label: "Motivo contestazione", value: contratto.depositoNote }]
+              : []),
           ]}
         />
+        {contratto.stato !== "ATTIVO" && (contratto.depositoStato === "VERSATO" || contratto.depositoStato === "IN_CONTESTAZIONE") && (
+          <div className="mt-4">
+            <GestisciRestituzioneDepositoButton
+              contrattoId={contratto.id}
+              depositoImporto={contratto.depositoImporto}
+              interessiStimati={calcolaInteressiLegali(contratto.depositoImporto, contratto.dataInizio, contratto.dataFine)}
+            />
+          </div>
+        )}
       </Card>
 
       <Card>

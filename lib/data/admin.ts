@@ -1,16 +1,27 @@
 import { prisma } from "@/lib/prisma";
 
 export async function getAdminDashboardStats() {
-  const [numeroAgenzie, numeroAmministratori, numeroContratti, contrattiAttivi, pagamentiInRitardo, volumeIncassato, poolDepositi] =
-    await Promise.all([
-      prisma.agenzia.count(),
-      prisma.amministratore.count(),
-      prisma.contratto.count(),
-      prisma.contratto.count({ where: { stato: "ATTIVO" } }),
-      prisma.pagamento.count({ where: { stato: { in: ["IN_RITARDO", "INSOLUTO"] } } }),
-      prisma.pagamento.aggregate({ _sum: { importo: true }, where: { stato: "PAGATO" } }),
-      prisma.contratto.aggregate({ _sum: { depositoImporto: true }, where: { depositoStato: "VERSATO" } }),
-    ]);
+  const [
+    numeroAgenzie,
+    numeroAmministratori,
+    numeroContratti,
+    contrattiAttivi,
+    pagamentiInRitardo,
+    volumeIncassato,
+    poolDepositi,
+  ] = await Promise.all([
+    prisma.agenzia.count(),
+    prisma.amministratore.count(),
+    prisma.contratto.count(),
+    prisma.contratto.count({ where: { stato: "ATTIVO" } }),
+    prisma.pagamento.count({ where: { stato: { in: ["IN_RITARDO", "INSOLUTO"] } } }),
+    prisma.pagamento.aggregate({ _sum: { importo: true }, where: { stato: "PAGATO" } }),
+    prisma.contratto.aggregate({
+      _sum: { depositoImporto: true },
+      _count: true,
+      where: { depositoStato: "VERSATO" },
+    }),
+  ]);
 
   return {
     numeroAgenzie,
@@ -20,7 +31,33 @@ export async function getAdminDashboardStats() {
     pagamentiInRitardo,
     volumeIncassato: volumeIncassato._sum.importo ?? 0,
     poolDepositiTotale: poolDepositi._sum.depositoImporto ?? 0,
+    numeroDepositiVersati: poolDepositi._count,
   };
+}
+
+/** Depositi attualmente "in pancia" alla piattaforma (VERSATO), aggregati per agenzia: mostra la scala del floating gestito. */
+export async function getPoolDepositiPerAgenzia() {
+  const agenzie = await prisma.agenzia.findMany({
+    select: {
+      id: true,
+      ragioneSociale: true,
+      contratti: {
+        where: { depositoStato: "VERSATO" },
+        select: { depositoImporto: true },
+      },
+    },
+    orderBy: { ragioneSociale: "asc" },
+  });
+
+  return agenzie
+    .map((a) => ({
+      id: a.id,
+      ragioneSociale: a.ragioneSociale,
+      numeroDepositi: a.contratti.length,
+      totale: a.contratti.reduce((sum, c) => sum + c.depositoImporto, 0),
+    }))
+    .filter((a) => a.numeroDepositi > 0)
+    .sort((a, b) => b.totale - a.totale);
 }
 
 export async function getDistribuzionePagamenti() {

@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { Building2, Users, FileText, AlertTriangle, Euro, PiggyBank } from "lucide-react";
-import { getAdminDashboardStats, getAgenzieConPortfolio, getAmministratoriConPortfolio, getDistribuzionePagamenti } from "@/lib/data/admin";
+import {
+  getAdminDashboardStats,
+  getAgenzieConPortfolio,
+  getAmministratoriConPortfolio,
+  getDistribuzionePagamenti,
+  getPoolDepositiPerAgenzia,
+} from "@/lib/data/admin";
+import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
@@ -8,11 +15,13 @@ import { PagamentiDonut } from "@/components/charts/pagamenti-donut";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function AdminDashboardPage() {
-  const [stats, agenzie, amministratori, distribuzionePagamenti] = await Promise.all([
+  await aggiornaPagamentiScaduti();
+  const [stats, agenzie, amministratori, distribuzionePagamenti, poolDepositiPerAgenzia] = await Promise.all([
     getAdminDashboardStats(),
     getAgenzieConPortfolio(),
     getAmministratoriConPortfolio(),
     getDistribuzionePagamenti(),
+    getPoolDepositiPerAgenzia(),
   ]);
 
   return (
@@ -46,7 +55,7 @@ export default async function AdminDashboardPage() {
         <StatCard
           label="Pool depositi totale"
           value={formatCurrency(stats.poolDepositiTotale)}
-          hint="Depositi cauzionali versati"
+          hint={`${stats.numeroDepositiVersati} depositi versati · floating gestito in attesa di restituzione`}
           icon={PiggyBank}
         />
       </div>
@@ -54,6 +63,35 @@ export default async function AdminDashboardPage() {
       <Card>
         <CardHeader title="Distribuzione stato pagamenti" description="Tutti i contratti della piattaforma" />
         <PagamentiDonut data={distribuzionePagamenti} />
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Pool depositi per agenzia"
+          description="Depositi cauzionali attualmente versati (VERSATO), per agenzia: la liquidità che in produzione transiterebbe su Partner 1"
+        />
+        {poolDepositiPerAgenzia.length === 0 ? (
+          <EmptyState message="Nessun deposito versato al momento." />
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Agenzia</TableHeaderCell>
+                <TableHeaderCell>Depositi versati</TableHeaderCell>
+                <TableHeaderCell>Totale</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {poolDepositiPerAgenzia.map((a) => (
+                <TableRow key={a.id}>
+                  <TableCell className="font-medium text-slate-900">{a.ragioneSociale}</TableCell>
+                  <TableCell>{a.numeroDepositi}</TableCell>
+                  <TableCell>{formatCurrency(a.totale)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </Card>
 
       <Card>

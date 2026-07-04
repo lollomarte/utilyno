@@ -92,16 +92,24 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
               {immobile.contratti
                 .flatMap((c) => c.pagamenti)
                 .sort((a, b) => b.dataScadenza.getTime() - a.dataScadenza.getTime())
-                .map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell>{formatDate(p.dataScadenza)}</TableCell>
-                    <TableCell>{formatCurrency(p.importo)}</TableCell>
-                    <TableCell>{p.dataPagamento ? formatDate(p.dataPagamento) : "-"}</TableCell>
-                    <TableCell>
-                      <StatoPagamentoBadge stato={p.stato} label={STATO_PAGAMENTO_LABELS[p.stato]} />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                .map((p) => {
+                  const inAttesaDiAccredito = p.stato === "PAGATO" && p.dataAccredito && p.dataAccredito > new Date();
+                  return (
+                    <TableRow key={p.id}>
+                      <TableCell>{formatDate(p.dataScadenza)}</TableCell>
+                      <TableCell>{formatCurrency(p.importo)}</TableCell>
+                      <TableCell>{p.dataPagamento ? formatDate(p.dataPagamento) : "-"}</TableCell>
+                      <TableCell>
+                        <StatoPagamentoBadge stato={p.stato} label={STATO_PAGAMENTO_LABELS[p.stato]} />
+                        {inAttesaDiAccredito && (
+                          <p className="mt-1 text-xs text-slate-400">
+                            Pagamento ricevuto, accredito previsto il {formatDate(p.dataAccredito!)}
+                          </p>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
             </TableBody>
           </Table>
         )}

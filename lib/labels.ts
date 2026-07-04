@@ -99,3 +99,8 @@ export const STATO_RICHIESTA_PREVENTIVO_LABELS: Record<string, string> = {
   CHIUSA_CONVERTITA: "Chiusa (convertita)",
   CHIUSA_NON_CONVERTITA: "Chiusa (non convertita)",
 };
+
+export const METODO_PAGAMENTO_LABELS: Record<string, string> = {
+  BONIFICO: "Bonifico",
+  CARTA: "Carta",
+};

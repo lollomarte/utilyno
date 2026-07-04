@@ -1,9 +1,13 @@
+import { addDays } from "date-fns";
 import { Euro, CalendarClock, FileClock } from "lucide-react";
 import { requireInquilino } from "@/lib/auth-helpers";
+import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
 import { getContrattoAttivoForInquilino, getUtenzeForImmobile, getComunicazioniPerInquilino } from "@/lib/data/inquilino";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
 import { ChecklistItem } from "@/components/inquilino/checklist-item";
+import { PagaOraButton } from "@/components/inquilino/paga-ora-button";
+import { PagamentiInRitardoBanner } from "@/components/pagamenti/pagamenti-in-ritardo-banner";
 import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
@@ -21,6 +25,7 @@ import {
 
 export default async function InquilinoDashboardPage() {
   const { session, inquilino } = await requireInquilino();
+  await aggiornaPagamentiScaduti();
   const contratto = await getContrattoAttivoForInquilino(inquilino.id);
 
   if (!contratto) {
@@ -39,6 +44,9 @@ export default async function InquilinoDashboardPage() {
   const prossimaScadenza = contratto.pagamenti
     .filter((p) => p.stato === "PROGRAMMATO" || p.stato === "IN_RITARDO")
     .sort((a, b) => a.dataScadenza.getTime() - b.dataScadenza.getTime())[0];
+  const pagamentiInRitardoCount = contratto.pagamenti.filter(
+    (p) => p.stato === "IN_RITARDO" || p.stato === "INSOLUTO"
+  ).length;
 
   return (
     <div className="space-y-8">
@@ -51,6 +59,8 @@ export default async function InquilinoDashboardPage() {
         </div>
         <SegnalazioniNonLetteBadge count={nonLette} href="/inquilino/segnalazioni" />
       </div>
+
+      <PagamentiInRitardoBanner count={pagamentiInRitardoCount} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Canone mensile" value={formatCurrency(contratto.canoneMensile)} icon={Euro} />
@@ -86,11 +96,21 @@ export default async function InquilinoDashboardPage() {
               value: <StatoDepositoBadge stato={contratto.depositoStato} label={STATO_DEPOSITO_LABELS[contratto.depositoStato]} />,
             },
             { label: "Interessi legali maturati", value: formatCurrency(contratto.interessiLegaliMaturati) },
+            {
+              label: "Data restituzione",
+              value: contratto.dataRestituzioneDeposito ? formatDate(contratto.dataRestituzioneDeposito) : "-",
+            },
           ]}
         />
+        {contratto.depositoStato === "IN_CONTESTAZIONE" && (
+          <div className="mt-4 rounded-control bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
+            <p className="font-medium">Il tuo deposito è momentaneamente bloccato per una contestazione.</p>
+            {contratto.depositoNote && <p className="mt-1">{contratto.depositoNote}</p>}
+          </div>
+        )}
       </Card>
 
-      <Card>
+      <Card id="storico-pagamenti">
         <CardHeader title="Storico pagamenti" />
         {contratto.pagamenti.length === 0 ? (
           <EmptyState message="Nessun pagamento registrato." />
@@ -102,19 +122,34 @@ export default async function InquilinoDashboardPage() {
                 <TableHeaderCell>Importo</TableHeaderCell>
                 <TableHeaderCell>Data pagamento</TableHeaderCell>
                 <TableHeaderCell>Stato</TableHeaderCell>
+                <TableHeaderCell>{""}</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {contratto.pagamenti.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>{formatDate(p.dataScadenza)}</TableCell>
-                  <TableCell>{formatCurrency(p.importo)}</TableCell>
-                  <TableCell>{p.dataPagamento ? formatDate(p.dataPagamento) : "-"}</TableCell>
-                  <TableCell>
-                    <StatoPagamentoBadge stato={p.stato} label={STATO_PAGAMENTO_LABELS[p.stato]} />
-                  </TableCell>
-                </TableRow>
-              ))}
+              {contratto.pagamenti.map((p) => {
+                const inScadenzaOImminente = p.stato !== "PROGRAMMATO" || p.dataScadenza <= addDays(new Date(), 7);
+                const pagabile = p.stato !== "PAGATO" && inScadenzaOImminente;
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell>{formatDate(p.dataScadenza)}</TableCell>
+                    <TableCell>{formatCurrency(p.importo)}</TableCell>
+                    <TableCell>{p.dataPagamento ? formatDate(p.dataPagamento) : "-"}</TableCell>
+                    <TableCell>
+                      <StatoPagamentoBadge stato={p.stato} label={STATO_PAGAMENTO_LABELS[p.stato]} />
+                    </TableCell>
+                    <TableCell>
+                      {pagabile && (
+                        <PagaOraButton
+                          pagamentoId={p.id}
+                          importo={p.importo}
+                          indirizzo={`${contratto.immobile.indirizzo}, ${contratto.immobile.comune}`}
+                          dataScadenza={p.dataScadenza}
+                        />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}
