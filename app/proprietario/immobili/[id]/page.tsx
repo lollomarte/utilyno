@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { requireProprietario } from "@/lib/auth-helpers";
 import { getImmobileDetailForProprietario } from "@/lib/data/proprietario";
+import { getUtenzeComplete, getFornitoriPerTutteLeUtenze } from "@/lib/data/utenze";
 import { SegnalazioniTable } from "@/components/segnalazioni/segnalazioni-table";
+import { UtenzeSection } from "@/components/utenze/utenze-section";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { StatoContrattoBadge, StatoPagamentoBadge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
@@ -22,6 +24,8 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
   if (!immobile) {
     notFound();
   }
+
+  const [utenze, fornitoriPerTipo] = await Promise.all([getUtenzeComplete(immobile.id), getFornitoriPerTutteLeUtenze()]);
 
   const contrattoAttivo = immobile.contratti.find((c) => c.stato === "ATTIVO");
 
@@ -114,6 +118,8 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
           </Table>
         )}
       </Card>
+
+      <UtenzeSection immobileId={immobile.id} utenze={utenze} fornitoriPerTipo={fornitoriPerTipo} />
 
       <Card>
         <CardHeader title="Assicurazioni collegate" />

@@ -2,24 +2,24 @@ import { addDays } from "date-fns";
 import { Euro, CalendarClock, FileClock } from "lucide-react";
 import { requireInquilino } from "@/lib/auth-helpers";
 import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
-import { getContrattoAttivoForInquilino, getUtenzeForImmobile, getComunicazioniPerInquilino } from "@/lib/data/inquilino";
+import { getContrattoAttivoForInquilino, getComunicazioniPerInquilino } from "@/lib/data/inquilino";
+import { getUtenzeComplete, getFornitoriPerTutteLeUtenze } from "@/lib/data/utenze";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
 import { ChecklistItem } from "@/components/inquilino/checklist-item";
 import { PagaOraButton } from "@/components/inquilino/paga-ora-button";
 import { PagamentiInRitardoBanner } from "@/components/pagamenti/pagamenti-in-ritardo-banner";
+import { UtenzeSection } from "@/components/utenze/utenze-section";
 import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { StatoPagamentoBadge, StatoUtenzaBadge, StatoDepositoBadge } from "@/components/ui/badge";
+import { StatoPagamentoBadge, StatoDepositoBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   TIPO_CONTRATTO_LABELS,
   REGIME_FISCALE_LABELS,
   STATO_PAGAMENTO_LABELS,
-  TIPO_UTENZA_LABELS,
-  STATO_UTENZA_LABELS,
   STATO_DEPOSITO_LABELS,
 } from "@/lib/labels";
 
@@ -36,8 +36,9 @@ export default async function InquilinoDashboardPage() {
     );
   }
 
-  const [utenze, comunicazioni, nonLette] = await Promise.all([
-    getUtenzeForImmobile(contratto.immobileId),
+  const [utenze, fornitoriPerTipo, comunicazioni, nonLette] = await Promise.all([
+    getUtenzeComplete(contratto.immobileId),
+    getFornitoriPerTutteLeUtenze(),
     getComunicazioniPerInquilino(contratto.immobile.condominioId, session.user.id),
     getSegnalazioniNonLette(session.user.id),
   ]);
@@ -155,33 +156,12 @@ export default async function InquilinoDashboardPage() {
         )}
       </Card>
 
-      <Card>
-        <CardHeader title="Utenze" />
-        {utenze.length === 0 ? (
-          <EmptyState message="Nessuna utenza registrata." />
-        ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Tipo</TableHeaderCell>
-                <TableHeaderCell>Fornitore</TableHeaderCell>
-                <TableHeaderCell>Stato</TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {utenze.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell>{TIPO_UTENZA_LABELS[u.tipo]}</TableCell>
-                  <TableCell>{u.fornitore}</TableCell>
-                  <TableCell>
-                    <StatoUtenzaBadge stato={u.stato} label={STATO_UTENZA_LABELS[u.stato]} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
+      <UtenzeSection
+        immobileId={contratto.immobileId}
+        utenze={utenze}
+        fornitoriPerTipo={fornitoriPerTipo}
+        readOnly={contratto.stato !== "ATTIVO"}
+      />
 
       <Card>
         <CardHeader title="Checklist immobile" description="Conferma con la tua firma le checklist di ingresso e uscita" />

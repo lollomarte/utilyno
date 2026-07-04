@@ -1,4 +1,8 @@
+import { subDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
+
+/** Una segnalazione APERTA di priorità ALTA aperta da più di questi giorni è considerata urgente. */
+const SOGLIA_GIORNI_URGENZA = 3;
 
 export async function getAmministratoreDashboardStats(amministratoreId: string, userId: string) {
   const [numeroCondomini, condomini, segnalazioniAperte] = await Promise.all([
@@ -38,6 +42,66 @@ export async function getCondominiForAmministratore(amministratoreId: string) {
   }));
 }
 
+/**
+ * Statistiche per condominio per la dashboard: occupazione (immobili con contratto
+ * attivo sul totale collegato a LOQO), segnalazioni per stato con indicatore di
+ * urgenza, e lead/preventivi generati dalle segnalazioni di quel condominio.
+ */
+export async function getCondominiConStatistiche(amministratoreId: string) {
+  const condomini = await prisma.condominio.findMany({
+    where: { amministratoreId },
+    include: {
+      immobili: {
+        select: { id: true, contratti: { where: { stato: "ATTIVO" }, select: { id: true } } },
+      },
+    },
+    orderBy: { nome: "asc" },
+  });
+  const condominioIds = condomini.map((c) => c.id);
+
+  const [segnalazioni, richiestePreventivo] = await Promise.all([
+    prisma.segnalazione.findMany({
+      where: { immobile: { condominioId: { in: condominioIds } } },
+      select: { stato: true, priorita: true, createdAt: true, immobile: { select: { condominioId: true } } },
+    }),
+    prisma.richiestaPreventivo.findMany({
+      where: { segnalazione: { immobile: { condominioId: { in: condominioIds } } } },
+      select: { segnalazione: { select: { immobile: { select: { condominioId: true } } } } },
+    }),
+  ]);
+
+  const sogliaUrgenza = subDays(new Date(), SOGLIA_GIORNI_URGENZA);
+
+  return condomini.map((c) => {
+    const immobiliCollegati = c.immobili.length;
+    const immobiliOccupati = c.immobili.filter((i) => i.contratti.length > 0).length;
+    const percentualeOccupazione = immobiliCollegati > 0 ? (immobiliOccupati / immobiliCollegati) * 100 : null;
+
+    const segnalazioniCondominio = segnalazioni.filter((s) => s.immobile.condominioId === c.id);
+    const segnalazioniAperte = segnalazioniCondominio.filter((s) => s.stato === "APERTA").length;
+    const segnalazioniInLavorazione = segnalazioniCondominio.filter((s) => s.stato === "IN_LAVORAZIONE").length;
+    const haUrgenze = segnalazioniCondominio.some(
+      (s) => s.stato === "APERTA" && s.priorita === "ALTA" && s.createdAt < sogliaUrgenza
+    );
+
+    const leadGenerati = richiestePreventivo.filter((r) => r.segnalazione.immobile.condominioId === c.id).length;
+
+    return {
+      id: c.id,
+      nome: c.nome,
+      comune: c.comune,
+      numeroUnita: c.numeroUnita,
+      immobiliCollegati,
+      immobiliOccupati,
+      percentualeOccupazione,
+      segnalazioniAperte,
+      segnalazioniInLavorazione,
+      haUrgenze,
+      leadGenerati,
+    };
+  });
+}
+
 export async function getCondominioDetail(condominioId: string, amministratoreId: string) {
   return prisma.condominio.findFirst({
     where: { id: condominioId, amministratoreId },
@@ -49,6 +113,15 @@ export async function getCondominioDetail(condominioId: string, amministratoreId
         },
       },
     },
+  });
+}
+
+/** Le richieste di preventivo generate dalle segnalazioni di questo condominio, con partner e stato. */
+export async function getRichiestePreventivoPerCondominio(condominioId: string) {
+  return prisma.richiestaPreventivo.findMany({
+    where: { segnalazione: { immobile: { condominioId } } },
+    include: { partner: true, segnalazione: { select: { titolo: true } } },
+    orderBy: { createdAt: "desc" },
   });
 }
 
@@ -68,6 +141,20 @@ export async function getComunicazioniForCondominio(condominioId: string, ammini
     where: { condominioId },
     orderBy: { createdAt: "desc" },
   });
+}
+
+/** Immobili non ancora collegati a nessun condominio, candidati per "Collega immobile esistente". */
+export async function getImmobiliNonAssegnati() {
+  return prisma.immobile.findMany({
+    where: { condominioId: null },
+    include: { proprietario: { include: { user: true } } },
+    orderBy: { indirizzo: "asc" },
+  });
+}
+
+/** Agenzie esistenti tra cui l'Amministratore può scegliere quando crea un Immobile al volo. */
+export async function getAgenzieDisponibili() {
+  return prisma.agenzia.findMany({ orderBy: { ragioneSociale: "asc" } });
 }
 
 export async function getImmobiliPerSegnalazione(amministratoreId: string) {

@@ -41,9 +41,9 @@ export default async function ImmobiliPage() {
               {immobili.map((immobile) => (
                 <TableRow key={immobile.id}>
                   <TableCell>
-                    <span className="font-medium text-slate-900">
+                    <Link href={`/agenzia/immobili/${immobile.id}`} className="font-medium text-slate-900 hover:underline">
                       {immobile.indirizzo}, {immobile.comune}
-                    </span>
+                    </Link>
                   </TableCell>
                   <TableCell>{TIPO_IMMOBILE_LABELS[immobile.tipoImmobile]}</TableCell>
                   <TableCell>

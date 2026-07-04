@@ -1,11 +1,22 @@
 import { notFound } from "next/navigation";
 import { requireAmministratore } from "@/lib/auth-helpers";
-import { getCondominioDetail, getComunicazioniForCondominio, getSegnalazioniPerCondominio } from "@/lib/data/amministratore";
+import {
+  getCondominioDetail,
+  getComunicazioniForCondominio,
+  getSegnalazioniPerCondominio,
+  getImmobiliNonAssegnati,
+  getAgenzieDisponibili,
+  getRichiestePreventivoPerCondominio,
+} from "@/lib/data/amministratore";
+import { getProprietariDisponibili } from "@/lib/data/agenzia";
 import { NuovaComunicazioneForm } from "@/components/amministratore/nuova-comunicazione-form";
+import { CollegaImmobileButton } from "@/components/amministratore/collega-immobile-button";
 import { SegnalazioniTable } from "@/components/segnalazioni/segnalazioni-table";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { STATO_RICHIESTA_PREVENTIVO_LABELS } from "@/lib/labels";
 
 export default async function CondominioDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,9 +27,13 @@ export default async function CondominioDetailPage({ params }: { params: Promise
     notFound();
   }
 
-  const [comunicazioni, segnalazioni] = await Promise.all([
+  const [comunicazioni, segnalazioni, immobiliNonAssegnati, agenzie, proprietari, richiestePreventivo] = await Promise.all([
     getComunicazioniForCondominio(id, amministratore.id),
     getSegnalazioniPerCondominio(id),
+    getImmobiliNonAssegnati(),
+    getAgenzieDisponibili(),
+    getProprietariDisponibili(),
+    getRichiestePreventivoPerCondominio(id),
   ]);
 
   return (
@@ -42,7 +57,15 @@ export default async function CondominioDetailPage({ params }: { params: Promise
       </Card>
 
       <Card>
-        <CardHeader title="Immobili e occupanti" />
+        <div className="mb-4 flex items-center justify-between">
+          <CardHeader title="Unità collegate" description="Immobili di questo condominio già presenti su LOQO" />
+          <CollegaImmobileButton
+            condominioId={condominio.id}
+            immobiliDisponibili={immobiliNonAssegnati}
+            agenzie={agenzie}
+            proprietari={proprietari}
+          />
+        </div>
         {condominio.immobili.length === 0 ? (
           <EmptyState message="Nessun immobile di questo condominio è ancora collegato a LOQO." />
         ) : (
@@ -81,6 +104,41 @@ export default async function CondominioDetailPage({ params }: { params: Promise
           <EmptyState message="Nessuna segnalazione per questo condominio." />
         ) : (
           <SegnalazioniTable segnalazioni={segnalazioni} basePath="/amministratore/segnalazioni" />
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Lead e preventivi generati"
+          description="Richieste di intervento inoltrate ai partner convenzionati a partire dalle segnalazioni di questo condominio"
+        />
+        {richiestePreventivo.length === 0 ? (
+          <EmptyState message="Nessuna richiesta di preventivo generata finora in questo condominio." />
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Segnalazione</TableHeaderCell>
+                <TableHeaderCell>Partner</TableHeaderCell>
+                <TableHeaderCell>Data</TableHeaderCell>
+                <TableHeaderCell>Stato</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {richiestePreventivo.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell>{r.segnalazione.titolo}</TableCell>
+                  <TableCell>{r.partner.nome}</TableCell>
+                  <TableCell>{formatDate(r.createdAt)}</TableCell>
+                  <TableCell>
+                    <Badge tone={r.stato === "CHIUSA_CONVERTITA" ? "success" : r.stato === "CHIUSA_NON_CONVERTITA" ? "neutral" : "info"}>
+                      {STATO_RICHIESTA_PREVENTIVO_LABELS[r.stato]}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </Card>
 

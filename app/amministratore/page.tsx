@@ -1,18 +1,19 @@
 import Link from "next/link";
-import { Building2, Home, MessageSquareWarning } from "lucide-react";
+import { Building2, Home, MessageSquareWarning, AlertTriangle } from "lucide-react";
 import { requireAmministratore } from "@/lib/auth-helpers";
-import { getAmministratoreDashboardStats, getCondominiForAmministratore } from "@/lib/data/amministratore";
+import { getAmministratoreDashboardStats, getCondominiConStatistiche } from "@/lib/data/amministratore";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 
 export default async function AmministratoreDashboardPage() {
   const { session, amministratore } = await requireAmministratore();
   const [stats, condomini, nonLette] = await Promise.all([
     getAmministratoreDashboardStats(amministratore.id, session.user.id),
-    getCondominiForAmministratore(amministratore.id),
+    getCondominiConStatistiche(amministratore.id),
     getSegnalazioniNonLette(session.user.id),
   ]);
 
@@ -47,9 +48,9 @@ export default async function AmministratoreDashboardPage() {
               <TableRow>
                 <TableHeaderCell>Nome</TableHeaderCell>
                 <TableHeaderCell>Comune</TableHeaderCell>
-                <TableHeaderCell>Unità</TableHeaderCell>
-                <TableHeaderCell>Immobili collegati</TableHeaderCell>
+                <TableHeaderCell>Occupazione</TableHeaderCell>
                 <TableHeaderCell>Segnalazioni</TableHeaderCell>
+                <TableHeaderCell>Lead generati</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -61,9 +62,34 @@ export default async function AmministratoreDashboardPage() {
                     </Link>
                   </TableCell>
                   <TableCell>{c.comune}</TableCell>
-                  <TableCell>{c.numeroUnita}</TableCell>
-                  <TableCell>{c._count.immobili}</TableCell>
-                  <TableCell>{c._count.segnalazioni}</TableCell>
+                  <TableCell>
+                    {c.percentualeOccupazione !== null ? (
+                      <>
+                        {c.percentualeOccupazione.toFixed(0)}%{" "}
+                        <span className="text-slate-400">
+                          ({c.immobiliOccupati}/{c.immobiliCollegati})
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-slate-400">Nessuna unità collegata</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {c.segnalazioniAperte} aperte &middot; {c.segnalazioniInLavorazione} in lavorazione
+                      </span>
+                      {c.haUrgenze && (
+                        <span title={`Almeno una segnalazione ad alta priorità aperta da più di ${3} giorni`}>
+                          <Badge tone="danger">
+                            <AlertTriangle className="mr-1 inline h-3 w-3" />
+                            Urgente
+                          </Badge>
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{c.leadGenerati}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

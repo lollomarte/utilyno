@@ -107,6 +107,20 @@ export async function getImmobiliForAgenzia(agenziaId: string) {
   });
 }
 
+export async function getImmobileDetailForAgenzia(immobileId: string, agenziaId: string) {
+  return prisma.immobile.findFirst({
+    where: { id: immobileId, agenziaId },
+    include: {
+      proprietario: { include: { user: true } },
+      condominio: true,
+      contratti: {
+        include: { inquilino: { include: { user: true } } },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+}
+
 export async function getInquiliniDisponibili() {
   return prisma.inquilino.findMany({
     include: { user: true },
