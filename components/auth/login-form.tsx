@@ -39,7 +39,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   }
 
   return (
-    <Card>
+    <Card className="animate-fade-in-up">
       <CardHeader title="Accedi" description="Inserisci le tue credenziali per continuare" />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>

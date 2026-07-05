@@ -84,7 +84,7 @@ export function RegisterForm() {
   }
 
   return (
-    <Card>
+    <Card className="animate-fade-in-up">
       <CardHeader title="Crea un account" description="Registrati scegliendo il tuo profilo" />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>

@@ -28,11 +28,11 @@ export function StatCard({
   const TrendIcon = trend?.direction === "up" ? TrendingUp : TrendingDown;
 
   return (
-    <div className="rounded-card border border-slate-200 bg-surface p-5 shadow-card">
+    <div className="animate-fade-in-up rounded-card border border-slate-200 bg-surface p-5 shadow-card transition-shadow duration-200 hover:shadow-elevated">
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-medium text-slate-500">{label}</p>
         {Icon && (
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary ring-1 ring-inset ring-primary/10">
             <Icon className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden="true" />
           </div>
         )}

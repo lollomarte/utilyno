@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { LoqoSeal } from "@/components/brand/loqo-seal";
 import { cn } from "@/lib/utils";
 
 /**
@@ -35,7 +36,10 @@ export function SplashScreen() {
       )}
       aria-hidden="true"
     >
-      <span className="font-display text-3xl font-semibold tracking-tight text-white">LOQO</span>
+      <div className="flex flex-col items-center gap-3">
+        <LoqoSeal size={44} color="#ffffff" className="animate-seal-in" />
+        <span className="font-display text-3xl font-semibold tracking-tight text-white">LOQO</span>
+      </div>
     </div>
   );
 }

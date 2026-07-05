@@ -21,7 +21,7 @@ export function NotificationBell({ notifiche }: { notifiche: Notifica[] }) {
         aria-label={count > 0 ? `Notifiche: ${count} da controllare` : "Notifiche"}
         className="touch-target relative flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-surface-sunken hover:text-ink"
       >
-        <Bell className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+        <Bell className={cn("h-5 w-5", count > 0 && "animate-bell-ring")} strokeWidth={2} aria-hidden="true" />
         {count > 0 && (
           <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold text-white">
             {count > 9 ? "9+" : count}

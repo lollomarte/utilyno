@@ -15,6 +15,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { PORTAL_BY_ROLE } from "@/auth.config";
 import { Card } from "@/components/ui/card";
+import { LoqoSeal } from "@/components/brand/loqo-seal";
+import { Reveal } from "@/components/brand/reveal";
 
 /**
  * Contatti/demo non hanno ancora un form o un CRM dietro: link segnaposto
@@ -80,7 +82,10 @@ export default async function Home() {
     <div className="flex min-h-screen flex-col bg-surface">
       <header className="border-b border-white/10 bg-primary">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <span className="font-display text-xl font-semibold tracking-tight text-white">LOQO</span>
+          <span className="flex items-center gap-2">
+            <LoqoSeal size={24} color="#ffffff" ring={false} />
+            <span className="font-display text-xl font-semibold tracking-tight text-white">LOQO</span>
+          </span>
           <Link href="/login" className="text-sm font-medium text-white/80 hover:text-white">
             Accedi
           </Link>
@@ -88,8 +93,9 @@ export default async function Home() {
       </header>
 
       {/* HERO */}
-      <section className="bg-primary px-6 pb-20 pt-16 sm:pb-28 sm:pt-24">
+      <section className="bg-ledger-grid bg-primary px-6 pb-20 pt-16 sm:pb-28 sm:pt-24">
         <div className="mx-auto max-w-3xl text-center">
+          <LoqoSeal size={56} color="#ffffff" className="animate-seal-in mx-auto mb-6 opacity-90" />
           <p className="inline-flex items-center gap-2 text-sm font-medium text-white/70">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/70" aria-hidden="true" />
             La piattaforma per chi gestisce affitti in Italia
@@ -121,7 +127,7 @@ export default async function Home() {
 
       {/* IL PROBLEMA */}
       <section className="bg-surface-muted px-6 py-20">
-        <div className="mx-auto max-w-2xl text-center">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-2xl font-semibold text-ink sm:text-3xl">
             Gestire un affitto oggi significa rincorrere
           </h2>
@@ -134,24 +140,28 @@ export default async function Home() {
           <p className="mt-6 text-lg font-medium text-ink">
             LOQO non aggiunge un altro strumento alla pila. Sostituisce la pila.
           </p>
-        </div>
+        </Reveal>
       </section>
 
       {/* COME FUNZIONA */}
       <section className="px-6 py-20">
         <div className="mx-auto max-w-5xl">
-          <h2 className="font-display text-center text-2xl font-semibold text-ink sm:text-3xl">
-            Un posto, cinque punti di vista
-          </h2>
+          <Reveal>
+            <h2 className="font-display text-center text-2xl font-semibold text-ink sm:text-3xl">
+              Un posto, cinque punti di vista
+            </h2>
+          </Reveal>
           <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {RUOLI.map((ruolo) => (
-              <Card key={ruolo.titolo} className="p-7">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary">
-                  <ruolo.icon className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-ink">{ruolo.titolo}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{ruolo.testo}</p>
-              </Card>
+            {RUOLI.map((ruolo, i) => (
+              <Reveal key={ruolo.titolo} delayMs={i * 80}>
+                <Card className="p-7">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary ring-1 ring-inset ring-primary/10">
+                    <ruolo.icon className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-ink">{ruolo.titolo}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{ruolo.testo}</p>
+                </Card>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -159,7 +169,7 @@ export default async function Home() {
 
       {/* DEPOSITO PROTETTO */}
       <section className="bg-primary/5 px-6 py-20">
-        <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 text-center">
+        <Reveal className="mx-auto flex max-w-4xl flex-col items-center gap-6 text-center">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-inset ring-primary/20">
             <ShieldCheck className="h-7 w-7" strokeWidth={1.75} aria-hidden="true" />
           </div>
@@ -172,12 +182,12 @@ export default async function Home() {
             e gestisce la restituzione (o l&apos;eventuale contestazione) in modo chiaro e documentato, per il
             proprietario e per l&apos;inquilino.
           </p>
-        </div>
+        </Reveal>
       </section>
 
       {/* ROUTING SEGNALAZIONI */}
       <section className="px-6 py-20">
-        <div className="mx-auto max-w-4xl text-center">
+        <Reveal className="mx-auto max-w-4xl text-center">
           <div className="mx-auto flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary">
             <Wrench className="h-7 w-7" strokeWidth={1.75} aria-hidden="true" />
           </div>
@@ -213,30 +223,35 @@ export default async function Home() {
             Quando serve un intervento vero — un idraulico, un elettricista, un tecnico — LOQO mette in contatto con
             professionisti convenzionati, senza dover cercare altrove.
           </p>
-        </div>
+        </Reveal>
       </section>
 
       {/* PERCHÉ LOQO */}
       <section className="bg-surface-muted px-6 py-20">
         <div className="mx-auto max-w-5xl">
-          <h2 className="font-display text-center text-2xl font-semibold text-ink sm:text-3xl">Perché LOQO</h2>
+          <Reveal>
+            <h2 className="font-display text-center text-2xl font-semibold text-ink sm:text-3xl">Perché LOQO</h2>
+          </Reveal>
           <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
-            {PERCHE.map((blocco) => (
-              <div key={blocco.titolo} className="rounded-card border border-slate-200 bg-surface p-7 shadow-card">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary">
-                  <blocco.icon className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+            {PERCHE.map((blocco, i) => (
+              <Reveal key={blocco.titolo} delayMs={i * 80}>
+                <div className="rounded-card border border-slate-200 bg-surface p-7 shadow-card">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary ring-1 ring-inset ring-primary/10">
+                    <blocco.icon className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-ink">{blocco.titolo}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{blocco.testo}</p>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-ink">{blocco.titolo}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{blocco.testo}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA FINALE */}
-      <section className="bg-primary px-6 py-20">
-        <div className="mx-auto max-w-2xl text-center">
+      <section className="bg-ledger-grid bg-primary px-6 py-20">
+        <Reveal className="mx-auto max-w-2xl text-center">
+          <LoqoSeal size={40} color="#ffffff" className="mx-auto mb-6 opacity-80" />
           <h2 className="font-display text-2xl font-semibold text-white sm:text-3xl">
             Prova LOQO sulla tua prima agenzia, il tuo primo condominio, il tuo primo affitto
           </h2>
@@ -254,13 +269,16 @@ export default async function Home() {
               Scrivici
             </a>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* FOOTER */}
       <footer className="mt-auto border-t border-slate-200 px-6 py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <span className="font-display text-base font-semibold text-ink">LOQO</span>
+          <span className="flex items-center gap-2">
+            <LoqoSeal size={20} ring={false} />
+            <span className="font-display text-base font-semibold text-ink">LOQO</span>
+          </span>
           <nav className="flex items-center gap-6 text-sm text-slate-500">
             <a href={CTA_CONTATTO_HREF} className="hover:text-ink">
               Contatti

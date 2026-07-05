@@ -141,3 +141,89 @@ h1, .font-display {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* --- Micro-interazioni ------------------------------------------------- */
+
+@keyframes seal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+.animate-seal-in {
+  animation: seal-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Componente Reveal (homepage): nascosto finché non entra in viewport */
+.reveal-init {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.reveal-visible {
+  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(14deg); }
+  30% { transform: rotate(-12deg); }
+  45% { transform: rotate(8deg); }
+  60% { transform: rotate(-6deg); }
+  75% { transform: rotate(3deg); }
+}
+.animate-bell-ring {
+  animation: bell-ring 0.6s ease-in-out 1;
+  transform-origin: top center;
+}
+
+/* Righe di registro sottilissime, per rievocare la carta a righe di un
+   registro contabile senza scadere nel decorativo: solo su sfondi ampi
+   e scuri (hero, auth), mai su superfici di lavoro chiare. */
+.bg-ledger-grid {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.05) 0,
+    rgb(255 255 255 / 0.05) 1px,
+    transparent 1px,
+    transparent 40px
+  );
+}
+
+/* Sollevamento leggero per card cliccabili: usare solo dove l'intera card
+   è un link/bottone, mai su card puramente informative. */
+.card-hover-lift {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-elevated);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-seal-in,
+  .animate-fade-in-up,
+  .reveal-visible,
+  .animate-bell-ring,
+  .card-hover-lift {
+    animation: none !important;
+    transition: none !important;
+  }
+}
