@@ -1,5 +1,7 @@
 import { logoutAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/notifiche/notification-bell";
+import type { Notifica } from "@/lib/notifiche/raccogliNotifiche";
 import { cn } from "@/lib/utils";
 
 export function UserBlock({
@@ -30,11 +32,24 @@ export function UserBlock({
   );
 }
 
-export function Header({ nome, cognome, roleLabel }: { nome: string; cognome: string; roleLabel: string }) {
+export function Header({
+  nome,
+  cognome,
+  roleLabel,
+  notifiche,
+}: {
+  nome: string;
+  cognome: string;
+  roleLabel: string;
+  notifiche: Notifica[];
+}) {
   return (
     <header className="hidden h-16 items-center justify-between border-b border-slate-200 bg-white px-6 md:flex">
       <div />
-      <UserBlock nome={nome} cognome={cognome} roleLabel={roleLabel} />
+      <div className="flex items-center gap-2">
+        <NotificationBell notifiche={notifiche} />
+        <UserBlock nome={nome} cognome={cognome} roleLabel={roleLabel} />
+      </div>
     </header>
   );
 }

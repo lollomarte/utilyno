@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { segnaComunicazioneLettaAction } from "@/app/actions/comunicazioni";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, withTimeout } from "@/lib/utils";
@@ -20,6 +20,13 @@ export function ComunicazioneItem({
 }) {
   const [letta, setLetta] = useState(lettaIniziale);
   const [isPending, startTransition] = useTransition();
+
+  // Se la comunicazione viene segnata come letta altrove (es. dal centro notifiche) e questa
+  // pagina si aggiorna via router.refresh(), lo stato locale — inizializzato una sola volta al
+  // mount — resterebbe "non letta" finché non arriva davvero una prop diversa: risincronizzalo.
+  useEffect(() => {
+    setLetta(lettaIniziale);
+  }, [lettaIniziale]);
 
   function handleMarkRead() {
     startTransition(async () => {

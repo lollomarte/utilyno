@@ -19,6 +19,8 @@ export default async function AmministratoreLayout({ children }: { children: Rea
       navItems={NAV_ITEMS}
       nome={session.user.nome}
       cognome={session.user.cognome}
+      userId={session.user.id}
+      role={session.user.role}
     >
       {children}
     </PortalShell>

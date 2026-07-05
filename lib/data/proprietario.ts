@@ -1,4 +1,4 @@
-import { addDays, startOfMonth, endOfMonth, subMonths, format } from "date-fns";
+import { addDays, addYears, startOfMonth, endOfMonth, subMonths, format } from "date-fns";
 import { it } from "date-fns/locale";
 import { prisma } from "@/lib/prisma";
 
@@ -14,6 +14,53 @@ export async function getImmobiliForProprietario(proprietarioId: string) {
     },
     orderBy: { indirizzo: "asc" },
   });
+}
+
+export interface ScadenzaProprietario {
+  tipo: string;
+  immobileId: string;
+  immobile: string;
+  data: Date;
+}
+
+/** Rinnovi contratto, registrazione AdE e scadenze assicurazione su tutti gli immobili del
+ * proprietario: pura computazione su dati già caricati (nessuna query qui), condivisa dalla
+ * dashboard e dal centro notifiche così la logica non vive duplicata in due posti. */
+export function calcolaScadenzeProprietario(
+  immobili: Awaited<ReturnType<typeof getImmobiliForProprietario>>
+): ScadenzaProprietario[] {
+  const scadenze: ScadenzaProprietario[] = [];
+  const contrattiAttivi = immobili.flatMap((immobile) => immobile.contratti.map((c) => ({ ...c, immobile })));
+
+  for (const contratto of contrattiAttivi) {
+    scadenze.push({
+      tipo: "Rinnovo contratto",
+      immobileId: contratto.immobile.id,
+      immobile: `${contratto.immobile.indirizzo}, ${contratto.immobile.comune}`,
+      data: contratto.dataFine,
+    });
+    const baseRegistrazione = contratto.dataUltimoRinnovoRegistrazione ?? contratto.dataRegistrazioneAdE;
+    if (baseRegistrazione) {
+      scadenze.push({
+        tipo: "Rinnovo registrazione AdE",
+        immobileId: contratto.immobile.id,
+        immobile: `${contratto.immobile.indirizzo}, ${contratto.immobile.comune}`,
+        data: addYears(baseRegistrazione, 1),
+      });
+    }
+  }
+  for (const immobile of immobili) {
+    for (const assicurazione of immobile.assicurazioni) {
+      scadenze.push({
+        tipo: "Scadenza assicurazione",
+        immobileId: immobile.id,
+        immobile: `${immobile.indirizzo}, ${immobile.comune}`,
+        data: assicurazione.dataScadenza,
+      });
+    }
+  }
+  scadenze.sort((a, b) => a.data.getTime() - b.data.getTime());
+  return scadenze;
 }
 
 export async function getDocumentiPerProprietario(proprietarioId: string) {

@@ -44,6 +44,16 @@ export async function getSegnalazioniNonLette(userId: string) {
   return prisma.segnalazioneDestinatario.count({ where: { userId, letto: false } });
 }
 
+/** Come getSegnalazioniNonLette ma con i dati della segnalazione, per il centro notifiche
+ * (titolo/immobile/link) invece del solo conteggio usato dal badge in sidebar. */
+export async function getSegnalazioniNonLettePerUser(userId: string) {
+  return prisma.segnalazioneDestinatario.findMany({
+    where: { userId, letto: false },
+    include: { segnalazione: { include: { immobile: true } } },
+    orderBy: { segnalazione: { createdAt: "asc" } },
+  });
+}
+
 export async function getPartnerAttiviPerCategoria(categoria: CategoriaIntervento) {
   return prisma.partner.findMany({
     where: { categoria, attivo: true },

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { addYears, differenceInCalendarDays } from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
 import { Building2, Euro, Users, TrendingUp } from "lucide-react";
 import { requireProprietario } from "@/lib/auth-helpers";
 import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
@@ -11,6 +11,7 @@ import {
   getAndamentoIncassiProprietario,
   getPagamentiInRitardoPerProprietario,
   getDepositiDaRestituire,
+  calcolaScadenzeProprietario,
 } from "@/lib/data/proprietario";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { getFornitoriAssicurazione } from "@/lib/data/assicurazioni";
@@ -26,12 +27,6 @@ import { Badge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components
 import { IncassiChart } from "@/components/charts/incassi-chart-dynamic";
 import { formatCurrency, formatDate, cn, countdownScadenza } from "@/lib/utils";
 import { TIPO_IMMOBILE_LABELS, STATO_DEPOSITO_LABELS, STATO_ASSICURAZIONE_LABELS } from "@/lib/labels";
-
-type Scadenza = {
-  tipo: string;
-  immobile: string;
-  data: Date;
-};
 
 export default async function ProprietarioDashboardPage() {
   const { session, proprietario } = await requireProprietario();
@@ -67,34 +62,7 @@ export default async function ProprietarioDashboardPage() {
   const yieldMedi = rendimenti.filter((r) => r.yieldLordo !== null).map((r) => r.yieldLordo!);
   const yieldMedioPortafoglio = yieldMedi.length > 0 ? yieldMedi.reduce((sum, y) => sum + y, 0) / yieldMedi.length : null;
 
-  const contrattiAttivi = immobili.flatMap((immobile) => immobile.contratti.map((c) => ({ ...c, immobile })));
-
-  const scadenze: Scadenza[] = [];
-  for (const contratto of contrattiAttivi) {
-    scadenze.push({
-      tipo: "Rinnovo contratto",
-      immobile: `${contratto.immobile.indirizzo}, ${contratto.immobile.comune}`,
-      data: contratto.dataFine,
-    });
-    const baseRegistrazione = contratto.dataUltimoRinnovoRegistrazione ?? contratto.dataRegistrazioneAdE;
-    if (baseRegistrazione) {
-      scadenze.push({
-        tipo: "Rinnovo registrazione AdE",
-        immobile: `${contratto.immobile.indirizzo}, ${contratto.immobile.comune}`,
-        data: addYears(baseRegistrazione, 1),
-      });
-    }
-  }
-  for (const immobile of immobili) {
-    for (const assicurazione of immobile.assicurazioni) {
-      scadenze.push({
-        tipo: "Scadenza assicurazione",
-        immobile: `${immobile.indirizzo}, ${immobile.comune}`,
-        data: assicurazione.dataScadenza,
-      });
-    }
-  }
-  scadenze.sort((a, b) => a.data.getTime() - b.data.getTime());
+  const scadenze = calcolaScadenzeProprietario(immobili);
 
   return (
     <div className="space-y-8">
