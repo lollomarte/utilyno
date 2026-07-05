@@ -7,6 +7,7 @@ import {
   getDistribuzionePagamenti,
   getPoolDepositiPerAgenzia,
 } from "@/lib/data/admin";
+import { requireAdmin } from "@/lib/auth-helpers";
 import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { PagamentiDonut } from "@/components/charts/pagamenti-donut-dynamic";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function AdminDashboardPage() {
+  await requireAdmin();
   await aggiornaPagamentiScaduti();
   const [stats, agenzie, amministratori, distribuzionePagamenti, poolDepositiPerAgenzia] = await Promise.all([
     getAdminDashboardStats(),

@@ -21,3 +21,10 @@ export const STATO_RICHIESTA_PREVENTIVO_OPTIONS = [
   "CHIUSA_CONVERTITA",
   "CHIUSA_NON_CONVERTITA",
 ] as const;
+
+/** `stato` arriva tipizzato solo a compile-time: un client che chiama l'azione direttamente
+ * (bypassando il form) potrebbe inviare qualunque stringa, quindi va rivalidata a runtime. */
+export const aggiornaStatoRichiestaPreventivoSchema = z.object({
+  richiestaId: z.string().min(1),
+  stato: z.enum(STATO_RICHIESTA_PREVENTIVO_OPTIONS),
+});

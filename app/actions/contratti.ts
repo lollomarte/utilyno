@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireAgenzia } from "@/lib/auth-helpers";
 import { adeRegistrationProvider } from "@/lib/services/ade-registration";
+import { registraLogAzione } from "@/lib/audit/registraLogAzione";
 import { nuovoContrattoSchema, type NuovoContrattoInput } from "@/lib/validations/contratto";
 
 function generaPasswordProvvisoria(): string {
@@ -34,6 +35,13 @@ export async function registraContrattoAdEAction(
     where: { id: contratto.id },
     data: { dataRegistrazioneAdE: result.dataRegistrazione },
   });
+  await registraLogAzione({
+    userId: agenzia.userId,
+    azione: "REGISTRAZIONE_ADE",
+    entita: "Contratto",
+    entitaId: contratto.id,
+    note: `Protocollo ${result.protocollo}`,
+  });
 
   revalidatePath(`/agenzia/contratti/${contrattoId}`);
 
@@ -58,6 +66,13 @@ export async function rinnovaRegistrazioneAction(
   await prisma.contratto.update({
     where: { id: contratto.id },
     data: { dataUltimoRinnovoRegistrazione: result.dataRinnovo },
+  });
+  await registraLogAzione({
+    userId: agenzia.userId,
+    azione: "RINNOVO_REGISTRAZIONE_ADE",
+    entita: "Contratto",
+    entitaId: contratto.id,
+    note: `Protocollo rinnovo ${result.protocolloRinnovo}`,
   });
 
   revalidatePath(`/agenzia/contratti/${contrattoId}`);
@@ -158,6 +173,13 @@ export async function creaContrattoAction(
       dataScadenza: addMonths(dataInizio, i),
       stato: "PROGRAMMATO" as const,
     })),
+  });
+
+  await registraLogAzione({
+    userId: agenzia.userId,
+    azione: "CREAZIONE",
+    entita: "Contratto",
+    entitaId: contratto.id,
   });
 
   revalidatePath("/agenzia/contratti");

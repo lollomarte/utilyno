@@ -1,4 +1,5 @@
 import { PiggyBank, ShieldCheck } from "lucide-react";
+import { requireAdmin } from "@/lib/auth-helpers";
 import { getAdminDashboardStats, getPoolDepositiPerAgenzia } from "@/lib/data/admin";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, Empt
 import { formatCurrency } from "@/lib/utils";
 
 export default async function AdminDepositiPage() {
+  await requireAdmin();
   const [stats, poolDepositiPerAgenzia] = await Promise.all([getAdminDashboardStats(), getPoolDepositiPerAgenzia()]);
 
   return (

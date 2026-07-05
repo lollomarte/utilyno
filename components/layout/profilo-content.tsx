@@ -21,6 +21,15 @@ export function ProfiloContent({ nome, cognome, role }: { nome: string; cognome:
       </Card>
 
       <Card>
+        <CardHeader title="I tuoi dati" description="Scarica una copia dei dati collegati al tuo account, in formato JSON" />
+        <a href="/api/account/export" download>
+          <Button type="button" variant="secondary" className="w-full sm:w-auto">
+            Esporta i miei dati
+          </Button>
+        </a>
+      </Card>
+
+      <Card>
         <CardHeader title="Sessione" description="Esci dal tuo account LOQO su questo dispositivo" />
         <form action={logoutAction}>
           <Button type="submit" variant="secondary" className="w-full sm:w-auto">

@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
-import { partnerSchema, type PartnerInput } from "@/lib/validations/partner";
+import {
+  partnerSchema,
+  aggiornaStatoRichiestaPreventivoSchema,
+  type PartnerInput,
+} from "@/lib/validations/partner";
 import type { StatoRichiestaPreventivo } from "@prisma/client";
 
 export async function creaPartnerAction(input: PartnerInput): Promise<{ success: true } | { success: false; error: string }> {
@@ -75,7 +79,13 @@ export async function aggiornaStatoRichiestaPreventivoAction(
 ): Promise<{ success: true } | { success: false; error: string }> {
   await requireAdmin();
 
-  await prisma.richiestaPreventivo.update({ where: { id: richiestaId }, data: { stato } });
+  const parsed = aggiornaStatoRichiestaPreventivoSchema.safeParse({ richiestaId, stato });
+  if (!parsed.success) return { success: false, error: "Dati non validi" };
+
+  await prisma.richiestaPreventivo.update({
+    where: { id: parsed.data.richiestaId },
+    data: { stato: parsed.data.stato },
+  });
 
   revalidatePath("/admin/lead");
 

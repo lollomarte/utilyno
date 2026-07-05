@@ -46,3 +46,12 @@ export const richiediPreventivoSchema = z.object({
 });
 
 export type RichiediPreventivoInput = z.infer<typeof richiediPreventivoSchema>;
+
+/** `stato` arriva tipizzato solo a compile-time: un client che chiama l'azione direttamente
+ * (bypassando il form) potrebbe inviare qualunque stringa, quindi va rivalidata a runtime. */
+export const aggiornaStatoSegnalazioneSchema = z.object({
+  segnalazioneId: z.string().min(1),
+  stato: z.enum(["APERTA", "IN_LAVORAZIONE", "RISOLTA"]),
+});
+
+export type AggiornaStatoSegnalazioneInput = z.infer<typeof aggiornaStatoSegnalazioneSchema>;

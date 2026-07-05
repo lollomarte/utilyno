@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { calcolaInteressiLegali } from "@/lib/depositi/calcolaInteressiLegali";
+import { registraLogAzione } from "@/lib/audit/registraLogAzione";
 import { gestisciRestituzioneDepositoSchema, type GestisciRestituzioneDepositoInput } from "@/lib/validations/deposito";
 
 export async function gestisciRestituzioneDepositoAction(
@@ -53,6 +54,13 @@ export async function gestisciRestituzioneDepositoAction(
       data: { depositoStato: "IN_CONTESTAZIONE", depositoNote: parsed.data.note },
     });
   }
+  await registraLogAzione({
+    userId: session.user.id,
+    azione: "CAMBIO_STATO_DEPOSITO",
+    entita: "Deposito",
+    entitaId: contratto.id,
+    note: parsed.data.esito === "RESTITUITO" ? "Restituito" : `In contestazione: ${parsed.data.note ?? ""}`,
+  });
 
   revalidatePath(`/agenzia/contratti/${contratto.id}`);
   revalidatePath("/proprietario");

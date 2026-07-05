@@ -12,6 +12,8 @@ import {
   FileStack,
   Zap,
   ClipboardCheck,
+  ScrollText,
+  ShieldCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -28,6 +30,8 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/admin/contratti": FileText,
   "/admin/depositi": PiggyBank,
   "/admin/lead": Handshake,
+  "/admin/log": ScrollText,
+  "/admin/privacy": ShieldCheck,
   "/agenzia": LayoutDashboard,
   "/agenzia/immobili": Building2,
   "/agenzia/contratti": FileText,

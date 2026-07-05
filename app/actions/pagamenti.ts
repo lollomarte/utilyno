@@ -5,6 +5,7 @@ import { addBusinessDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { requireInquilino } from "@/lib/auth-helpers";
 import { paymentProvider } from "@/lib/services/payment-provider";
+import { registraLogAzione } from "@/lib/audit/registraLogAzione";
 import { pagaOraSchema, type PagaOraInput } from "@/lib/validations/pagamento";
 import { METODO_PAGAMENTO_LABELS } from "@/lib/labels";
 
@@ -51,6 +52,13 @@ export async function pagaOraAction(
       dataAccredito,
       metodoPagamento: METODO_PAGAMENTO_LABELS[parsed.data.metodo],
     },
+  });
+  await registraLogAzione({
+    userId: inquilino.userId,
+    azione: "PAGAMENTO",
+    entita: "Pagamento",
+    entitaId: pagamento.id,
+    note: `${METODO_PAGAMENTO_LABELS[parsed.data.metodo]}, importo ${pagamento.importo}`,
   });
 
   revalidatePath("/inquilino");

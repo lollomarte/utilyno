@@ -8,6 +8,7 @@ import {
   nuovaSegnalazioneSchema,
   rispostaSegnalazioneSchema,
   richiediPreventivoSchema,
+  aggiornaStatoSegnalazioneSchema,
   type NuovaSegnalazioneInput,
   type RispostaSegnalazioneInput,
   type RichiediPreventivoInput,
@@ -112,8 +113,11 @@ export async function aggiornaStatoSegnalazioneAction(
   const session = await auth();
   if (!session?.user) return { success: false, error: "Sessione non valida" };
 
+  const parsed = aggiornaStatoSegnalazioneSchema.safeParse({ segnalazioneId, stato });
+  if (!parsed.success) return { success: false, error: "Dati non validi" };
+
   const segnalazione = await prisma.segnalazione.findUnique({
-    where: { id: segnalazioneId },
+    where: { id: parsed.data.segnalazioneId },
     include: { immobile: { include: { condominio: true } } },
   });
   if (!segnalazione) return { success: false, error: "Segnalazione non trovata" };
@@ -125,7 +129,7 @@ export async function aggiornaStatoSegnalazioneAction(
   }
   if (!autorizzato) return { success: false, error: "Non hai i permessi per modificare questa segnalazione" };
 
-  await prisma.segnalazione.update({ where: { id: segnalazioneId }, data: { stato } });
+  await prisma.segnalazione.update({ where: { id: parsed.data.segnalazioneId }, data: { stato: parsed.data.stato } });
 
   revalidateListe();
 

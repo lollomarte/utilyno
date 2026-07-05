@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireAdmin } from "@/lib/auth-helpers";
 import { getAmministratoreDetailForAdmin } from "@/lib/data/admin";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 
 export default async function AmministratoreDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  await requireAdmin();
   const amministratore = await getAmministratoreDetailForAdmin(id);
 
   if (!amministratore) {

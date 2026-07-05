@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { requireAdmin } from "@/lib/auth-helpers";
 import { getAmministratoriConPortfolio } from "@/lib/data/admin";
 import { Card } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 
 export default async function AmministratoriPage() {
+  await requireAdmin();
   const amministratori = await getAmministratoriConPortfolio();
 
   return (

@@ -27,7 +27,11 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
       const result = await withTimeout(signIn("credentials", { ...data, redirect: false }));
 
       if (result?.error) {
-        setServerError("Credenziali non valide. Riprova.");
+        setServerError(
+          result.code === "account_bloccato"
+            ? "Troppi tentativi falliti. Riprova tra 15 minuti."
+            : "Credenziali non valide. Riprova."
+        );
         return;
       }
 

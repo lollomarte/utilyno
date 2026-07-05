@@ -127,6 +127,10 @@ model User {
   cognome      String
   telefono     String?
   createdAt    DateTime @default(now())
+  /// Valorizzato quando l'account viene anonimizzato da un Admin (GDPR): nome/cognome/email/
+  /// telefono sono già stati sostituiti con placeholder. Righe storiche (contratti, pagamenti,
+  /// log) restano intatte, solo i dati personali diretti sull'utente vengono rimossi.
+  anonimizzatoAt DateTime?
 
   agenzia              Agenzia?
   amministratore       Amministratore?
@@ -137,6 +141,37 @@ model User {
   segnalazioniRicevute SegnalazioneDestinatario[]
   segnalazioniRisposte SegnalazioneRisposta[]
   richiestePreventivo  RichiestaPreventivo[]
+}
+
+/// Storico dei tentativi di login (falliti e riusciti), usato per il blocco temporaneo
+/// dopo troppi tentativi falliti consecutivi sulla stessa email. Persistito su DB (non
+/// in memoria) perché l'app gira su funzioni serverless: un contatore in-process non
+/// sopravvive tra invocazioni/istanze diverse e sarebbe banale da aggirare.
+model TentativoLogin {
+  id        String   @id @default(cuid())
+  email     String
+  esito     Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+}
+
+/// Log minimo delle scritture su entità sensibili (Contratto, Pagamento, Deposito,
+/// Documento, ...): chi ha fatto cosa e quando. Niente FK verso User: un log deve
+/// restare leggibile anche se l'utente viene poi anonimizzato (vedi anonimizzazione
+/// account), e non deve mai bloccare la scrittura dell'entità che accompagna.
+model LogAzione {
+  id        String   @id @default(cuid())
+  userId    String
+  azione    String
+  entita    String
+  entitaId  String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([entita, entitaId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Agenzia {

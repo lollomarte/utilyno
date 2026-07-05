@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { StatoContratto } from "@prisma/client";
+import type { EntitaAudit } from "@/lib/audit/registraLogAzione";
 
 export async function getAdminDashboardStats() {
   const [
@@ -184,4 +185,54 @@ export async function getAmministratoriConPortfolio() {
     unitaTotali: a.condomini.reduce((sum, c) => sum + c.numeroUnita, 0),
     segnalazioniTotali: a.condomini.reduce((sum, c) => sum + (conteggioPerCondominio.get(c.id) ?? 0), 0),
   }));
+}
+
+/** Per la vista Admin "Privacy account": ricerca puntuale per email, mai un elenco completo utenti. */
+export async function trovaUtentePerEmail(email: string) {
+  return prisma.user.findUnique({
+    where: { email },
+    select: { id: true, nome: true, cognome: true, email: true, role: true, telefono: true, anonimizzatoAt: true },
+  });
+}
+
+const LIMITE_LOG_AZIONI = 200;
+
+/**
+ * LogAzione non ha una relazione verso User (deve restare leggibile anche dopo
+ * un'anonimizzazione account): l'autore va risolto con una query separata invece
+ * di un include.
+ */
+export async function getLogAzioni(filtri: { entita?: EntitaAudit; userId?: string } = {}) {
+  const log = await prisma.logAzione.findMany({
+    where: {
+      ...(filtri.entita && { entita: filtri.entita }),
+      ...(filtri.userId && { userId: filtri.userId }),
+    },
+    orderBy: { createdAt: "desc" },
+    take: LIMITE_LOG_AZIONI,
+  });
+
+  const userIds = [...new Set(log.map((l) => l.userId))];
+  const utenti = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, nome: true, cognome: true, email: true },
+  });
+  const utenteById = new Map(utenti.map((u) => [u.id, u]));
+
+  return log.map((l) => ({ ...l, autore: utenteById.get(l.userId) ?? null }));
+}
+
+/** Utenti distinti presenti nel log, per il filtro "utente" della vista Admin. */
+export async function getUtentiConLogAzioni() {
+  const distinctIds = await prisma.logAzione.findMany({
+    distinct: ["userId"],
+    select: { userId: true },
+    orderBy: { userId: "asc" },
+  });
+  const utenti = await prisma.user.findMany({
+    where: { id: { in: distinctIds.map((d) => d.userId) } },
+    select: { id: true, nome: true, cognome: true, email: true },
+    orderBy: { cognome: "asc" },
+  });
+  return utenti;
 }

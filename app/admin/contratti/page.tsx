@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireAdmin } from "@/lib/auth-helpers";
 import { getContrattiGlobali } from "@/lib/data/admin";
 import { Card } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
@@ -14,6 +15,7 @@ export default async function AdminContrattiPage({
 }: {
   searchParams: Promise<{ stato?: string }>;
 }) {
+  await requireAdmin();
   const params = await searchParams;
   const contratti = await getContrattiGlobali({ stato: (params.stato as StatoContratto) || undefined });
 

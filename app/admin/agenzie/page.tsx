@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { requireAdmin } from "@/lib/auth-helpers";
 import { getAgenzieConPortfolio } from "@/lib/data/admin";
 import { Card } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function AgenzieListPage() {
+  await requireAdmin();
   const agenzie = await getAgenzieConPortfolio();
 
   return (

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { requireAdmin } from "@/lib/auth-helpers";
 import { getAgenziaDetailForAdmin } from "@/lib/data/admin";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
@@ -8,6 +9,7 @@ import { STATO_CONTRATTO_LABELS, TIPO_CONTRATTO_LABELS } from "@/lib/labels";
 
 export default async function AgenziaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  await requireAdmin();
   const agenzia = await getAgenziaDetailForAdmin(id);
 
   if (!agenzia) {
