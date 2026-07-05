@@ -117,6 +117,7 @@ export async function getImmobileDetailForAgenzia(immobileId: string, agenziaId:
         include: { inquilino: { include: { user: true } } },
         orderBy: { createdAt: "desc" },
       },
+      assicurazioni: { orderBy: { dataScadenza: "asc" } },
     },
   });
 }

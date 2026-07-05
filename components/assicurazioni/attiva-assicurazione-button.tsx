@@ -3,9 +3,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { AttivaAssicurazioneForm } from "@/components/proprietario/attiva-assicurazione-form";
+import { AttivaAssicurazioneForm } from "@/components/assicurazioni/attiva-assicurazione-form";
 
-export function AssicurazioneCta({ immobileId }: { immobileId: string }) {
+export function AttivaAssicurazioneButton({
+  immobileId,
+  fornitoriDisponibili,
+}: {
+  immobileId: string;
+  fornitoriDisponibili: string[];
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -14,7 +20,11 @@ export function AssicurazioneCta({ immobileId }: { immobileId: string }) {
         Attiva copertura assicurativa
       </Button>
       <Modal open={open} onClose={() => setOpen(false)} title="Attiva copertura assicurativa">
-        <AttivaAssicurazioneForm immobileId={immobileId} onSuccess={() => setOpen(false)} />
+        <AttivaAssicurazioneForm
+          immobileId={immobileId}
+          fornitoriDisponibili={fornitoriDisponibili}
+          onSuccess={() => setOpen(false)}
+        />
       </Modal>
     </>
   );

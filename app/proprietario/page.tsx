@@ -13,8 +13,10 @@ import {
   getDepositiDaRestituire,
 } from "@/lib/data/proprietario";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
+import { getFornitoriAssicurazione } from "@/lib/data/assicurazioni";
 import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
-import { AssicurazioneCta } from "@/components/proprietario/assicurazione-cta";
+import { AttivaAssicurazioneButton } from "@/components/assicurazioni/attiva-assicurazione-button";
+import { RinnovaAssicurazioneButton } from "@/components/assicurazioni/rinnova-assicurazione-button";
 import { PagamentiInRitardoList } from "@/components/pagamenti/pagamenti-in-ritardo-list";
 import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
 import { StatCard } from "@/components/ui/stat-card";
@@ -22,7 +24,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { Badge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
 import { IncassiChart } from "@/components/charts/incassi-chart-dynamic";
-import { formatCurrency, formatDate, cn } from "@/lib/utils";
+import { formatCurrency, formatDate, cn, countdownScadenza } from "@/lib/utils";
 import { TIPO_IMMOBILE_LABELS, STATO_DEPOSITO_LABELS, STATO_ASSICURAZIONE_LABELS } from "@/lib/labels";
 
 type Scadenza = {
@@ -31,28 +33,30 @@ type Scadenza = {
   data: Date;
 };
 
-function countdown(data: Date) {
-  const giorni = differenceInCalendarDays(data, new Date());
-  if (giorni < 0) return { label: `Scaduta da ${Math.abs(giorni)} giorni`, tone: "danger" as const };
-  if (giorni === 0) return { label: "Scade oggi", tone: "danger" as const };
-  if (giorni <= 30) return { label: `Tra ${giorni} giorni`, tone: "warning" as const };
-  return { label: `Tra ${giorni} giorni`, tone: "neutral" as const };
-}
-
 export default async function ProprietarioDashboardPage() {
   const { session, proprietario } = await requireProprietario();
   await aggiornaPagamentiScaduti();
-  const [immobili, stats, comunicazioni, documenti, andamentoIncassi, nonLette, pagamentiInRitardo, depositiDaRestituire] =
-    await Promise.all([
-      getImmobiliForProprietario(proprietario.id),
-      getProprietarioDashboardStats(proprietario.id),
-      getComunicazioniPerProprietario(proprietario.id, session.user.id),
-      getDocumentiPerProprietario(proprietario.id),
-      getAndamentoIncassiProprietario(proprietario.id),
-      getSegnalazioniNonLette(session.user.id),
-      getPagamentiInRitardoPerProprietario(proprietario.id),
-      getDepositiDaRestituire(proprietario.id),
-    ]);
+  const [
+    immobili,
+    stats,
+    comunicazioni,
+    documenti,
+    andamentoIncassi,
+    nonLette,
+    pagamentiInRitardo,
+    depositiDaRestituire,
+    fornitoriAssicurazione,
+  ] = await Promise.all([
+    getImmobiliForProprietario(proprietario.id),
+    getProprietarioDashboardStats(proprietario.id),
+    getComunicazioniPerProprietario(proprietario.id, session.user.id),
+    getDocumentiPerProprietario(proprietario.id),
+    getAndamentoIncassiProprietario(proprietario.id),
+    getSegnalazioniNonLette(session.user.id),
+    getPagamentiInRitardoPerProprietario(proprietario.id),
+    getDepositiDaRestituire(proprietario.id),
+    getFornitoriAssicurazione(),
+  ]);
 
   const rendimenti = immobili.map((immobile) => {
     const contrattoAttivo = immobile.contratti[0];
@@ -214,7 +218,7 @@ export default async function ProprietarioDashboardPage() {
         ) : (
           <ul className="divide-y divide-slate-100">
             {scadenze.slice(0, 5).map((s, index) => {
-              const { label, tone } = countdown(s.data);
+              const { label, tone } = countdownScadenza(s.data);
               return (
                 <li key={index} className="flex items-center justify-between gap-4 py-3">
                   <div>
@@ -247,6 +251,9 @@ export default async function ProprietarioDashboardPage() {
           <ul className="divide-y divide-slate-100">
             {immobili.map((immobile) => {
               const assicurazione = immobile.assicurazioni[0];
+              const giorniAllaScadenza = assicurazione
+                ? differenceInCalendarDays(assicurazione.dataScadenza, new Date())
+                : null;
               return (
                 <li key={immobile.id} className="flex items-center justify-between gap-4 py-3">
                   <div>
@@ -261,11 +268,22 @@ export default async function ProprietarioDashboardPage() {
                       <p className="mt-1 text-sm text-slate-500">Nessuna copertura attiva</p>
                     )}
                   </div>
-                  {assicurazione ? (
-                    <StatoAssicurazioneBadge stato={assicurazione.stato} label={STATO_ASSICURAZIONE_LABELS[assicurazione.stato]} />
-                  ) : (
-                    <AssicurazioneCta immobileId={immobile.id} />
-                  )}
+                  <div className="flex shrink-0 items-center gap-3">
+                    {assicurazione ? (
+                      <>
+                        <StatoAssicurazioneBadge stato={assicurazione.stato} label={STATO_ASSICURAZIONE_LABELS[assicurazione.stato]} />
+                        {giorniAllaScadenza !== null && giorniAllaScadenza <= 60 && (
+                          <RinnovaAssicurazioneButton
+                            assicurazioneId={assicurazione.id}
+                            premioAnnualeAttuale={assicurazione.premioAnnuale}
+                            dataScadenzaAttuale={assicurazione.dataScadenza}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <AttivaAssicurazioneButton immobileId={immobile.id} fornitoriDisponibili={fornitoriAssicurazione} />
+                    )}
+                  </div>
                 </li>
               );
             })}

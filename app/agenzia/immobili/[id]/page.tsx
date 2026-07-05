@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { requireAgenzia } from "@/lib/auth-helpers";
 import { getImmobileDetailForAgenzia } from "@/lib/data/agenzia";
 import { getUtenzeComplete, getFornitoriPerTutteLeUtenze } from "@/lib/data/utenze";
+import { getFornitoriAssicurazione } from "@/lib/data/assicurazioni";
 import { UtenzeSection } from "@/components/utenze/utenze-section";
+import { AssicurazioneSection } from "@/components/assicurazioni/assicurazione-section";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { StatoContrattoBadge } from "@/components/ui/badge";
@@ -19,7 +21,11 @@ export default async function AgenziaImmobileDetailPage({ params }: { params: Pr
     notFound();
   }
 
-  const [utenze, fornitoriPerTipo] = await Promise.all([getUtenzeComplete(immobile.id), getFornitoriPerTutteLeUtenze()]);
+  const [utenze, fornitoriPerTipo, fornitoriAssicurazione] = await Promise.all([
+    getUtenzeComplete(immobile.id),
+    getFornitoriPerTutteLeUtenze(),
+    getFornitoriAssicurazione(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -84,6 +90,12 @@ export default async function AgenziaImmobileDetailPage({ params }: { params: Pr
       </Card>
 
       <UtenzeSection immobileId={immobile.id} utenze={utenze} fornitoriPerTipo={fornitoriPerTipo} />
+
+      <AssicurazioneSection
+        immobileId={immobile.id}
+        assicurazione={immobile.assicurazioni[0] ?? null}
+        fornitoriDisponibili={fornitoriAssicurazione}
+      />
     </div>
   );
 }

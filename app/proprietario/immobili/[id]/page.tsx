@@ -2,19 +2,15 @@ import { notFound } from "next/navigation";
 import { requireProprietario } from "@/lib/auth-helpers";
 import { getImmobileDetailForProprietario } from "@/lib/data/proprietario";
 import { getUtenzeComplete, getFornitoriPerTutteLeUtenze } from "@/lib/data/utenze";
+import { getFornitoriAssicurazione } from "@/lib/data/assicurazioni";
 import { SegnalazioniTable } from "@/components/segnalazioni/segnalazioni-table";
 import { UtenzeSection } from "@/components/utenze/utenze-section";
+import { AssicurazioneSection } from "@/components/assicurazioni/assicurazione-section";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { StatoContrattoBadge, StatoPagamentoBadge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
+import { StatoContrattoBadge, StatoPagamentoBadge, StatoDepositoBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import {
-  TIPO_IMMOBILE_LABELS,
-  STATO_CONTRATTO_LABELS,
-  STATO_PAGAMENTO_LABELS,
-  STATO_DEPOSITO_LABELS,
-  STATO_ASSICURAZIONE_LABELS,
-} from "@/lib/labels";
+import { TIPO_IMMOBILE_LABELS, STATO_CONTRATTO_LABELS, STATO_PAGAMENTO_LABELS, STATO_DEPOSITO_LABELS } from "@/lib/labels";
 
 export default async function ImmobileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -25,7 +21,11 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
     notFound();
   }
 
-  const [utenze, fornitoriPerTipo] = await Promise.all([getUtenzeComplete(immobile.id), getFornitoriPerTutteLeUtenze()]);
+  const [utenze, fornitoriPerTipo, fornitoriAssicurazione] = await Promise.all([
+    getUtenzeComplete(immobile.id),
+    getFornitoriPerTutteLeUtenze(),
+    getFornitoriAssicurazione(),
+  ]);
 
   const contrattoAttivo = immobile.contratti.find((c) => c.stato === "ATTIVO");
 
@@ -121,37 +121,11 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
 
       <UtenzeSection immobileId={immobile.id} utenze={utenze} fornitoriPerTipo={fornitoriPerTipo} />
 
-      <Card>
-        <CardHeader title="Assicurazioni collegate" />
-        {immobile.assicurazioni.length === 0 ? (
-          <EmptyState message="Nessuna assicurazione attiva su questo immobile." />
-        ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Tipo</TableHeaderCell>
-                <TableHeaderCell>Fornitore</TableHeaderCell>
-                <TableHeaderCell>Premio annuale</TableHeaderCell>
-                <TableHeaderCell>Scadenza</TableHeaderCell>
-                <TableHeaderCell>Stato</TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {immobile.assicurazioni.map((a) => (
-                <TableRow key={a.id}>
-                  <TableCell>{a.tipo}</TableCell>
-                  <TableCell>{a.fornitore}</TableCell>
-                  <TableCell>{formatCurrency(a.premioAnnuale)}</TableCell>
-                  <TableCell>{formatDate(a.dataScadenza)}</TableCell>
-                  <TableCell>
-                    <StatoAssicurazioneBadge stato={a.stato} label={STATO_ASSICURAZIONE_LABELS[a.stato]} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
+      <AssicurazioneSection
+        immobileId={immobile.id}
+        assicurazione={immobile.assicurazioni[0] ?? null}
+        fornitoriDisponibili={fornitoriAssicurazione}
+      />
 
       <Card className="p-0">
         <div className="p-6 pb-0">

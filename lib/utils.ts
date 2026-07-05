@@ -1,3 +1,4 @@
+import { differenceInCalendarDays } from "date-fns";
 import clsx, { type ClassValue } from "clsx";
 
 export function cn(...inputs: ClassValue[]) {
@@ -41,4 +42,14 @@ export function withTimeout<T>(promise: Promise<T>, ms = 10000): Promise<T> {
       }
     );
   });
+}
+
+/** Countdown testuale/tono verso una data di scadenza, condiviso da dashboard, sezioni per-immobile
+ * (assicurazioni, ecc.) e dal centro notifiche, così la soglia "imminente" resta unica in tutta l'app. */
+export function countdownScadenza(data: Date): { label: string; tone: "danger" | "warning" | "neutral" } {
+  const giorni = differenceInCalendarDays(data, new Date());
+  if (giorni < 0) return { label: `Scaduta da ${Math.abs(giorni)} giorni`, tone: "danger" };
+  if (giorni === 0) return { label: "Scade oggi", tone: "danger" };
+  if (giorni <= 30) return { label: `Tra ${giorni} giorni`, tone: "warning" };
+  return { label: `Tra ${giorni} giorni`, tone: "neutral" };
 }
