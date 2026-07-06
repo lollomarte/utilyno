@@ -21,7 +21,7 @@ export function UserBlock({
         <p className="text-sm font-medium text-ink">
           {nome} {cognome}
         </p>
-        <p className="text-xs text-slate-500">{roleLabel}</p>
+        <p className="text-xs text-ink-muted">{roleLabel}</p>
       </div>
       <form action={logoutAction}>
         <Button type="submit" variant="secondary">
@@ -44,7 +44,7 @@ export function Header({
   notifiche: Notifica[];
 }) {
   return (
-    <header className="hidden h-16 items-center justify-between border-b border-slate-200 bg-white px-6 md:flex">
+    <header className="hidden h-16 items-center justify-between border-b border-border bg-surface px-6 md:flex">
       <div />
       <div className="flex items-center gap-2">
         <NotificationBell notifiche={notifiche} />

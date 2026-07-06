@@ -207,6 +207,23 @@ h1, .font-display {
   animation: fade-in-up var(--duration-reveal) var(--ease-loqo) both;
 }
 
+/* Page transition tra le route interne e apertura di pannelli (notifiche,
+ * dropdown): tier "transizione" (300ms, assestamento di soli 8px), più
+ * rapido del reveal da scroll (600ms/16px) — mai un salto secco. */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-page-in {
+  animation: page-in var(--duration-transition) var(--ease-loqo) both;
+}
+
 /* Componente Reveal (homepage): nascosto finché non entra in viewport */
 .reveal-init {
   opacity: 0;
@@ -377,6 +394,7 @@ h1, .font-display {
 @media (prefers-reduced-motion: reduce) {
   .animate-seal-in,
   .animate-fade-in-up,
+  .animate-page-in,
   .reveal-visible,
   .animate-bell-ring,
   .card-hover-lift,
