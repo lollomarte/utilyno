@@ -18,7 +18,7 @@ export function StatCard({
   trend,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   hint?: string;
   tone?: "default" | "warning" | "danger";
   icon?: LucideIcon;

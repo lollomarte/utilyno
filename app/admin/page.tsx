@@ -10,6 +10,9 @@ import {
 import { requireAdmin } from "@/lib/auth-helpers";
 import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
 import { StatCard } from "@/components/ui/stat-card";
+import { CountUp } from "@/components/ui/count-up";
+import { CurrencyCountUp } from "@/components/ui/currency-count-up";
+import { AttentionBlock, type AttentionItem } from "@/components/dashboard/attention-block";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { PagamentiDonut } from "@/components/charts/pagamenti-donut-dynamic";
@@ -26,37 +29,52 @@ export default async function AdminDashboardPage() {
     getPoolDepositiPerAgenzia(),
   ]);
 
+  const attentionItems: AttentionItem[] = [];
+  if (stats.pagamentiInRitardo > 0) {
+    attentionItems.push({
+      icon: AlertTriangle,
+      tone: "danger",
+      label:
+        stats.pagamentiInRitardo === 1
+          ? "1 pagamento in ritardo su tutta la piattaforma"
+          : `${stats.pagamentiInRitardo} pagamenti in ritardo su tutta la piattaforma`,
+      href: "/admin/contratti",
+    });
+  }
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-xl font-semibold text-ink">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">Vista aggregata sulla piattaforma LOQO</p>
+        <p className="mt-1 text-sm text-ink-muted">Vista aggregata sulla piattaforma LOQO</p>
       </div>
 
+      <AttentionBlock items={attentionItems} />
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Agenzie" value={String(stats.numeroAgenzie)} icon={Building2} />
-        <StatCard label="Amministratori di condominio" value={String(stats.numeroAmministratori)} icon={Users} />
+        <StatCard label="Agenzie" value={<CountUp value={stats.numeroAgenzie} />} icon={Building2} />
+        <StatCard label="Amministratori di condominio" value={<CountUp value={stats.numeroAmministratori} />} icon={Users} />
         <StatCard
           label="Contratti totali"
-          value={String(stats.numeroContratti)}
+          value={<CountUp value={stats.numeroContratti} />}
           hint={`${stats.contrattiAttivi} attivi`}
           icon={FileText}
         />
         <StatCard
           label="Pagamenti in ritardo"
-          value={String(stats.pagamentiInRitardo)}
+          value={<CountUp value={stats.pagamentiInRitardo} />}
           tone={stats.pagamentiInRitardo > 0 ? "danger" : "default"}
           icon={AlertTriangle}
         />
         <StatCard
           label="Volume transitato stimato"
-          value={formatCurrency(stats.volumeIncassato)}
+          value={<CurrencyCountUp value={stats.volumeIncassato} />}
           hint="Totale storico incassato"
           icon={Euro}
         />
         <StatCard
           label="Pool depositi totale"
-          value={formatCurrency(stats.poolDepositiTotale)}
+          value={<CurrencyCountUp value={stats.poolDepositiTotale} />}
           hint={`${stats.numeroDepositiVersati} depositi versati`}
           icon={PiggyBank}
         />
