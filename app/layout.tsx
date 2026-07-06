@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Fraunces, Public_Sans } from "next/font/google";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { SplashScreen } from "@/components/layout/splash-screen";
+import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
 
 // Tutta la tipografia è self-hosted via next/font (nessuna richiesta esterna
@@ -47,7 +48,9 @@ export default function RootLayout({
     <html lang="it" className={`${geistMono.variable} ${fraunces.variable} ${publicSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
         <SplashScreen />
-        <AuthSessionProvider>{children}</AuthSessionProvider>
+        <AuthSessionProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );
