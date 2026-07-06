@@ -51,7 +51,7 @@ export default async function AdminDashboardPage() {
 
       <AttentionBlock items={attentionItems} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="stagger-cards grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Agenzie" value={<CountUp value={stats.numeroAgenzie} />} icon={Building2} />
         <StatCard label="Amministratori di condominio" value={<CountUp value={stats.numeroAmministratori} />} icon={Users} />
         <StatCard

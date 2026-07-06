@@ -129,7 +129,7 @@ export default async function ProprietarioDashboardPage() {
 
       <AttentionBlock items={attentionItems} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="stagger-cards grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Immobili" value={<CountUp value={stats.numeroImmobili} />} icon={Building2} />
         <StatCard label="Canone medio" value={<CurrencyCountUp value={stats.canoneMedio} />} icon={Euro} />
         <StatCard

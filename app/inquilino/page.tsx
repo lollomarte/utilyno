@@ -99,7 +99,7 @@ export default async function InquilinoDashboardPage() {
 
       <AttentionBlock items={attentionItems} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="stagger-cards grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Canone mensile" value={<CurrencyCountUp value={contratto.canoneMensile} />} icon={Euro} />
         <StatCard
           label="Prossima scadenza"

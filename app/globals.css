@@ -242,6 +242,14 @@ h1, .font-display {
 .stagger-rows > tr:nth-child(9) { animation-delay: 320ms; }
 .stagger-rows > tr:nth-child(n + 10) { animation-delay: 360ms; }
 
+/* Griglia KPI: le card si materializzano in sequenza invece che tutte insieme. */
+.stagger-cards > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-cards > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-cards > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-cards > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-cards > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-cards > *:nth-child(6) { animation-delay: 300ms; }
+
 /* Componente Reveal (homepage): nascosto finché non entra in viewport */
 .reveal-init {
   opacity: 0;

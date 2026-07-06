@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export function Table({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="animate-fade-in-up overflow-x-auto rounded-card border border-border bg-surface shadow-card">
+    <div className="overflow-x-auto rounded-card border border-border bg-surface shadow-card">
       <table className={cn("min-w-full divide-y divide-border text-sm", className)}>{children}</table>
     </div>
   );

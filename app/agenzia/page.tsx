@@ -88,7 +88,7 @@ export default async function AgenziaDashboardPage() {
 
       <AttentionBlock items={attentionItems} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="stagger-cards grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Contratti attivi" value={<CountUp value={stats.contrattiAttivi} />} icon={FileText} />
         <StatCard
           label="Canoni incassati questo mese"
