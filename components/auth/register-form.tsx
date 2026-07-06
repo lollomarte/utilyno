@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import Link from "next/link";
 import { registerSchema, registerFormSchema, type RegisterFormValues } from "@/lib/validations/auth";
+import { PORTAL_BY_ROLE } from "@/auth.config";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,8 @@ export function RegisterForm() {
         return;
       }
 
-      router.push("/");
+      const session = await getSession();
+      router.push(PORTAL_BY_ROLE[session?.user?.role ?? ""] ?? "/");
       router.refresh();
     } catch {
       setServerError("Qualcosa è andato storto, riprova.");
