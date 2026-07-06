@@ -45,6 +45,18 @@ export const TIPO_IMMOBILE_LABELS: Record<string, string> = {
   COMMERCIALE: "Commerciale",
 };
 
+export const STATO_IMMOBILE_LABELS: Record<string, string> = {
+  BOZZA_PROPRIETARIO: "Bozza",
+  IN_GESTIONE_AGENZIA: "In gestione all'agenzia",
+  ATTIVO: "Attivo",
+};
+
+export const STATO_RICHIESTA_GESTIONE_LABELS: Record<string, string> = {
+  IN_ATTESA: "In attesa di risposta",
+  ACCETTATA: "Accettata",
+  RIFIUTATA: "Rifiutata",
+};
+
 export const TIPO_UTENZA_LABELS: Record<string, string> = {
   LUCE: "Luce",
   GAS: "Gas",

@@ -9,7 +9,7 @@ import {
   calcolaScadenzeProprietario,
 } from "@/lib/data/proprietario";
 import { getContrattoAttivoForInquilino, getComunicazioniPerInquilino } from "@/lib/data/inquilino";
-import { getPagamentiInRitardoPerAgenzia, getContrattiInScadenza } from "@/lib/data/agenzia";
+import { getPagamentiInRitardoPerAgenzia, getContrattiInScadenza, getRichiesteGestionePerAgenzia } from "@/lib/data/agenzia";
 import type { Role } from "@prisma/client";
 
 /** Entro questa soglia una scadenza (contratto, registrazione AdE, assicurazione) diventa
@@ -23,7 +23,8 @@ export type TipoNotifica =
   | "scadenza_registrazione_ade"
   | "scadenza_assicurazione"
   | "segnalazione_non_letta"
-  | "comunicazione_non_letta";
+  | "comunicazione_non_letta"
+  | "richiesta_gestione_ricevuta";
 
 export interface Notifica {
   /** Chiave univoca nella lista (prefissata per tipo, non l'id nudo dell'entità). */
@@ -207,13 +208,26 @@ async function raccogliNotifichePerAgenzia(userId: string): Promise<Notifica[]> 
   const agenzia = await prisma.agenzia.findUnique({ where: { userId } });
   if (!agenzia) return [];
 
-  const [pagamentiInRitardo, contrattiInScadenza, segnalazioniNonLette] = await Promise.all([
+  const [pagamentiInRitardo, contrattiInScadenza, segnalazioniNonLette, richiesteGestione] = await Promise.all([
     getPagamentiInRitardoPerAgenzia(agenzia.id),
     getContrattiInScadenza(agenzia.id, GIORNI_SOGLIA_SCADENZA),
     getSegnalazioniNonLettePerUser(userId),
+    getRichiesteGestionePerAgenzia(agenzia.id),
   ]);
 
   const notifiche: Notifica[] = [];
+
+  for (const r of richiesteGestione) {
+    if (r.stato !== "IN_ATTESA") continue;
+    notifiche.push({
+      id: `richiesta-gestione-${r.id}`,
+      tipo: "richiesta_gestione_ricevuta",
+      titolo: "Richiesta di gestione immobile",
+      descrizione: `${r.proprietario.user.nome} ${r.proprietario.user.cognome} — ${r.immobile.indirizzo}, ${r.immobile.comune}`,
+      href: "/agenzia/richieste-gestione",
+      data: r.dataRichiesta,
+    });
+  }
 
   for (const p of pagamentiInRitardo) {
     notifiche.push({

@@ -8,9 +8,15 @@ import { UtenzeSection } from "@/components/utenze/utenze-section";
 import { AssicurazioneSection } from "@/components/assicurazioni/assicurazione-section";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
-import { StatoContrattoBadge, StatoPagamentoBadge, StatoDepositoBadge } from "@/components/ui/badge";
+import { StatoContrattoBadge, StatoPagamentoBadge, StatoDepositoBadge, StatoImmobileBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { TIPO_IMMOBILE_LABELS, STATO_CONTRATTO_LABELS, STATO_PAGAMENTO_LABELS, STATO_DEPOSITO_LABELS } from "@/lib/labels";
+import {
+  TIPO_IMMOBILE_LABELS,
+  STATO_CONTRATTO_LABELS,
+  STATO_PAGAMENTO_LABELS,
+  STATO_DEPOSITO_LABELS,
+  STATO_IMMOBILE_LABELS,
+} from "@/lib/labels";
 
 export default async function ImmobileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -31,11 +37,14 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-ink">
-          {immobile.indirizzo}, {immobile.comune}
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">{TIPO_IMMOBILE_LABELS[immobile.tipoImmobile]}</p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-ink">
+            {immobile.indirizzo}, {immobile.comune}
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">{TIPO_IMMOBILE_LABELS[immobile.tipoImmobile]}</p>
+        </div>
+        <StatoImmobileBadge stato={immobile.stato} label={STATO_IMMOBILE_LABELS[immobile.stato]} />
       </div>
 
       <Card>

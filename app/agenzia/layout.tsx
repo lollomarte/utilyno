@@ -7,6 +7,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/agenzia/immobili", label: "Immobili" },
   { href: "/agenzia/contratti", label: "Contratti" },
   { href: "/agenzia/segnalazioni", label: "Segnalazioni" },
+  { href: "/agenzia/richieste-gestione", label: "Richieste di gestione" },
   { href: "/agenzia/documenti", label: "Documenti" },
 ];
 

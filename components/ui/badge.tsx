@@ -84,6 +84,18 @@ const TICKET_TONE: Record<string, BadgeTone> = {
   RISOLTO: "success",
 };
 
+const IMMOBILE_TONE: Record<string, BadgeTone> = {
+  BOZZA_PROPRIETARIO: "neutral",
+  IN_GESTIONE_AGENZIA: "info",
+  ATTIVO: "success",
+};
+
+const RICHIESTA_GESTIONE_TONE: Record<string, BadgeTone> = {
+  IN_ATTESA: "warning",
+  ACCETTATA: "success",
+  RIFIUTATA: "danger",
+};
+
 export function StatoContrattoBadge({ stato, label }: { stato: string; label: string }) {
   return <Badge tone={CONTRATTO_TONE[stato] ?? "neutral"}>{label}</Badge>;
 }
@@ -110,4 +122,12 @@ export function StatoSegnalazioneBadge({ stato, label }: { stato: string; label:
 
 export function StatoTicketBadge({ stato, label }: { stato: string; label: string }) {
   return <Badge tone={TICKET_TONE[stato] ?? "neutral"}>{label}</Badge>;
+}
+
+export function StatoImmobileBadge({ stato, label }: { stato: string; label: string }) {
+  return <Badge tone={IMMOBILE_TONE[stato] ?? "neutral"}>{label}</Badge>;
+}
+
+export function StatoRichiestaGestioneBadge({ stato, label }: { stato: string; label: string }) {
+  return <Badge tone={RICHIESTA_GESTIONE_TONE[stato] ?? "neutral"}>{label}</Badge>;
 }

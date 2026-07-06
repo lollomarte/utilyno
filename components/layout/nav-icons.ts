@@ -14,6 +14,7 @@ import {
   ClipboardCheck,
   ScrollText,
   ShieldCheck,
+  Inbox,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -37,6 +38,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/agenzia/immobili": Building2,
   "/agenzia/contratti": FileText,
   "/agenzia/segnalazioni": MessageSquareWarning,
+  "/agenzia/richieste-gestione": Inbox,
   "/agenzia/documenti": FileStack,
   "/amministratore": LayoutDashboard,
   "/amministratore/condomini": Building2,

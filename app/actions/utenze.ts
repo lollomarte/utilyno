@@ -8,7 +8,7 @@ import { attivaUtenzaSchema, type AttivaUtenzaInput } from "@/lib/validations/ut
 async function verificaAccessoImmobile(
   userId: string,
   role: string,
-  immobile: { id: string; agenziaId: string; proprietarioId: string }
+  immobile: { id: string; agenziaId: string | null; proprietarioId: string }
 ): Promise<boolean> {
   if (role === "AGENZIA") {
     const agenzia = await prisma.agenzia.findUnique({ where: { userId } });

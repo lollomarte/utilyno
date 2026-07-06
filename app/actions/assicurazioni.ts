@@ -21,7 +21,7 @@ function calcolaCommissioneLoqo(premioAnnuale: number): number {
 async function verificaAccessoImmobile(
   userId: string,
   role: string,
-  immobile: { agenziaId: string; proprietarioId: string }
+  immobile: { agenziaId: string | null; proprietarioId: string }
 ): Promise<boolean> {
   if (role === "AGENZIA") {
     const agenzia = await prisma.agenzia.findUnique({ where: { userId } });

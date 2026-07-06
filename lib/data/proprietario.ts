@@ -11,6 +11,9 @@ export async function getImmobiliForProprietario(proprietarioId: string) {
         include: { inquilino: { include: { user: true } } },
       },
       assicurazioni: { orderBy: { dataScadenza: "asc" } },
+      /** Solo l'ultima richiesta di gestione per immobile: basta a sapere se è in attesa,
+       * rifiutata, o se non ne è mai stata inviata una (array vuoto). */
+      richiesteGestione: { include: { agenzia: true }, orderBy: { dataRichiesta: "desc" }, take: 1 },
     },
     orderBy: { indirizzo: "asc" },
   });

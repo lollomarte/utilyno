@@ -23,6 +23,21 @@ enum TipoImmobile {
   COMMERCIALE
 }
 
+/// BOZZA_PROPRIETARIO: auto-inserito dal Proprietario, nessuna agenzia ancora assegnata.
+/// IN_GESTIONE_AGENZIA: un'Agenzia ha accettato la richiesta di gestione (vedi RichiestaGestioneImmobile).
+/// ATTIVO: creato direttamente da Agenzia o Amministratore (flusso preesistente, agenzia già presente dalla creazione).
+enum StatoImmobile {
+  BOZZA_PROPRIETARIO
+  IN_GESTIONE_AGENZIA
+  ATTIVO
+}
+
+enum StatoRichiestaGestione {
+  IN_ATTESA
+  ACCETTATA
+  RIFIUTATA
+}
+
 enum TipoContratto {
   QUATTRO_PIU_QUATTRO
   TRE_PIU_DUE
@@ -185,8 +200,9 @@ model Agenzia {
   indirizzo      String
   telefono       String?
 
-  immobili  Immobile[]
-  contratti Contratto[]
+  immobili          Immobile[]
+  contratti         Contratto[]
+  richiesteGestione RichiestaGestioneImmobile[]
 }
 
 model Amministratore {
@@ -226,7 +242,8 @@ model Proprietario {
   codiceFiscale String @unique
   indirizzo     String
 
-  immobili Immobile[]
+  immobili          Immobile[]
+  richiesteGestione RichiestaGestioneImmobile[]
 }
 
 model Inquilino {
@@ -243,8 +260,8 @@ model Immobile {
   id             String       @id @default(cuid())
   proprietarioId String
   proprietario   Proprietario @relation(fields: [proprietarioId], references: [id], onDelete: Cascade)
-  agenziaId      String
-  agenzia        Agenzia      @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
+  agenziaId      String?
+  agenzia        Agenzia?     @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
   condominioId   String?
   condominio     Condominio?  @relation(fields: [condominioId], references: [id], onDelete: SetNull)
 
@@ -256,17 +273,45 @@ model Immobile {
   tipoImmobile  TipoImmobile
   apeClasse     String?
   valoreStimato Float
+  stato         StatoImmobile @default(BOZZA_PROPRIETARIO)
   createdAt     DateTime     @default(now())
 
-  contratti     Contratto[]
-  utenze        Utenza[]
-  assicurazioni Assicurazione[]
-  documenti     Documento[]
-  segnalazioni  Segnalazione[]
+  contratti         Contratto[]
+  utenze            Utenza[]
+  assicurazioni     Assicurazione[]
+  documenti         Documento[]
+  segnalazioni      Segnalazione[]
+  richiesteGestione RichiestaGestioneImmobile[]
 
   @@index([proprietarioId])
   @@index([agenziaId])
   @@index([condominioId])
+  @@index([stato])
+}
+
+/// Richiesta del Proprietario a un'Agenzia esistente per prendere in gestione un Immobile
+/// auto-inserito (stato BOZZA_PROPRIETARIO): stesso pattern di RichiestaPreventivo.
+model RichiestaGestioneImmobile {
+  id String @id @default(cuid())
+
+  immobileId String
+  immobile   Immobile @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+
+  proprietarioId String
+  proprietario   Proprietario @relation(fields: [proprietarioId], references: [id], onDelete: Cascade)
+
+  agenziaId String
+  agenzia   Agenzia @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
+
+  stato         StatoRichiestaGestione @default(IN_ATTESA)
+  messaggio     String?
+  dataRichiesta DateTime               @default(now())
+  dataRisposta  DateTime?
+
+  @@index([immobileId])
+  @@index([proprietarioId])
+  @@index([agenziaId])
+  @@index([stato])
 }
 
 model Contratto {

@@ -39,7 +39,7 @@ async function verificaAccessoImmobile(userId: string, role: string, immobileId:
     case "PROPRIETARIO":
       return immobile.proprietario.userId === userId;
     case "AGENZIA":
-      return immobile.agenzia.userId === userId;
+      return immobile.agenzia?.userId === userId;
     case "AMMINISTRATORE": {
       if (!immobile.condominio) return false;
       const amministratore = await prisma.amministratore.findUnique({ where: { userId } });

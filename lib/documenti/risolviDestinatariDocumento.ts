@@ -31,18 +31,23 @@ async function getPoolContratto(contrattoId: string): Promise<PartePool[]> {
       cognome: contratto.immobile.proprietario.user.cognome,
     },
     {
-      userId: contratto.immobile.agenzia.user.id,
-      ruolo: "AGENZIA",
-      nome: contratto.immobile.agenzia.user.nome,
-      cognome: contratto.immobile.agenzia.user.cognome,
-    },
-    {
       userId: contratto.inquilino.user.id,
       ruolo: "INQUILINO",
       nome: contratto.inquilino.user.nome,
       cognome: contratto.inquilino.user.cognome,
     },
   ];
+
+  // Un Contratto esiste solo su un immobile già in gestione a un'agenzia, ma il campo resta
+  // nullable a livello di tipo (immobili auto-inseriti dal Proprietario partono senza agenzia).
+  if (contratto.immobile.agenzia) {
+    pool.push({
+      userId: contratto.immobile.agenzia.user.id,
+      ruolo: "AGENZIA",
+      nome: contratto.immobile.agenzia.user.nome,
+      cognome: contratto.immobile.agenzia.user.cognome,
+    });
+  }
 
   const amministratoreUser = contratto.immobile.condominio?.amministratore.user;
   if (amministratoreUser) {
@@ -98,7 +103,9 @@ async function getPoolCondominio(condominioId: string): Promise<PartePool[]> {
       immobile.proprietario.user.nome,
       immobile.proprietario.user.cognome
     );
-    aggiungi(immobile.agenzia.user.id, "AGENZIA", immobile.agenzia.user.nome, immobile.agenzia.user.cognome);
+    if (immobile.agenzia) {
+      aggiungi(immobile.agenzia.user.id, "AGENZIA", immobile.agenzia.user.nome, immobile.agenzia.user.cognome);
+    }
     const inquilinoUser = immobile.contratti[0]?.inquilino.user;
     if (inquilinoUser) aggiungi(inquilinoUser.id, "INQUILINO", inquilinoUser.nome, inquilinoUser.cognome);
   }
