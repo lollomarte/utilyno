@@ -55,7 +55,7 @@ export async function POST(request: Request) {
   const pool = await getPoolContestoDocumento(contesto, session.user.id);
   const destinatariValidi = pool.filter((p) => data.destinatari.includes(p.userId));
 
-  const blob = await put(`documenti/${randomUUID()}-${file.name}`, file, { access: "public" });
+  const blob = await put(`documenti/${randomUUID()}-${file.name}`, file, { access: "private" });
 
   const documento = await prisma.documento.create({
     data: {

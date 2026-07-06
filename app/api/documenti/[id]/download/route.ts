@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { get } from "@vercel/blob";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getDocumentoConAccesso } from "@/lib/data/documenti";
@@ -21,10 +22,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Documento non trovato" }, { status: 404 });
   }
 
+  const blob = await get(documento.url, { access: "private" });
+  if (!blob || !blob.stream) {
+    return NextResponse.json({ error: "File non trovato" }, { status: 404 });
+  }
+
   await prisma.documentoCondivisione.updateMany({
     where: { documentoId: documento.id, userId: session.user.id },
     data: { letto: true, dataLettura: new Date(), scaricato: true, dataScaricamento: new Date() },
   });
 
-  return NextResponse.redirect(documento.url);
+  return new NextResponse(blob.stream, {
+    headers: {
+      "Content-Type": documento.tipo,
+      "Content-Disposition": `attachment; filename="${encodeURIComponent(documento.nome)}"`,
+    },
+  });
 }
