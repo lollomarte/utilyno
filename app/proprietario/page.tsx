@@ -7,12 +7,12 @@ import {
   getImmobiliForProprietario,
   getProprietarioDashboardStats,
   getComunicazioniPerProprietario,
-  getDocumentiPerProprietario,
   getAndamentoIncassiProprietario,
   getPagamentiInRitardoPerProprietario,
   getDepositiDaRestituire,
   calcolaScadenzeProprietario,
 } from "@/lib/data/proprietario";
+import { getDocumentiPerUtente } from "@/lib/data/documenti";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { getFornitoriAssicurazione } from "@/lib/data/assicurazioni";
 import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
@@ -45,7 +45,7 @@ export default async function ProprietarioDashboardPage() {
     getImmobiliForProprietario(proprietario.id),
     getProprietarioDashboardStats(proprietario.id),
     getComunicazioniPerProprietario(proprietario.id, session.user.id),
-    getDocumentiPerProprietario(proprietario.id),
+    getDocumentiPerUtente(session.user.id),
     getAndamentoIncassiProprietario(proprietario.id),
     getSegnalazioniNonLette(session.user.id),
     getPagamentiInRitardoPerProprietario(proprietario.id),
@@ -307,7 +307,7 @@ export default async function ProprietarioDashboardPage() {
                     <TableCell>{immobile ? `${immobile.indirizzo}, ${immobile.comune}` : "-"}</TableCell>
                     <TableCell>{formatDate(doc.uploadedAt)}</TableCell>
                     <TableCell>
-                      <a href={doc.url} download className="font-medium text-ink hover:underline">
+                      <a href={`/api/documenti/${doc.id}/download`} className="font-medium text-ink hover:underline">
                         Scarica
                       </a>
                     </TableCell>

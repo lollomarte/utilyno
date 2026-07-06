@@ -392,6 +392,7 @@ async function main() {
     await prisma.documento.create({
       data: {
         contrattoId: contratto.id,
+        caricatoDaUserId: c.agenzia.userId,
         nome: "Contratto_registrato.pdf",
         url: "/documenti/mock/contratto.pdf",
         tipo: "CONTRATTO",

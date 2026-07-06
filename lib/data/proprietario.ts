@@ -63,16 +63,6 @@ export function calcolaScadenzeProprietario(
   return scadenze;
 }
 
-export async function getDocumentiPerProprietario(proprietarioId: string) {
-  return prisma.documento.findMany({
-    where: {
-      OR: [{ immobile: { proprietarioId } }, { contratto: { immobile: { proprietarioId } } }],
-    },
-    include: { immobile: true, contratto: { include: { immobile: true } } },
-    orderBy: { uploadedAt: "desc" },
-  });
-}
-
 export async function getProprietarioDashboardStats(proprietarioId: string) {
   const immobili = await getImmobiliForProprietario(proprietarioId);
   const contrattiAttivi = immobili.flatMap((i) => i.contratti);

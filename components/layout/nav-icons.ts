@@ -30,16 +30,19 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/admin/contratti": FileText,
   "/admin/depositi": PiggyBank,
   "/admin/lead": Handshake,
+  "/admin/documenti": FileStack,
   "/admin/log": ScrollText,
   "/admin/privacy": ShieldCheck,
   "/agenzia": LayoutDashboard,
   "/agenzia/immobili": Building2,
   "/agenzia/contratti": FileText,
   "/agenzia/segnalazioni": MessageSquareWarning,
+  "/agenzia/documenti": FileStack,
   "/amministratore": LayoutDashboard,
   "/amministratore/condomini": Building2,
   "/amministratore/segnalazioni": MessageSquareWarning,
   "/amministratore/comunicazioni": Megaphone,
+  "/amministratore/documenti": FileStack,
   "/proprietario": LayoutDashboard,
   "/proprietario/immobili": Building2,
   "/proprietario/contratti": FileText,
@@ -52,6 +55,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/inquilino/utenze": Zap,
   "/inquilino/segnalazioni": MessageSquareWarning,
   "/inquilino/checklist": ClipboardCheck,
+  "/inquilino/documenti": FileStack,
 };
 
 export function getNavIcon(href: string): LucideIcon {

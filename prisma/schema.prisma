@@ -141,6 +141,8 @@ model User {
   segnalazioniRicevute SegnalazioneDestinatario[]
   segnalazioniRisposte SegnalazioneRisposta[]
   richiestePreventivo  RichiestaPreventivo[]
+  documentiCaricati    Documento[]                @relation("DocumentiCaricati")
+  documentiCondivisi   DocumentoCondivisione[]
 }
 
 /// Storico dei tentativi di login (falliti e riusciti), usato per il blocco temporaneo
@@ -212,6 +214,7 @@ model Condominio {
 
   immobili      Immobile[]
   comunicazioni ComunicazioneCondominiale[]
+  documenti     Documento[]
 
   @@index([amministratoreId])
 }
@@ -506,17 +509,50 @@ model InvitoInquilino {
 }
 
 model Documento {
-  id          String     @id @default(cuid())
+  id          String      @id @default(cuid())
   contrattoId String?
-  contratto   Contratto? @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
+  contratto   Contratto?  @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
   immobileId  String?
-  immobile    Immobile?  @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+  immobile    Immobile?   @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+  condominioId String?
+  condominio  Condominio? @relation(fields: [condominioId], references: [id], onDelete: Cascade)
+
+  caricatoDaUserId String
+  caricatoDa       User   @relation("DocumentiCaricati", fields: [caricatoDaUserId], references: [id], onDelete: Cascade)
 
   nome       String
   url        String
   tipo       String
   uploadedAt DateTime @default(now())
+  /// Se valorizzata, il documento (record + file su Blob) viene eliminato la prima volta che
+  /// qualcuno legge la lista documenti dopo questa data (eliminazione lazy, niente cron: vedi
+  /// lib/documenti/eliminaDocumentiScaduti.ts).
+  scadenzaAutoEliminazione DateTime?
+
+  condivisioni DocumentoCondivisione[]
 
   @@index([contrattoId])
   @@index([immobileId])
+  @@index([condominioId])
+  @@index([caricatoDaUserId])
+}
+
+/// Con chi è condiviso un Documento oltre a chi lo ha caricato: stesso pattern di
+/// SegnalazioneDestinatario, con l'aggiunta di `ruolo` (denormalizzato al momento della
+/// condivisione) e del tracciamento separato lettura/download.
+model DocumentoCondivisione {
+  id          String    @id @default(cuid())
+  documentoId String
+  documento   Documento @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ruolo       Role
+
+  letto            Boolean   @default(false)
+  dataLettura      DateTime?
+  scaricato        Boolean   @default(false)
+  dataScaricamento DateTime?
+
+  @@unique([documentoId, userId])
+  @@index([userId])
 }

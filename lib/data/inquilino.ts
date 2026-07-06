@@ -27,6 +27,16 @@ export async function getContrattoAttivoForInquilino(inquilinoId: string) {
   });
 }
 
+/** Tutti i contratti dell'inquilino (non solo quello attivo): per la scelta del contesto
+ * quando carica un documento, così restano collegabili anche documenti di contratti passati. */
+export async function getContrattiForInquilino(inquilinoId: string) {
+  return prisma.contratto.findMany({
+    where: { inquilinoId },
+    include: { immobile: true },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 export async function getComunicazioniPerInquilino(condominioId: string | null, userId: string) {
   if (!condominioId) return [];
   return prisma.comunicazioneCondominiale.findMany({
