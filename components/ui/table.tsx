@@ -14,7 +14,7 @@ export function TableHead({ children }: { children: React.ReactNode }) {
 }
 
 export function TableBody({ children }: { children: React.ReactNode }) {
-  return <tbody className="divide-y divide-border/60 bg-white">{children}</tbody>;
+  return <tbody className="stagger-rows divide-y divide-border/60 bg-surface">{children}</tbody>;
 }
 
 export function TableRow({ children, className }: { children: React.ReactNode; className?: string }) {
