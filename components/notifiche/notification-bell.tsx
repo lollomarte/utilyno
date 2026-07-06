@@ -19,7 +19,7 @@ export function NotificationBell({ notifiche }: { notifiche: Notifica[] }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={count > 0 ? `Notifiche: ${count} da controllare` : "Notifiche"}
-        className="touch-target relative flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-surface-sunken hover:text-ink"
+        className="touch-target relative flex h-10 w-10 items-center justify-center rounded-full text-ink-muted transition-colors duration-[var(--duration-transition)] ease-[var(--ease-loqo)] hover:bg-surface-sunken hover:text-ink"
       >
         <Bell className={cn("h-5 w-5", count > 0 && "animate-bell-ring")} strokeWidth={2} aria-hidden="true" />
         {count > 0 && (
@@ -34,20 +34,20 @@ export function NotificationBell({ notifiche }: { notifiche: Notifica[] }) {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden="true" />
           <div
             className={cn(
-              "fixed inset-x-0 bottom-0 z-50 max-h-[75vh] overflow-y-auto rounded-t-sheet bg-surface shadow-sheet",
+              "animate-page-in fixed inset-x-0 bottom-0 z-50 max-h-[75vh] overflow-y-auto rounded-t-sheet bg-surface shadow-sheet",
               "md:absolute md:inset-x-auto md:bottom-auto md:right-0 md:top-full md:mt-2 md:max-h-[28rem] md:w-96 md:rounded-card md:shadow-elevated"
             )}
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
           >
-            <div className="mx-auto mb-1 mt-3 h-1.5 w-10 shrink-0 rounded-full bg-slate-200 md:hidden" aria-hidden="true" />
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <div className="mx-auto mb-1 mt-3 h-1.5 w-10 shrink-0 rounded-full bg-border md:hidden" aria-hidden="true" />
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h2 className="font-display text-base font-semibold text-ink">Notifiche</h2>
-              {count > 0 && <span className="text-xs text-slate-400">{count} da controllare</span>}
+              {count > 0 && <span className="text-xs text-ink-subtle">{count} da controllare</span>}
             </div>
             {count === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-slate-400">Nessuna notifica al momento.</p>
+              <p className="px-4 py-8 text-center text-sm text-ink-subtle">Nessuna notifica al momento.</p>
             ) : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-border/60">
                 {notifiche.map((n) => (
                   <NotificaRow key={n.id} notifica={n} onNavigate={() => setOpen(false)} />
                 ))}
@@ -71,8 +71,8 @@ function NotificaRow({ notifica, onNavigate }: { notifica: Notifica; onNavigate:
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium text-ink">{notifica.titolo}</span>
-        <span className="mt-0.5 block truncate text-xs text-slate-500">{notifica.descrizione}</span>
-        <span className="mt-0.5 block text-xs text-slate-400">{formatDate(notifica.data)}</span>
+        <span className="mt-0.5 block truncate text-xs text-ink-muted">{notifica.descrizione}</span>
+        <span className="mt-0.5 block text-xs text-ink-subtle">{formatDate(notifica.data)}</span>
       </span>
     </>
   );

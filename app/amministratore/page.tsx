@@ -8,6 +8,8 @@ import {
 } from "@/lib/data/amministratore";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { StatCard } from "@/components/ui/stat-card";
+import { CountUp } from "@/components/ui/count-up";
+import { AttentionBlock, type AttentionItem } from "@/components/dashboard/attention-block";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -23,22 +25,49 @@ export default async function AmministratoreDashboardPage() {
     getComunicazioniPerAmministratore(amministratore.id),
   ]);
 
+  const condominiUrgenti = condomini.filter((c) => c.haUrgenze);
+  const attentionItems: AttentionItem[] = [];
+  if (condominiUrgenti.length > 0) {
+    attentionItems.push({
+      icon: AlertTriangle,
+      tone: "danger",
+      label:
+        condominiUrgenti.length === 1
+          ? `Segnalazione urgente in ${condominiUrgenti[0].nome}`
+          : `${condominiUrgenti.length} condomini con segnalazioni urgenti`,
+      href: "/amministratore/segnalazioni",
+    });
+  }
+  if (stats.segnalazioniAperte > 0) {
+    attentionItems.push({
+      icon: MessageSquareWarning,
+      tone: "warning",
+      label:
+        stats.segnalazioniAperte === 1
+          ? "1 segnalazione aperta o in lavorazione"
+          : `${stats.segnalazioniAperte} segnalazioni aperte o in lavorazione`,
+      href: "/amministratore/segnalazioni",
+    });
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold text-ink">Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-500">{amministratore.ragioneSociale}</p>
+          <p className="mt-1 text-sm text-ink-muted">{amministratore.ragioneSociale}</p>
         </div>
         <SegnalazioniNonLetteBadge count={nonLette} href="/amministratore/segnalazioni" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Condomini gestiti" value={String(stats.numeroCondomini)} icon={Building2} />
-        <StatCard label="Unità totali" value={String(stats.unitaTotali)} icon={Home} />
+      <AttentionBlock items={attentionItems} />
+
+      <div className="stagger-cards grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard label="Condomini gestiti" value={<CountUp value={stats.numeroCondomini} />} icon={Building2} />
+        <StatCard label="Unità totali" value={<CountUp value={stats.unitaTotali} />} icon={Home} />
         <StatCard
           label="Segnalazioni aperte"
-          value={String(stats.segnalazioniAperte)}
+          value={<CountUp value={stats.segnalazioniAperte} />}
           tone={stats.segnalazioniAperte > 0 ? "warning" : "default"}
           icon={MessageSquareWarning}
         />
@@ -77,12 +106,12 @@ export default async function AmministratoreDashboardPage() {
                     {c.percentualeOccupazione !== null ? (
                       <>
                         {c.percentualeOccupazione.toFixed(0)}%{" "}
-                        <span className="text-slate-400">
+                        <span className="text-ink-subtle">
                           ({c.immobiliOccupati}/{c.immobiliCollegati})
                         </span>
                       </>
                     ) : (
-                      <span className="text-slate-400">Nessuna unità collegata</span>
+                      <span className="text-ink-subtle">Nessuna unità collegata</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -118,14 +147,14 @@ export default async function AmministratoreDashboardPage() {
         {comunicazioni.length === 0 ? (
           <EmptyState message="Nessuna comunicazione inviata finora." />
         ) : (
-          <ul className="divide-y divide-slate-100 px-6 pb-2">
+          <ul className="divide-y divide-border/60 px-6 pb-2">
             {comunicazioni.slice(0, 3).map((c) => (
               <li key={c.id} className="py-3">
                 <div className="flex items-center justify-between gap-4">
                   <p className="text-sm font-medium text-ink">{c.titolo}</p>
-                  <span className="whitespace-nowrap text-xs text-slate-400">{formatDate(c.createdAt)}</span>
+                  <span className="whitespace-nowrap text-xs text-ink-subtle">{formatDate(c.createdAt)}</span>
                 </div>
-                <p className="mt-1 text-xs text-slate-400">{c.condominio.nome}</p>
+                <p className="mt-1 text-xs text-ink-subtle">{c.condominio.nome}</p>
               </li>
             ))}
           </ul>

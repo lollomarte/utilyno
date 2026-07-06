@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, Euro, CalendarClock, AlertTriangle } from "lucide-react";
+import { FileText, Euro, CalendarClock, AlertTriangle, MessageSquareWarning } from "lucide-react";
 import { requireAgenzia } from "@/lib/auth-helpers";
 import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
 import {
@@ -11,6 +11,9 @@ import {
 } from "@/lib/data/agenzia";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { StatCard, type StatTrend } from "@/components/ui/stat-card";
+import { CountUp } from "@/components/ui/count-up";
+import { CurrencyCountUp } from "@/components/ui/currency-count-up";
+import { AttentionBlock, type AttentionItem } from "@/components/dashboard/attention-block";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { IncassiChart } from "@/components/charts/incassi-chart-dynamic";
@@ -43,33 +46,65 @@ export default async function AgenziaDashboardPage() {
         }
       : undefined;
 
+  const attentionItems: AttentionItem[] = [];
+  if (stats.pagamentiInRitardo > 0) {
+    attentionItems.push({
+      icon: AlertTriangle,
+      tone: "danger",
+      label:
+        stats.pagamentiInRitardo === 1 ? "1 pagamento in ritardo" : `${stats.pagamentiInRitardo} pagamenti in ritardo`,
+      href: "/agenzia/contratti",
+    });
+  }
+  if (nonLette > 0) {
+    attentionItems.push({
+      icon: MessageSquareWarning,
+      tone: "info",
+      label: nonLette === 1 ? "1 segnalazione con novità da leggere" : `${nonLette} segnalazioni con novità da leggere`,
+      href: "/agenzia/segnalazioni",
+    });
+  }
+  if (stats.contrattiInScadenza > 0) {
+    attentionItems.push({
+      icon: CalendarClock,
+      tone: "warning",
+      label:
+        stats.contrattiInScadenza === 1
+          ? "1 contratto in scadenza nei prossimi 60 giorni"
+          : `${stats.contrattiInScadenza} contratti in scadenza nei prossimi 60 giorni`,
+      href: "/agenzia/contratti",
+    });
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold text-ink">Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-500">{agenzia.ragioneSociale}</p>
+          <p className="mt-1 text-sm text-ink-muted">{agenzia.ragioneSociale}</p>
         </div>
         <SegnalazioniNonLetteBadge count={nonLette} href="/agenzia/segnalazioni" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Contratti attivi" value={String(stats.contrattiAttivi)} icon={FileText} />
+      <AttentionBlock items={attentionItems} />
+
+      <div className="stagger-cards grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Contratti attivi" value={<CountUp value={stats.contrattiAttivi} />} icon={FileText} />
         <StatCard
           label="Canoni incassati questo mese"
-          value={formatCurrency(stats.canoniIncassatiMese)}
+          value={<CurrencyCountUp value={stats.canoniIncassatiMese} />}
           icon={Euro}
           trend={trendIncassi}
         />
         <StatCard
           label="In scadenza nei prossimi 60gg"
-          value={String(stats.contrattiInScadenza)}
+          value={<CountUp value={stats.contrattiInScadenza} />}
           tone={stats.contrattiInScadenza > 0 ? "warning" : "default"}
           icon={CalendarClock}
         />
         <StatCard
           label="Pagamenti in ritardo"
-          value={String(stats.pagamentiInRitardo)}
+          value={<CountUp value={stats.pagamentiInRitardo} />}
           tone={stats.pagamentiInRitardo > 0 ? "danger" : "default"}
           icon={AlertTriangle}
         />

@@ -69,7 +69,7 @@ export function ChecklistForm({ contrattoId }: { contrattoId: string }) {
         Firma proprietario confermata (presente al momento della compilazione)
       </label>
       {error && <p className="text-sm text-danger">{error}</p>}
-      {success && <p className="text-sm text-accent">Checklist salvata.</p>}
+      {success && <p className="text-sm text-success">Checklist salvata.</p>}
       <Button type="submit" disabled={isPending}>
         {isPending ? "Salvataggio in corso..." : "Salva checklist"}
       </Button>

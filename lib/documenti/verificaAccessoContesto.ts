@@ -25,7 +25,7 @@ export async function verificaAccessoContesto(
         case "PROPRIETARIO":
           return immobile.proprietario.userId === userId;
         case "AGENZIA":
-          return immobile.agenzia.userId === userId;
+          return immobile.agenzia?.userId === userId;
         case "AMMINISTRATORE": {
           if (!immobile.condominio) return false;
           const amministratore = await prisma.amministratore.findUnique({ where: { userId } });
@@ -47,7 +47,7 @@ export async function verificaAccessoContesto(
         case "PROPRIETARIO":
           return contratto.immobile.proprietario.userId === userId;
         case "AGENZIA":
-          return contratto.immobile.agenzia.userId === userId;
+          return contratto.immobile.agenzia?.userId === userId;
         case "INQUILINO":
           return contratto.inquilino.userId === userId;
         case "AMMINISTRATORE": {

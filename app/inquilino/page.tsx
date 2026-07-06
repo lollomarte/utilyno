@@ -1,15 +1,17 @@
 import Link from "next/link";
-import { Euro, CalendarClock, FileClock } from "lucide-react";
+import { differenceInCalendarDays } from "date-fns";
+import { Euro, CalendarClock, FileClock, AlertTriangle, Zap, ClipboardCheck } from "lucide-react";
 import { requireInquilino } from "@/lib/auth-helpers";
 import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
 import { getContrattoAttivoForInquilino, getComunicazioniPerInquilino } from "@/lib/data/inquilino";
 import { getUtenzeComplete } from "@/lib/data/utenze";
 import { getSegnalazioniNonLette } from "@/lib/data/segnalazioni";
 import { ComunicazioneItem } from "@/components/comunicazioni/comunicazione-item";
-import { PagamentiInRitardoBanner } from "@/components/pagamenti/pagamenti-in-ritardo-banner";
 import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
+import { AttentionBlock, type AttentionItem } from "@/components/dashboard/attention-block";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
+import { CurrencyCountUp } from "@/components/ui/currency-count-up";
 import { EmptyState } from "@/components/ui/table";
 import { StatoPagamentoBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -40,24 +42,65 @@ export default async function InquilinoDashboardPage() {
     (p) => p.stato === "IN_RITARDO" || p.stato === "INSOLUTO"
   ).length;
   const utenzeAttive = utenze.filter((u) => u.stato === "ATTIVA").length;
+  const utenzeDaAttivare = utenze.length - utenzeAttive;
   const checklistDaFirmare = contratto.checklist.filter((c) => !c.firmaInquilinoAt).length;
+
+  const attentionItems: AttentionItem[] = [];
+  if (pagamentiInRitardoCount > 0) {
+    attentionItems.push({
+      icon: AlertTriangle,
+      tone: "danger",
+      label:
+        pagamentiInRitardoCount === 1 ? "1 pagamento in ritardo" : `${pagamentiInRitardoCount} pagamenti in ritardo`,
+      href: "/inquilino/pagamenti",
+    });
+  } else if (prossimaScadenza) {
+    const giorni = differenceInCalendarDays(prossimaScadenza.dataScadenza, new Date());
+    if (giorni <= 7) {
+      attentionItems.push({
+        icon: CalendarClock,
+        tone: "warning",
+        label:
+          giorni <= 0
+            ? `Canone di ${formatCurrency(prossimaScadenza.importo)} in scadenza oggi`
+            : `Canone di ${formatCurrency(prossimaScadenza.importo)} in scadenza tra ${giorni} giorni`,
+        href: "/inquilino/pagamenti",
+      });
+    }
+  }
+  if (utenzeDaAttivare > 0) {
+    attentionItems.push({
+      icon: Zap,
+      tone: "info",
+      label: utenzeDaAttivare === 1 ? "1 utenza ancora da attivare" : `${utenzeDaAttivare} utenze ancora da attivare`,
+      href: "/inquilino/utenze",
+    });
+  }
+  if (checklistDaFirmare > 0) {
+    attentionItems.push({
+      icon: ClipboardCheck,
+      tone: "info",
+      label: checklistDaFirmare === 1 ? "1 checklist da firmare" : `${checklistDaFirmare} checklist da firmare`,
+      href: "/inquilino/checklist",
+    });
+  }
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold text-ink">Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-ink-muted">
             {contratto.immobile.indirizzo}, {contratto.immobile.comune}
           </p>
         </div>
         <SegnalazioniNonLetteBadge count={nonLette} href="/inquilino/segnalazioni" />
       </div>
 
-      <PagamentiInRitardoBanner count={pagamentiInRitardoCount} />
+      <AttentionBlock items={attentionItems} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Canone mensile" value={formatCurrency(contratto.canoneMensile)} icon={Euro} />
+      <div className="stagger-cards grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard label="Canone mensile" value={<CurrencyCountUp value={contratto.canoneMensile} />} icon={Euro} />
         <StatCard
           label="Prossima scadenza"
           value={prossimaScadenza ? formatDate(prossimaScadenza.dataScadenza) : "-"}
@@ -98,7 +141,7 @@ export default async function InquilinoDashboardPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-ink">{formatCurrency(prossimaScadenza.importo)}</p>
-              <p className="text-sm text-slate-500">Scadenza {formatDate(prossimaScadenza.dataScadenza)}</p>
+              <p className="text-sm text-ink-muted">Scadenza {formatDate(prossimaScadenza.dataScadenza)}</p>
             </div>
             <StatoPagamentoBadge stato={prossimaScadenza.stato} label={STATO_PAGAMENTO_LABELS[prossimaScadenza.stato]} />
           </div>
@@ -113,8 +156,8 @@ export default async function InquilinoDashboardPage() {
               Vedi tutto
             </Link>
           </div>
-          <p className="text-sm text-slate-600">
-            <span className="text-2xl font-semibold text-ink">{utenzeAttive}</span> / {utenze.length} attive
+          <p className="text-sm text-ink-muted">
+            <span className="font-mono text-2xl font-medium text-ink">{utenzeAttive}</span> / {utenze.length} attive
           </p>
         </Card>
 
@@ -126,10 +169,10 @@ export default async function InquilinoDashboardPage() {
             </Link>
           </div>
           {contratto.checklist.length === 0 ? (
-            <p className="text-sm text-slate-500">Nessuna checklist disponibile.</p>
+            <p className="text-sm text-ink-muted">Nessuna checklist disponibile.</p>
           ) : (
-            <p className="text-sm text-slate-600">
-              <span className="text-2xl font-semibold text-ink">{checklistDaFirmare}</span> da firmare
+            <p className="text-sm text-ink-muted">
+              <span className="font-mono text-2xl font-medium text-ink">{checklistDaFirmare}</span> da firmare
             </p>
           )}
         </Card>
@@ -140,7 +183,7 @@ export default async function InquilinoDashboardPage() {
         {comunicazioni.length === 0 ? (
           <EmptyState message="Nessuna comunicazione ricevuta." />
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border/60">
             {comunicazioni.slice(0, 3).map((c) => (
               <ComunicazioneItem
                 key={c.id}

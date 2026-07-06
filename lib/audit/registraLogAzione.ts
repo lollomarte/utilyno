@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export type EntitaAudit = "Contratto" | "Pagamento" | "Deposito" | "Documento";
+export type EntitaAudit = "Contratto" | "Pagamento" | "Deposito" | "Documento" | "Immobile";
 
 /**
  * Registra un'azione sensibile (chi, cosa, quando) per Contratto/Pagamento/Deposito/Documento.

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { differenceInCalendarDays } from "date-fns";
-import { Building2, Euro, Users, TrendingUp } from "lucide-react";
+import { Building2, Euro, Users, TrendingUp, AlertTriangle, MessageSquareWarning, FileClock, PiggyBank } from "lucide-react";
 import { requireProprietario } from "@/lib/auth-helpers";
 import { aggiornaPagamentiScaduti } from "@/lib/pagamenti/aggiornaStatiScaduti";
 import {
@@ -20,13 +20,20 @@ import { AttivaAssicurazioneButton } from "@/components/assicurazioni/attiva-ass
 import { RinnovaAssicurazioneButton } from "@/components/assicurazioni/rinnova-assicurazione-button";
 import { PagamentiInRitardoList } from "@/components/pagamenti/pagamenti-in-ritardo-list";
 import { SegnalazioniNonLetteBadge } from "@/components/segnalazioni/non-lette-badge";
+import { AttentionBlock, type AttentionItem } from "@/components/dashboard/attention-block";
 import { StatCard } from "@/components/ui/stat-card";
+import { CountUp } from "@/components/ui/count-up";
+import { CurrencyCountUp } from "@/components/ui/currency-count-up";
+import { PercentCountUp } from "@/components/ui/percent-count-up";
+import { FractionCountUp } from "@/components/ui/fraction-count-up";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { Badge, StatoDepositoBadge, StatoAssicurazioneBadge } from "@/components/ui/badge";
 import { IncassiChart } from "@/components/charts/incassi-chart-dynamic";
 import { formatCurrency, formatDate, cn, countdownScadenza } from "@/lib/utils";
 import { TIPO_IMMOBILE_LABELS, STATO_DEPOSITO_LABELS, STATO_ASSICURAZIONE_LABELS } from "@/lib/labels";
+
+const SOGLIA_GIORNI_SCADENZA_ATTENZIONE = 40;
 
 export default async function ProprietarioDashboardPage() {
   const { session, proprietario } = await requireProprietario();
@@ -64,28 +71,76 @@ export default async function ProprietarioDashboardPage() {
 
   const scadenze = calcolaScadenzeProprietario(immobili);
 
+  // "Cosa richiede attenzione": nessuna query dedicata, solo aggregazione dei
+  // dati già caricati sopra per questa stessa pagina.
+  const scadenzeImminenti = scadenze.filter(
+    (s) => differenceInCalendarDays(s.data, new Date()) <= SOGLIA_GIORNI_SCADENZA_ATTENZIONE
+  );
+  const attentionItems: AttentionItem[] = [];
+  if (pagamentiInRitardo.length > 0) {
+    attentionItems.push({
+      icon: AlertTriangle,
+      tone: "danger",
+      label:
+        pagamentiInRitardo.length === 1
+          ? "1 pagamento in ritardo"
+          : `${pagamentiInRitardo.length} pagamenti in ritardo`,
+      href: "/proprietario/pagamenti",
+    });
+  }
+  if (nonLette > 0) {
+    attentionItems.push({
+      icon: MessageSquareWarning,
+      tone: "info",
+      label: nonLette === 1 ? "1 segnalazione con novità da leggere" : `${nonLette} segnalazioni con novità da leggere`,
+      href: "/proprietario/segnalazioni",
+    });
+  }
+  if (depositiDaRestituire.length > 0) {
+    attentionItems.push({
+      icon: PiggyBank,
+      tone: "warning",
+      label:
+        depositiDaRestituire.length === 1
+          ? "1 deposito da restituire"
+          : `${depositiDaRestituire.length} depositi da restituire`,
+      href: "/proprietario/pagamenti",
+    });
+  }
+  for (const s of scadenzeImminenti.slice(0, 2)) {
+    const giorni = differenceInCalendarDays(s.data, new Date());
+    attentionItems.push({
+      icon: FileClock,
+      tone: giorni < 0 ? "danger" : "warning",
+      label: `${s.tipo} — ${s.immobile} tra ${giorni} giorni`,
+      href: `/proprietario/immobili/${s.immobileId}`,
+    });
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold text-ink">Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-500">Panoramica del tuo portfolio immobiliare</p>
+          <p className="mt-1 text-sm text-ink-muted">Panoramica del tuo portfolio immobiliare</p>
         </div>
         <SegnalazioniNonLetteBadge count={nonLette} href="/proprietario/segnalazioni" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Immobili" value={String(stats.numeroImmobili)} icon={Building2} />
-        <StatCard label="Canone medio" value={formatCurrency(stats.canoneMedio)} icon={Euro} />
+      <AttentionBlock items={attentionItems} />
+
+      <div className="stagger-cards grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Immobili" value={<CountUp value={stats.numeroImmobili} />} icon={Building2} />
+        <StatCard label="Canone medio" value={<CurrencyCountUp value={stats.canoneMedio} />} icon={Euro} />
         <StatCard
           label="Occupazione"
-          value={`${stats.immobiliOccupati}/${stats.numeroImmobili}`}
+          value={<FractionCountUp value={stats.immobiliOccupati} total={stats.numeroImmobili} />}
           hint="Immobili con contratto attivo"
           icon={Users}
         />
         <StatCard
           label="Yield lordo medio"
-          value={yieldMedioPortafoglio !== null ? `${(yieldMedioPortafoglio * 100).toFixed(2)}%` : "-"}
+          value={yieldMedioPortafoglio !== null ? <PercentCountUp value={yieldMedioPortafoglio * 100} /> : "-"}
           hint="Canone annuo / valore stimato"
           icon={TrendingUp}
         />
@@ -163,13 +218,13 @@ export default async function ProprietarioDashboardPage() {
         {depositiDaRestituire.length === 0 ? (
           <EmptyState message="Nessun deposito in attesa di restituzione." />
         ) : (
-          <ul className="divide-y divide-slate-100 px-6 pb-2">
+          <ul className="divide-y divide-border/60 px-6 pb-2">
             {depositiDaRestituire.slice(0, 3).map((contratto) => (
               <li key={contratto.id} className="py-3">
                 <p className="text-sm font-medium text-ink">
                   {contratto.immobile.indirizzo}, {contratto.immobile.comune}
                 </p>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-ink-subtle">
                   Deposito {formatCurrency(contratto.depositoImporto)} &middot;{" "}
                   <StatoDepositoBadge stato={contratto.depositoStato} label={STATO_DEPOSITO_LABELS[contratto.depositoStato]} />
                 </p>
@@ -184,22 +239,22 @@ export default async function ProprietarioDashboardPage() {
         {scadenze.length === 0 ? (
           <EmptyState message="Nessuna scadenza registrata." />
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border/60">
             {scadenze.slice(0, 5).map((s, index) => {
               const { label, tone } = countdownScadenza(s.data);
               return (
                 <li key={index} className="flex items-center justify-between gap-4 py-3">
                   <div>
                     <p className="text-sm font-medium text-ink">{s.tipo}</p>
-                    <p className="text-sm text-slate-500">{s.immobile}</p>
-                    <p className="text-xs text-slate-400">{formatDate(s.data)}</p>
+                    <p className="text-sm text-ink-muted">{s.immobile}</p>
+                    <p className="text-xs text-ink-subtle">{formatDate(s.data)}</p>
                   </div>
                   <span
                     className={cn(
                       "shrink-0 text-sm font-medium",
                       tone === "danger" && "text-danger",
                       tone === "warning" && "text-warning",
-                      tone === "neutral" && "text-slate-500"
+                      tone === "neutral" && "text-ink-muted"
                     )}
                   >
                     {label}
@@ -216,7 +271,7 @@ export default async function ProprietarioDashboardPage() {
         {immobili.length === 0 ? (
           <EmptyState message="Nessun immobile associato." />
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border/60">
             {immobili.map((immobile) => {
               const assicurazione = immobile.assicurazioni[0];
               const giorniAllaScadenza = assicurazione
@@ -229,11 +284,11 @@ export default async function ProprietarioDashboardPage() {
                       {immobile.indirizzo}, {immobile.comune}
                     </p>
                     {assicurazione ? (
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-ink-muted">
                         {assicurazione.tipo} &middot; {assicurazione.fornitore} &middot; scadenza {formatDate(assicurazione.dataScadenza)}
                       </p>
                     ) : (
-                      <p className="mt-1 text-sm text-slate-500">Nessuna copertura attiva</p>
+                      <p className="mt-1 text-sm text-ink-muted">Nessuna copertura attiva</p>
                     )}
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
@@ -264,7 +319,7 @@ export default async function ProprietarioDashboardPage() {
         {comunicazioni.length === 0 ? (
           <EmptyState message="Nessuna comunicazione ricevuta." />
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border/60">
             {comunicazioni.slice(0, 3).map((c) => (
               <ComunicazioneItem
                 key={c.id}

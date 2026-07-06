@@ -18,7 +18,7 @@ export function StatCard({
   trend,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   hint?: string;
   tone?: "default" | "warning" | "danger";
   icon?: LucideIcon;
@@ -28,9 +28,10 @@ export function StatCard({
   const TrendIcon = trend?.direction === "up" ? TrendingUp : TrendingDown;
 
   return (
-    <div className="animate-fade-in-up rounded-card border border-slate-200 bg-surface p-5 shadow-card transition-shadow duration-200 hover:shadow-elevated">
+    <div className="animate-fade-in-up rounded-card border border-border bg-surface p-5 shadow-card transition-shadow duration-[var(--duration-transition)] ease-[var(--ease-loqo)] hover:shadow-elevated">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-slate-500">{label}</p>
+        {/* Il numero domina, la label sussurra: eyebrow discreto invece di un titolo di pari peso. */}
+        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-subtle">{label}</p>
         {Icon && (
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary ring-1 ring-inset ring-primary/10">
             <Icon className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden="true" />
@@ -39,7 +40,7 @@ export function StatCard({
       </div>
       <p
         className={cn(
-          "font-display mt-2 text-3xl font-semibold tracking-tight tabular-nums",
+          "font-mono mt-2 text-4xl font-medium tracking-tight tabular-nums",
           tone === "warning" && "text-warning",
           tone === "danger" && "text-danger",
           tone === "default" && "text-ink"
@@ -48,19 +49,19 @@ export function StatCard({
         {value}
       </p>
       {(hint || trend) && (
-        <div className="mt-1 flex items-center gap-2">
+        <div className="mt-1.5 flex items-center gap-2">
           {trend && (
             <span
               className={cn(
                 "inline-flex items-center gap-0.5 text-xs font-medium",
-                trendIsGood ? "text-accent" : "text-danger"
+                trendIsGood ? "text-success" : "text-danger"
               )}
             >
               <TrendIcon className="h-3.5 w-3.5" aria-hidden="true" />
               {trend.value}
             </span>
           )}
-          {hint && <p className="text-xs text-slate-400">{hint}</p>}
+          {hint && <p className="text-xs text-ink-subtle">{hint}</p>}
         </div>
       )}
     </div>

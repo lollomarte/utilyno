@@ -142,6 +142,37 @@ export async function getCondominiDisponibili() {
   });
 }
 
+/** Ricerca agenzie già registrate per ragione sociale o email, per la richiesta di gestione
+ * immobile del Proprietario: mai un elenco libero, solo un risultato mirato per query. */
+export async function cercaAgenzie(query: string) {
+  const termine = query.trim();
+  if (!termine) return [];
+
+  return prisma.agenzia.findMany({
+    where: {
+      OR: [
+        { ragioneSociale: { contains: termine, mode: "insensitive" } },
+        { user: { email: { contains: termine, mode: "insensitive" } } },
+      ],
+    },
+    include: { user: true },
+    orderBy: { ragioneSociale: "asc" },
+    take: 10,
+  });
+}
+
+/** Richieste di gestione immobile ricevute dall'agenzia (tutti gli stati), più recenti prima. */
+export async function getRichiesteGestionePerAgenzia(agenziaId: string) {
+  return prisma.richiestaGestioneImmobile.findMany({
+    where: { agenziaId },
+    include: {
+      immobile: true,
+      proprietario: { include: { user: true } },
+    },
+    orderBy: { dataRichiesta: "desc" },
+  });
+}
+
 /** Totale incassato (pagamenti PAGATO) mese per mese, ultimi 6 mesi incluso quello corrente.
  * Una sola query per l'intera finestra (non 6 in parallelo, che sotto il limite di
  * connessioni del pool si accodavano invece di essere davvero concorrenti). */

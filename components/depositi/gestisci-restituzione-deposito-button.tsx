@@ -86,7 +86,7 @@ export function GestisciRestituzioneDepositoButton({
       <Modal open={open} onClose={handleClose} title="Restituzione deposito cauzionale">
         {esitoConfermato === "RESTITUITO" && (
           <div className="space-y-4">
-            <div className="rounded-control bg-accent-soft p-4 text-sm text-slate-700">
+            <div className="rounded-control bg-success-soft p-4 text-sm text-slate-700">
               Deposito restituito per un totale di <strong>{formatCurrency(totaleRestituzione)}</strong>.
             </div>
             <Button onClick={handleClose}>Chiudi</Button>

@@ -3,7 +3,7 @@ import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const fieldClasses =
-  "block w-full rounded-control border-0 px-3 py-2 text-sm text-ink ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-primary disabled:bg-surface-muted disabled:text-slate-400 min-h-[44px] aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger";
+  "block w-full rounded-control border-0 px-3 py-2 text-sm text-ink ring-1 ring-inset ring-border placeholder:text-ink-subtle transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-loqo)] focus:ring-2 focus:ring-inset focus:ring-primary disabled:bg-surface-muted disabled:text-ink-subtle min-h-[44px] aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => <input ref={ref} className={cn(fieldClasses, className)} {...props} />
@@ -22,7 +22,7 @@ Textarea.displayName = "Textarea";
 
 export function Label({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) {
   return (
-    <label htmlFor={htmlFor} className="mb-1 block text-sm font-medium text-slate-700">
+    <label htmlFor={htmlFor} className="mb-1 block text-sm font-medium text-ink">
       {children}
     </label>
   );

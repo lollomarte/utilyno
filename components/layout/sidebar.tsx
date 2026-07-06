@@ -22,12 +22,12 @@ export function Sidebar({ portalLabel, items }: { portalLabel: string; items: Na
   const rootHref = items[0]?.href;
 
   return (
-    <aside className="hidden h-full w-64 shrink-0 flex-col bg-primary text-slate-100 md:flex">
+    <aside className="hidden h-full w-64 shrink-0 flex-col bg-primary text-white/70 md:flex">
       <div className="flex h-[72px] shrink-0 items-center gap-3 border-b border-white/10 px-6">
         <LoqoSeal size={26} color="#ffffff" ring={false} />
         <div className="leading-tight">
           <span className="font-display block text-xl font-semibold tracking-tight text-white">LOQO</span>
-          <span className="text-xs text-slate-400">{portalLabel}</span>
+          <span className="text-xs text-white/40">{portalLabel}</span>
         </div>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4">
@@ -39,19 +39,23 @@ export function Sidebar({ portalLabel, items }: { portalLabel: string; items: Na
               key={item.href}
               href={item.href}
               className={cn(
-                "group relative flex items-center gap-3 overflow-hidden rounded-control px-3 py-2 text-sm font-medium transition-colors duration-150",
-                isActive ? "bg-primary-soft text-white" : "text-slate-300 hover:bg-primary-soft hover:text-white"
+                "group relative flex items-center gap-3 overflow-hidden rounded-control px-3 py-2 text-sm font-medium transition-colors duration-[var(--duration-transition)] ease-[var(--ease-loqo)]",
+                isActive ? "bg-primary-soft text-white" : "text-white/60 hover:bg-primary-soft hover:text-white"
               )}
             >
+              {/* La riga attiva porta il segno dell'ottone: lo stesso principio del
+                  Timbro (una marcatura d'inchiostro su ciò che è "attivo/primario"),
+                  qui come filo laterale invece dell'anello — non c'è spazio per il
+                  disegno completo su una riga di navigazione. */}
               <span
                 className={cn(
-                  "absolute inset-y-1 left-0 w-[3px] rounded-full bg-white transition-all duration-200 ease-out",
+                  "absolute inset-y-1 left-0 w-[3px] rounded-full bg-accent transition-opacity duration-[var(--duration-transition)] ease-[var(--ease-loqo)]",
                   isActive ? "opacity-100" : "opacity-0"
                 )}
                 aria-hidden="true"
               />
               <Icon
-                className="h-5 w-5 shrink-0 transition-transform duration-200 ease-out group-hover:scale-110"
+                className="h-5 w-5 shrink-0 transition-transform duration-[var(--duration-transition)] ease-[var(--ease-loqo)] group-hover:scale-110"
                 strokeWidth={2}
                 aria-hidden="true"
               />

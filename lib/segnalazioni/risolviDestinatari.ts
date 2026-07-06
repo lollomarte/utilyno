@@ -51,13 +51,19 @@ export async function getPoolImmobile(immobileId: string): Promise<PartePool[]> 
       nome: immobile.proprietario.user.nome,
       cognome: immobile.proprietario.user.cognome,
     },
-    {
+  ];
+
+  // Un immobile auto-inserito dal Proprietario (stato BOZZA_PROPRIETARIO) non ha ancora
+  // un'agenzia: nessuna segnalazione dovrebbe comunque poter nascere in quel contesto, ma
+  // il pool resta corretto anche in quel caso limite.
+  if (immobile.agenzia) {
+    pool.push({
       userId: immobile.agenzia.user.id,
       ruolo: "AGENZIA",
       nome: immobile.agenzia.user.nome,
       cognome: immobile.agenzia.user.cognome,
-    },
-  ];
+    });
+  }
 
   const inquilinoUser = immobile.contratti[0]?.inquilino.user;
   if (inquilinoUser) {

@@ -3,14 +3,16 @@ import { cn } from "@/lib/utils";
 type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";
 
 /**
- * "Il Timbro": il trattamento di stato ricorrente in tutta l'app (pagamenti,
- * depositi, contratti, segnalazioni, utenze, richieste preventivo). Un pallino
- * pieno + un anello interno a media saturazione danno una profondità
- * "incisa/timbrata" invece del pill piatto da SaaS generico — coerente col
- * dominio (contratti registrati, sigilli, atti).
+ * Il Badge è la prima, più piccola espressione de "Il Timbro" (l'elemento
+ * firma di LOQO, vedi DESIGN_PLAN.md §4): un pallino pieno + un anello
+ * interno a media saturazione danno una profondità "incisa/timbrata"
+ * invece del pill piatto da SaaS generico — coerente col dominio
+ * (contratti registrati, sigilli, atti). La versione "viva" (hover/press,
+ * classe .timbro in globals.css) eleva lo stesso disegno alle superfici
+ * davvero primarie della UI.
  */
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  neutral: "bg-slate-100 text-slate-700 ring-slate-300",
+  neutral: "bg-surface-sunken text-ink-muted ring-border",
   success: "bg-[var(--color-success)]/10 text-[var(--color-success)] ring-[var(--color-success)]/35",
   warning: "bg-[var(--color-warning)]/10 text-[var(--color-warning)] ring-[var(--color-warning)]/35",
   danger: "bg-[var(--color-danger)]/10 text-[var(--color-danger)] ring-[var(--color-danger)]/35",
@@ -18,7 +20,7 @@ const TONE_CLASSES: Record<BadgeTone, string> = {
 };
 
 const DOT_CLASSES: Record<BadgeTone, string> = {
-  neutral: "bg-slate-400",
+  neutral: "bg-ink-subtle",
   success: "bg-[var(--color-success)]",
   warning: "bg-[var(--color-warning)]",
   danger: "bg-[var(--color-danger)]",
@@ -84,6 +86,18 @@ const TICKET_TONE: Record<string, BadgeTone> = {
   RISOLTO: "success",
 };
 
+const IMMOBILE_TONE: Record<string, BadgeTone> = {
+  BOZZA_PROPRIETARIO: "neutral",
+  IN_GESTIONE_AGENZIA: "info",
+  ATTIVO: "success",
+};
+
+const RICHIESTA_GESTIONE_TONE: Record<string, BadgeTone> = {
+  IN_ATTESA: "warning",
+  ACCETTATA: "success",
+  RIFIUTATA: "danger",
+};
+
 export function StatoContrattoBadge({ stato, label }: { stato: string; label: string }) {
   return <Badge tone={CONTRATTO_TONE[stato] ?? "neutral"}>{label}</Badge>;
 }
@@ -110,4 +124,12 @@ export function StatoSegnalazioneBadge({ stato, label }: { stato: string; label:
 
 export function StatoTicketBadge({ stato, label }: { stato: string; label: string }) {
   return <Badge tone={TICKET_TONE[stato] ?? "neutral"}>{label}</Badge>;
+}
+
+export function StatoImmobileBadge({ stato, label }: { stato: string; label: string }) {
+  return <Badge tone={IMMOBILE_TONE[stato] ?? "neutral"}>{label}</Badge>;
+}
+
+export function StatoRichiestaGestioneBadge({ stato, label }: { stato: string; label: string }) {
+  return <Badge tone={RICHIESTA_GESTIONE_TONE[stato] ?? "neutral"}>{label}</Badge>;
 }

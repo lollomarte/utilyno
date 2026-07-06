@@ -1,4 +1,4 @@
-import { AlertTriangle, FileClock, ShieldCheck, MessageSquareWarning, Megaphone } from "lucide-react";
+import { AlertTriangle, FileClock, ShieldCheck, MessageSquareWarning, Megaphone, Inbox } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { TipoNotifica } from "@/lib/notifiche/raccogliNotifiche";
 
@@ -15,4 +15,5 @@ export const NOTIFICA_VISUAL: Record<TipoNotifica, { icon: LucideIcon; iconClass
   scadenza_assicurazione: { icon: ShieldCheck, iconClass: "text-warning", badgeClass: "bg-warning" },
   segnalazione_non_letta: { icon: MessageSquareWarning, iconClass: "text-info", badgeClass: "bg-info" },
   comunicazione_non_letta: { icon: Megaphone, iconClass: "text-info", badgeClass: "bg-info" },
+  richiesta_gestione_ricevuta: { icon: Inbox, iconClass: "text-info", badgeClass: "bg-info" },
 };

@@ -2,44 +2,54 @@
 
 /*
  * Design tokens LOQO — unica fonte di verità per palette, tipografia,
- * raggi e ombre. Cambiare qui si riflette in tutta l'app grazie alle
- * utility Tailwind generate da @theme (bg-primary, rounded-card, ecc.).
+ * raggi, ombre e motion. Cambiare qui si riflette in tutta l'app grazie
+ * alle utility Tailwind generate da @theme (bg-primary, rounded-card, ecc.).
  *
- * Palette "blu petrolio": un'identità deliberatamente istituzionale/italiana
- * (registro, atto notarile) invece dello slate+emerald da SaaS generico.
+ * Concept "atrio di palazzo signorile italiano": pietra chiara, ottone
+ * opaco, l'inchiostro di un timbro premuto con cura. Vedi DESIGN_PLAN.md
+ * per il ragionamento completo (palette, tipografia, motion system,
+ * l'elemento firma "Il Timbro").
  */
 :root {
-  --background: #f6f5f2;
+  --background: #dddbd4;
   --foreground: #12242b;
 
-  /* Font system-native per il corpo testo: su iOS/macOS risolve a San
-     Francisco senza caricare alcun font esterno; su Windows/Android a
-     Segoe UI/Roboto. Il serif (--font-newsreader) è riservato a titoli e
-     numeri importanti, caricato via next/font (self-hosted, zero richieste
-     esterne a runtime: non confligge con la scelta mobile-first). */
-  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  /* Tipografia — next/font (self-hosted, zero richieste esterne a runtime):
+     Fraunces (serif morbido, "SOFT"/"opsz") riservato ai titoli grandi;
+     Public Sans per tutto il corpo testo, molto leggibile anche piccola;
+     Geist Mono per ogni numero (importi, date, codici contratto, KPI). */
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-public-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Brand — blu petrolio: autorevole senza la freddezza dello slate da SaaS */
   --color-primary: #0e2f3c;
   --color-primary-dark: #081e27; /* hover/active, sfondi pieni */
   --color-primary-soft: #143c4c; /* superfici scure secondarie */
-  --color-accent: #1f7a5c; /* verde salvia scuro: esiti positivi, trend, conferme */
-  --color-accent-soft: #e1efe8; /* sfondo badge/icone accento */
 
-  /* Superfici */
+  /* Ottone: l'UNICO accento decorativo di marca (Il Timbro, highlight,
+     focus di marca) — mai per comunicare stato, vedi --color-success. */
+  --color-accent: #a9803f;
+  --color-accent-soft: #f1e7d3;
+
+  /* Superfici — pietra/travertino, deliberatamente più fredda e scura di
+     un crema-carta: hue spostato verso il grigio (47°) e luminosità
+     abbassata rispetto a una prima proposta, per non somigliare al
+     cliché "crema + serif + accento caldo". */
   --color-surface: #ffffff;
   --color-surface-elevated: #ffffff; /* usata insieme a --shadow-elevated */
-  --color-surface-muted: #f6f5f2; /* carta calda, non grigio-blu freddo */
-  --color-surface-sunken: #efeee9;
-  --color-border: #e4e1d9;
+  --color-surface-muted: #dddbd4;
+  --color-surface-sunken: #d4d2c9;
+  --color-border: #cdc9bc;
 
   /* Testo */
   --color-ink: #12242b;
   --color-ink-muted: #5b6b70;
-  --color-ink-subtle: #8a9599;
+  --color-ink-subtle: #7c8689;
 
-  /* Stato — restano leggibili come rosso/verde/ambra "di famiglia", solo meno saturi/candy */
+  /* Stato — separati dall'accento di marca: leggibili come rosso/verde/ambra
+     "di famiglia", mai il colore che usiamo per emozionare (l'ottone). */
   --color-success: #1f7a5c;
+  --color-success-soft: #e1efe8;
   --color-warning: #96692c; /* più scuro dell'ocra originale: 3.2:1 falliva l'AA su testo piccolo, ora 4.8:1 */
   --color-danger: #b23a2e;
   --color-info: #2f5f73;
@@ -53,13 +63,20 @@
   --shadow-card: 0 1px 2px 0 rgb(14 47 60 / 0.05), 0 1px 3px 0 rgb(14 47 60 / 0.07);
   --shadow-elevated: 0 4px 12px -2px rgb(14 47 60 / 0.10), 0 2px 4px -2px rgb(14 47 60 / 0.05);
   --shadow-sheet: 0 -8px 30px -4px rgb(8 30 39 / 0.22);
+
+  /* Motion — vocabolario unico, un'unica curva firmata usata ovunque
+     (bottoni, tab, modali, scroll-reveal, page transition, Il Timbro). */
+  --duration-micro: 150ms;
+  --duration-transition: 300ms;
+  --duration-reveal: 600ms;
+  --ease-loqo: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-system);
-  --font-serif: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
   --font-mono: var(--font-geist-mono);
 
   --color-primary: var(--color-primary);
@@ -79,6 +96,7 @@
   --color-ink-subtle: var(--color-ink-subtle);
 
   --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
   --color-warning: var(--color-warning);
   --color-danger: var(--color-danger);
   --color-info: var(--color-info);
@@ -90,11 +108,26 @@
   --shadow-card: var(--shadow-card);
   --shadow-elevated: var(--shadow-elevated);
   --shadow-sheet: var(--shadow-sheet);
+
+  --duration-micro: var(--duration-micro);
+  --duration-transition: var(--duration-transition);
+  --duration-reveal: var(--duration-reveal);
+  --ease-loqo: var(--ease-loqo);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* Titoli di pagina e numeri in evidenza: serif riservato al "momento importante",
@@ -142,7 +175,9 @@ h1, .font-display {
   display: none;
 }
 
-/* --- Micro-interazioni ------------------------------------------------- */
+/* --- Micro-interazioni --------------------------------------------------
+   Un'unica curva firmata (--ease-loqo) e tre durate (--duration-micro/
+   transition/reveal): vedi DESIGN_PLAN.md §5. */
 
 @keyframes seal-in {
   from {
@@ -155,7 +190,7 @@ h1, .font-display {
   }
 }
 .animate-seal-in {
-  animation: seal-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: seal-in var(--duration-reveal) var(--ease-loqo) both;
 }
 
 @keyframes fade-in-up {
@@ -169,8 +204,51 @@ h1, .font-display {
   }
 }
 .animate-fade-in-up {
-  animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fade-in-up var(--duration-reveal) var(--ease-loqo) both;
 }
+
+/* Page transition tra le route interne e apertura di pannelli (notifiche,
+ * dropdown): tier "transizione" (300ms, assestamento di soli 8px), più
+ * rapido del reveal da scroll (600ms/16px) — mai un salto secco. */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-page-in {
+  animation: page-in var(--duration-transition) var(--ease-loqo) both;
+}
+
+/* Righe di tabella: si materializzano in sequenza al primo render invece
+ * di comparire tutte insieme. Le prime 10 hanno un ritardo crescente; oltre,
+ * nessun ritardo aggiuntivo per non far attendere inutilmente le tabelle lunghe. */
+.stagger-rows > tr {
+  opacity: 0;
+  animation: fade-in-up var(--duration-reveal) var(--ease-loqo) both;
+}
+.stagger-rows > tr:nth-child(1) { animation-delay: 0ms; }
+.stagger-rows > tr:nth-child(2) { animation-delay: 40ms; }
+.stagger-rows > tr:nth-child(3) { animation-delay: 80ms; }
+.stagger-rows > tr:nth-child(4) { animation-delay: 120ms; }
+.stagger-rows > tr:nth-child(5) { animation-delay: 160ms; }
+.stagger-rows > tr:nth-child(6) { animation-delay: 200ms; }
+.stagger-rows > tr:nth-child(7) { animation-delay: 240ms; }
+.stagger-rows > tr:nth-child(8) { animation-delay: 280ms; }
+.stagger-rows > tr:nth-child(9) { animation-delay: 320ms; }
+.stagger-rows > tr:nth-child(n + 10) { animation-delay: 360ms; }
+
+/* Griglia KPI: le card si materializzano in sequenza invece che tutte insieme. */
+.stagger-cards > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-cards > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-cards > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-cards > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-cards > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-cards > *:nth-child(6) { animation-delay: 300ms; }
 
 /* Componente Reveal (homepage): nascosto finché non entra in viewport */
 .reveal-init {
@@ -178,7 +256,7 @@ h1, .font-display {
   transform: translateY(16px);
 }
 .reveal-visible {
-  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fade-in-up var(--duration-reveal) var(--ease-loqo) both;
 }
 
 @keyframes bell-ring {
@@ -197,20 +275,180 @@ h1, .font-display {
 /* Sollevamento leggero per card cliccabili: usare solo dove l'intera card
    è un link/bottone, mai su card puramente informative. */
 .card-hover-lift {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--duration-transition) var(--ease-loqo), box-shadow var(--duration-transition) var(--ease-loqo);
 }
 .card-hover-lift:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-elevated);
 }
 
+/* --- Il Timbro: l'unica firma visiva di LOQO ----------------------------
+   Anelli concentrici (lo stesso disegno del sigillo LOQO) in un angolo
+   delle superfici davvero primarie: quasi impercettibili a riposo, si
+   illuminano in ottone all'hover/focus e si "premono" al click, come un
+   timbro vero. Va usato con disciplina — solo su CTA, nav attiva, il
+   blocco "cosa richiede attenzione": è la sola cosa espressiva in un
+   sistema altrimenti quieto, non un effetto hover generico da riusare
+   ovunque. */
+.timbro {
+  position: relative;
+  isolation: isolate;
+  transition: transform var(--duration-transition) var(--ease-loqo);
+}
+.timbro::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 1.5px var(--color-accent),
+    0 0 0 6px transparent,
+    0 0 0 7.5px var(--color-accent);
+  opacity: 0.07;
+  pointer-events: none;
+  transition: opacity var(--duration-transition) var(--ease-loqo), transform var(--duration-transition) var(--ease-loqo);
+}
+.timbro:hover::after,
+.timbro:focus-visible::after {
+  opacity: 0.4;
+  transform: scale(1.1);
+}
+.timbro:active {
+  transform: scale(0.97);
+}
+.timbro:active::after {
+  opacity: 0.65;
+  transform: scale(0.92);
+}
+
+/* --- Demo hero: la segnalazione che si instrada da sola ---------------- */
+.segnalazione-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 24px 22px;
+}
+.segnalazione-demo__ticket {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ffffff;
+  opacity: 0;
+  transform: scale(0.92);
+}
+.segnalazione-demo__lines {
+  width: 100%;
+  max-width: 300px;
+  height: 84px;
+  overflow: visible;
+}
+.segnalazione-demo__path {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 110;
+  stroke-dashoffset: 110;
+  opacity: 0.85;
+}
+.segnalazione-demo__destinatari {
+  display: flex;
+  width: 100%;
+  max-width: 300px;
+  justify-content: space-between;
+  margin-top: -4px;
+}
+.segnalazione-demo__badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.6);
+  transition:
+    color var(--duration-transition) var(--ease-loqo),
+    background var(--duration-transition) var(--ease-loqo),
+    box-shadow var(--duration-transition) var(--ease-loqo);
+}
+
+.segnalazione-demo--active .segnalazione-demo__ticket {
+  animation: segnalazione-ticket-in var(--duration-reveal) var(--ease-loqo) forwards;
+}
+.segnalazione-demo--active .segnalazione-demo__path--a {
+  animation: segnalazione-draw 0.7s var(--ease-loqo) 0.5s forwards;
+}
+.segnalazione-demo--active .segnalazione-demo__path--b {
+  animation: segnalazione-draw 0.7s var(--ease-loqo) 0.75s forwards;
+}
+.segnalazione-demo--active .segnalazione-demo__badge--a {
+  animation: segnalazione-badge-lit var(--duration-transition) var(--ease-loqo) 1.15s forwards;
+}
+.segnalazione-demo--active .segnalazione-demo__badge--b {
+  animation: segnalazione-badge-lit var(--duration-transition) var(--ease-loqo) 1.4s forwards;
+}
+
+@keyframes segnalazione-ticket-in {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes segnalazione-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes segnalazione-badge-lit {
+  to {
+    color: #ffffff;
+    background: rgb(169 128 63 / 0.3);
+    box-shadow: inset 0 0 0 1.5px var(--color-accent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-seal-in,
   .animate-fade-in-up,
+  .animate-page-in,
   .reveal-visible,
   .animate-bell-ring,
-  .card-hover-lift {
+  .card-hover-lift,
+  .timbro,
+  .timbro::after,
+  .segnalazione-demo__ticket,
+  .segnalazione-demo__path,
+  .segnalazione-demo__badge,
+  .stagger-rows > tr {
     animation: none !important;
     transition: none !important;
+  }
+  .timbro:active {
+    transform: none !important;
+  }
+  .segnalazione-demo--active .segnalazione-demo__ticket {
+    opacity: 1;
+    transform: none;
+  }
+  .segnalazione-demo--active .segnalazione-demo__path {
+    stroke-dashoffset: 0;
+  }
+  .segnalazione-demo--active .segnalazione-demo__badge {
+    color: #ffffff;
+    background: rgb(169 128 63 / 0.3);
+    box-shadow: inset 0 0 0 1.5px var(--color-accent);
+  }
+  .stagger-rows > tr {
+    opacity: 1;
   }
 }

@@ -18,6 +18,18 @@ const proprietarioFields = {
   proprietarioPassword: z.string().optional(),
 };
 
+/** Campi base condivisi da ogni form che crea un Immobile, incluso quello semplificato del Proprietario. */
+const immobileBaseFields = {
+  indirizzo: z.string().min(1, "L'indirizzo è obbligatorio"),
+  comune: z.string().min(1, "Il comune è obbligatorio"),
+  provincia: z.string().regex(/^[A-Za-z]{2}$/, "La provincia deve essere una sigla di 2 lettere (es. MI)"),
+  datiCatastali: z.string().min(1, "I dati catastali sono obbligatori"),
+  superficieMq: z.coerce.number().positive("La superficie deve essere maggiore di zero"),
+  tipoImmobile: z.enum(["RESIDENZIALE", "COMMERCIALE"]),
+  apeClasse: z.string().optional(),
+  valoreStimato: z.coerce.number().positive("Il valore stimato deve essere maggiore di zero"),
+};
+
 /** Validazione condivisa del blocco "proprietario esistente|nuovo", riusata da ogni form che crea un Immobile. */
 function validaProprietario(
   data: {
@@ -123,3 +135,25 @@ export const creaImmobilePerCondominioSchema = z
 
 export type CreaImmobilePerCondominioInput = z.infer<typeof creaImmobilePerCondominioSchema>;
 export type CreaImmobilePerCondominioFormInput = z.input<typeof creaImmobilePerCondominioSchema>;
+
+/**
+ * Form semplificato con cui il Proprietario auto-inserisce un Immobile: nessun blocco
+ * proprietario (è sempre l'utente corrente) né condominio/agenzia, a differenza degli altri
+ * flussi di creazione. Nasce in stato BOZZA_PROPRIETARIO, senza contratto.
+ */
+export const nuovoImmobileProprietarioSchema = z.object(immobileBaseFields);
+export type NuovoImmobileProprietarioInput = z.infer<typeof nuovoImmobileProprietarioSchema>;
+export type NuovoImmobileProprietarioFormInput = z.input<typeof nuovoImmobileProprietarioSchema>;
+
+export const richiediGestioneImmobileSchema = z.object({
+  immobileId: z.string().min(1),
+  agenziaId: z.string().min(1, "Seleziona un'agenzia"),
+  messaggio: z.string().max(1000).optional(),
+});
+export type RichiediGestioneImmobileInput = z.infer<typeof richiediGestioneImmobileSchema>;
+
+export const rispondiRichiestaGestioneSchema = z.object({
+  richiestaId: z.string().min(1),
+  accetta: z.boolean(),
+});
+export type RispondiRichiestaGestioneInput = z.infer<typeof rispondiRichiestaGestioneSchema>;
