@@ -53,7 +53,7 @@ export function StatCard({
             <span
               className={cn(
                 "inline-flex items-center gap-0.5 text-xs font-medium",
-                trendIsGood ? "text-accent" : "text-danger"
+                trendIsGood ? "text-success" : "text-danger"
               )}
             >
               <TrendIcon className="h-3.5 w-3.5" aria-hidden="true" />

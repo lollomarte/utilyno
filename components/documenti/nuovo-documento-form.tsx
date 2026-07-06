@@ -72,7 +72,7 @@ export function NuovoDocumentoForm({ contesti, onSuccess }: { contesti: Contesto
       <div className="space-y-4">
         <p className="text-sm font-medium text-ink">Documento caricato.</p>
         {esito.length > 0 ? (
-          <div className="rounded-control bg-accent-soft p-4 text-sm text-slate-700">
+          <div className="rounded-control bg-success-soft p-4 text-sm text-slate-700">
             <p className="font-medium">Condiviso con:</p>
             <ul className="mt-1 space-y-0.5">
               {esito.map((d, i) => (

@@ -78,7 +78,7 @@ export function NuovaComunicazioneForm({
         <FieldError message={errors.testo?.message} />
       </div>
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
-      {inviata && <p className="text-sm text-accent">Comunicazione inviata a tutto il condominio.</p>}
+      {inviata && <p className="text-sm text-success">Comunicazione inviata a tutto il condominio.</p>}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Invio in corso..." : "Invia comunicazione a tutto il condominio"}
       </Button>

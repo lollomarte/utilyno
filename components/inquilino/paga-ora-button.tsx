@@ -62,7 +62,7 @@ export function PagaOraButton({
         {esito ? (
           <div className="space-y-4">
             <p className="text-sm font-medium text-ink">Pagamento registrato con successo.</p>
-            <div className="rounded-control bg-accent-soft p-4 text-sm text-slate-700">
+            <div className="rounded-control bg-success-soft p-4 text-sm text-slate-700">
               Il proprietario riceverà l&apos;accredito entro il <strong>{formatDate(esito.dataAccredito)}</strong>.
             </div>
             <Button onClick={handleClose}>Chiudi</Button>

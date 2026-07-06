@@ -58,7 +58,7 @@ export function ChecklistItem({
           Firma proprietario: {firmaProprietarioAt ? `confermata il ${formatDate(firmaProprietarioAt)}` : "da confermare"}
         </p>
         {firmata ? (
-          <p className="text-xs text-accent">Firmata da te il {formatDate(firmata)}</p>
+          <p className="text-xs text-success">Firmata da te il {formatDate(firmata)}</p>
         ) : (
           <Button type="button" variant="secondary" onClick={handleFirma} disabled={isPending}>
             {isPending ? "..." : "Firma checklist"}

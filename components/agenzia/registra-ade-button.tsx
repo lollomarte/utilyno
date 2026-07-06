@@ -32,7 +32,7 @@ export function RegistraAdEButton({ contrattoId }: { contrattoId: string }) {
         {isPending ? "Registrazione in corso..." : "Registra all'Agenzia delle Entrate"}
       </Button>
       {protocollo && (
-        <p className="mt-2 text-sm text-accent">
+        <p className="mt-2 text-sm text-success">
           Registrazione simulata completata. Protocollo: <span className="font-mono">{protocollo}</span>
         </p>
       )}
@@ -68,7 +68,7 @@ export function RinnovaRegistrazioneButton({ contrattoId }: { contrattoId: strin
         {isPending ? "Rinnovo in corso..." : "Rinnova registrazione annuale"}
       </Button>
       {protocollo && (
-        <p className="mt-2 text-sm text-accent">
+        <p className="mt-2 text-sm text-success">
           Rinnovo simulato completato. Protocollo: <span className="font-mono">{protocollo}</span>
         </p>
       )}
