@@ -115,9 +115,19 @@
   --ease-loqo: var(--ease-loqo);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* Titoli di pagina e numeri in evidenza: serif riservato al "momento importante",
@@ -271,6 +281,99 @@ h1, .font-display {
   transform: scale(0.92);
 }
 
+/* --- Demo hero: la segnalazione che si instrada da sola ---------------- */
+.segnalazione-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 24px 22px;
+}
+.segnalazione-demo__ticket {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ffffff;
+  opacity: 0;
+  transform: scale(0.92);
+}
+.segnalazione-demo__lines {
+  width: 100%;
+  max-width: 300px;
+  height: 84px;
+  overflow: visible;
+}
+.segnalazione-demo__path {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 110;
+  stroke-dashoffset: 110;
+  opacity: 0.85;
+}
+.segnalazione-demo__destinatari {
+  display: flex;
+  width: 100%;
+  max-width: 300px;
+  justify-content: space-between;
+  margin-top: -4px;
+}
+.segnalazione-demo__badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.6);
+  transition:
+    color var(--duration-transition) var(--ease-loqo),
+    background var(--duration-transition) var(--ease-loqo),
+    box-shadow var(--duration-transition) var(--ease-loqo);
+}
+
+.segnalazione-demo--active .segnalazione-demo__ticket {
+  animation: segnalazione-ticket-in var(--duration-reveal) var(--ease-loqo) forwards;
+}
+.segnalazione-demo--active .segnalazione-demo__path--a {
+  animation: segnalazione-draw 0.7s var(--ease-loqo) 0.5s forwards;
+}
+.segnalazione-demo--active .segnalazione-demo__path--b {
+  animation: segnalazione-draw 0.7s var(--ease-loqo) 0.75s forwards;
+}
+.segnalazione-demo--active .segnalazione-demo__badge--a {
+  animation: segnalazione-badge-lit var(--duration-transition) var(--ease-loqo) 1.15s forwards;
+}
+.segnalazione-demo--active .segnalazione-demo__badge--b {
+  animation: segnalazione-badge-lit var(--duration-transition) var(--ease-loqo) 1.4s forwards;
+}
+
+@keyframes segnalazione-ticket-in {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes segnalazione-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes segnalazione-badge-lit {
+  to {
+    color: #ffffff;
+    background: rgb(169 128 63 / 0.3);
+    box-shadow: inset 0 0 0 1.5px var(--color-accent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-seal-in,
   .animate-fade-in-up,
@@ -278,11 +381,26 @@ h1, .font-display {
   .animate-bell-ring,
   .card-hover-lift,
   .timbro,
-  .timbro::after {
+  .timbro::after,
+  .segnalazione-demo__ticket,
+  .segnalazione-demo__path,
+  .segnalazione-demo__badge {
     animation: none !important;
     transition: none !important;
   }
   .timbro:active {
     transform: none !important;
+  }
+  .segnalazione-demo--active .segnalazione-demo__ticket {
+    opacity: 1;
+    transform: none;
+  }
+  .segnalazione-demo--active .segnalazione-demo__path {
+    stroke-dashoffset: 0;
+  }
+  .segnalazione-demo--active .segnalazione-demo__badge {
+    color: #ffffff;
+    background: rgb(169 128 63 / 0.3);
+    box-shadow: inset 0 0 0 1.5px var(--color-accent);
   }
 }
