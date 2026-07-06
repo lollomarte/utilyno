@@ -194,19 +194,6 @@ h1, .font-display {
   transform-origin: top center;
 }
 
-/* Righe di registro sottilissime, per rievocare la carta a righe di un
-   registro contabile senza scadere nel decorativo: solo su sfondi ampi
-   e scuri (hero, auth), mai su superfici di lavoro chiare. */
-.bg-ledger-grid {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgb(255 255 255 / 0.05) 0,
-    rgb(255 255 255 / 0.05) 1px,
-    transparent 1px,
-    transparent 40px
-  );
-}
-
 /* Sollevamento leggero per card cliccabili: usare solo dove l'intera card
    è un link/bottone, mai su card puramente informative. */
 .card-hover-lift {

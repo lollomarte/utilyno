@@ -11,9 +11,6 @@ import {
   Landmark,
   ArrowRight,
 } from "lucide-react";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { PORTAL_BY_ROLE } from "@/auth.config";
 import { Card } from "@/components/ui/card";
 import { LoqoSeal } from "@/components/brand/loqo-seal";
 import { Reveal } from "@/components/brand/reveal";
@@ -72,12 +69,7 @@ const PERCHE = [
   },
 ];
 
-export default async function Home() {
-  const session = await auth();
-  if (session?.user) {
-    redirect(PORTAL_BY_ROLE[session.user.role] ?? "/login");
-  }
-
+export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <header className="border-b border-white/10 bg-primary">
@@ -93,7 +85,7 @@ export default async function Home() {
       </header>
 
       {/* HERO */}
-      <section className="bg-ledger-grid bg-primary px-6 pb-20 pt-16 sm:pb-28 sm:pt-24">
+      <section className="bg-primary px-6 pb-20 pt-16 sm:pb-28 sm:pt-24">
         <div className="mx-auto max-w-3xl text-center">
           <LoqoSeal size={56} color="#ffffff" className="animate-seal-in mx-auto mb-6 opacity-90" />
           <p className="inline-flex items-center gap-2 text-sm font-medium text-white/70">
@@ -249,7 +241,7 @@ export default async function Home() {
       </section>
 
       {/* CTA FINALE */}
-      <section className="bg-ledger-grid bg-primary px-6 py-20">
+      <section className="bg-primary px-6 py-20">
         <Reveal className="mx-auto max-w-2xl text-center">
           <LoqoSeal size={40} color="#ffffff" className="mx-auto mb-6 opacity-80" />
           <h2 className="font-display text-2xl font-semibold text-white sm:text-3xl">

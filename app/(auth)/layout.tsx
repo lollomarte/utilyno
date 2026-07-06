@@ -1,10 +1,13 @@
+import Link from "next/link";
 import { LoqoSeal } from "@/components/brand/loqo-seal";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
-      <div className="relative hidden w-[42%] shrink-0 flex-col justify-between overflow-hidden bg-primary p-12 lg:flex bg-ledger-grid">
-        <span className="font-display text-xl font-semibold tracking-tight text-white">LOQO</span>
+      <div className="relative hidden w-[42%] shrink-0 flex-col justify-between overflow-hidden bg-primary p-12 lg:flex">
+        <Link href="/" className="font-display text-xl font-semibold tracking-tight text-white w-fit">
+          LOQO
+        </Link>
         <div className="animate-fade-in-up">
           <LoqoSeal size={64} color="#ffffff" className="opacity-90" />
           <p className="font-display mt-8 max-w-sm text-2xl leading-snug text-white">
