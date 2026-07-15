@@ -308,6 +308,10 @@ function CreaImmobileForm({
               <Label htmlFor="proprietarioPassword">Password provvisoria</Label>
               <Input id="proprietarioPassword" type="password" {...register("proprietarioPassword")} />
               <FieldError message={errors.proprietarioPassword?.message} />
+              <p className="mt-1 text-xs text-slate-500">
+                Usata solo se l&apos;email non è già associata a un account: in quel caso il nuovo immobile si collega
+                all&apos;account esistente e questa password viene ignorata.
+              </p>
             </div>
           </div>
         </div>

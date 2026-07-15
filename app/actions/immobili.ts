@@ -23,7 +23,10 @@ import {
 
 type ImmobileSummary = { id: string; indirizzo: string; comune: string; provincia: string };
 
-/** Risolve il proprietarioId da usare per un nuovo Immobile: crea l'utente al volo se in modalità "nuovo". */
+/** Risolve il proprietarioId da usare per un nuovo Immobile: crea l'utente al volo se in modalità "nuovo".
+ * `accountEsistente: true` segnala al chiamante che l'email inserita era già di un account esistente
+ * (es. la persona è già Inquilino altrove): in quel caso la password inserita nel form non è stata
+ * usata (l'account mantiene la propria), il chiamante deve informarne l'operatore. */
 async function risolviProprietario(data: {
   proprietarioMode: "esistente" | "nuovo";
   proprietarioId?: string;
@@ -33,13 +36,16 @@ async function risolviProprietario(data: {
   proprietarioCodiceFiscale?: string;
   proprietarioIndirizzo?: string;
   proprietarioPassword?: string;
-}): Promise<{ success: true; proprietarioId: string } | { success: false; error: string; fieldErrors?: Record<string, string> }> {
+}): Promise<
+  | { success: true; proprietarioId: string; accountEsistente: boolean }
+  | { success: false; error: string; fieldErrors?: Record<string, string> }
+> {
   if (data.proprietarioMode === "esistente") {
     if (!data.proprietarioId) return { success: false, error: "Proprietario non valido" };
-    return { success: true, proprietarioId: data.proprietarioId };
+    return { success: true, proprietarioId: data.proprietarioId, accountEsistente: false };
   }
 
-  const { userId } = await risolviUserPerProfiloPrivato(
+  const { userId, nuovoUser } = await risolviUserPerProfiloPrivato(
     {
       email: data.proprietarioEmail!,
       nome: data.proprietarioNome!,
@@ -54,7 +60,7 @@ async function risolviProprietario(data: {
   // Proprietario.userId è unique, un secondo `create` fallirebbe comunque.
   const proprietarioEsistente = await prisma.proprietario.findUnique({ where: { userId } });
   if (proprietarioEsistente) {
-    return { success: true, proprietarioId: proprietarioEsistente.id };
+    return { success: true, proprietarioId: proprietarioEsistente.id, accountEsistente: !nuovoUser };
   }
 
   const nuovoProprietario = await prisma.proprietario.create({
@@ -64,13 +70,13 @@ async function risolviProprietario(data: {
       userId,
     },
   });
-  return { success: true, proprietarioId: nuovoProprietario.id };
+  return { success: true, proprietarioId: nuovoProprietario.id, accountEsistente: !nuovoUser };
 }
 
 export async function creaImmobileAction(
   input: NuovoImmobileInput
 ): Promise<
-  | { success: true; immobile: ImmobileSummary }
+  | { success: true; immobile: ImmobileSummary; proprietarioAccountEsistente: boolean }
   | { success: false; error: string; fieldErrors?: Record<string, string> }
 > {
   const { agenzia } = await requireAgenzia();
@@ -111,6 +117,7 @@ export async function creaImmobileAction(
   return {
     success: true,
     immobile: { id: immobile.id, indirizzo: immobile.indirizzo, comune: immobile.comune, provincia: immobile.provincia },
+    proprietarioAccountEsistente: risolto.accountEsistente,
   };
 }
 
@@ -141,7 +148,10 @@ export async function collegaImmobileEsistenteAction(
 
 export async function creaImmobilePerCondominioAction(
   input: CreaImmobilePerCondominioInput
-): Promise<{ success: true } | { success: false; error: string; fieldErrors?: Record<string, string> }> {
+): Promise<
+  | { success: true; proprietarioAccountEsistente: boolean }
+  | { success: false; error: string; fieldErrors?: Record<string, string> }
+> {
   const { amministratore } = await requireAmministratore();
 
   const parsed = creaImmobilePerCondominioSchema.safeParse(input);
@@ -185,7 +195,7 @@ export async function creaImmobilePerCondominioAction(
 
   revalidatePath(`/amministratore/condomini/${condominio.id}`);
 
-  return { success: true };
+  return { success: true, proprietarioAccountEsistente: risolto.accountEsistente };
 }
 
 /**
