@@ -26,6 +26,7 @@ export const authConfig = {
         token.id = user.id;
         token.nome = user.nome;
         token.cognome = user.cognome;
+        token.profili = user.profili;
       }
       return token;
     },
@@ -35,6 +36,9 @@ export const authConfig = {
         session.user.id = token.id as string;
         session.user.nome = token.nome as string;
         session.user.cognome = token.cognome as string;
+        // Fallback per token emessi prima dell'introduzione di `profili`: finché l'utente non
+        // rifà login, si comporta come se avesse solo il ruolo primario (comportamento pre-esistente).
+        session.user.profili = (token.profili as Role[]) ?? [token.role as Role];
       }
       return session;
     },

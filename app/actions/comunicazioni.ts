@@ -4,23 +4,24 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-async function utenteHaAccessoAComunicazione(userId: string, role: string, condominioId: string): Promise<boolean> {
-  if (role === "INQUILINO") {
-    const inquilino = await prisma.inquilino.findUnique({ where: { userId } });
-    if (!inquilino) return false;
+async function utenteHaAccessoAComunicazione(userId: string, condominioId: string): Promise<boolean> {
+  const [inquilino, proprietario] = await Promise.all([
+    prisma.inquilino.findUnique({ where: { userId } }),
+    prisma.proprietario.findUnique({ where: { userId } }),
+  ]);
+
+  if (inquilino) {
     const contratto = await prisma.contratto.findFirst({
       where: { inquilinoId: inquilino.id, stato: "ATTIVO", immobile: { condominioId } },
     });
-    return !!contratto;
+    if (contratto) return true;
   }
 
-  if (role === "PROPRIETARIO") {
-    const proprietario = await prisma.proprietario.findUnique({ where: { userId } });
-    if (!proprietario) return false;
+  if (proprietario) {
     const immobile = await prisma.immobile.findFirst({
       where: { proprietarioId: proprietario.id, condominioId },
     });
-    return !!immobile;
+    if (immobile) return true;
   }
 
   return false;
@@ -39,7 +40,7 @@ export async function segnaComunicazioneLettaAction(
     return { success: false, error: "Comunicazione non trovata" };
   }
 
-  const autorizzato = await utenteHaAccessoAComunicazione(session.user.id, session.user.role, comunicazione.condominioId);
+  const autorizzato = await utenteHaAccessoAComunicazione(session.user.id, comunicazione.condominioId);
   if (!autorizzato) {
     return { success: false, error: "Non autorizzato" };
   }

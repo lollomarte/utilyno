@@ -21,7 +21,6 @@ export default async function AmministratoreLayout({ children }: { children: Rea
       nome={session.user.nome}
       cognome={session.user.cognome}
       userId={session.user.id}
-      role={session.user.role}
     >
       {children}
     </PortalShell>

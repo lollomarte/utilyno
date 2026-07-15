@@ -2,9 +2,13 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+// Un utente può possedere più profili (es. Proprietario di un immobile e Inquilino di un
+// altro): questi guard verificano il possesso del profilo richiesto in `profili`, non che sia
+// l'unico ruolo dell'utente — coerente con middleware.ts.
+
 export async function requireAgenzia() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "AGENZIA") redirect("/login");
+  if (!session?.user || !session.user.profili.includes("AGENZIA")) redirect("/login");
 
   const agenzia = await prisma.agenzia.findUnique({ where: { userId: session.user.id } });
   if (!agenzia) redirect("/non-autorizzato");
@@ -14,7 +18,7 @@ export async function requireAgenzia() {
 
 export async function requireAmministratore() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "AMMINISTRATORE") redirect("/login");
+  if (!session?.user || !session.user.profili.includes("AMMINISTRATORE")) redirect("/login");
 
   const amministratore = await prisma.amministratore.findUnique({ where: { userId: session.user.id } });
   if (!amministratore) redirect("/non-autorizzato");
@@ -24,7 +28,7 @@ export async function requireAmministratore() {
 
 export async function requireProprietario() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "PROPRIETARIO") redirect("/login");
+  if (!session?.user || !session.user.profili.includes("PROPRIETARIO")) redirect("/login");
 
   const proprietario = await prisma.proprietario.findUnique({ where: { userId: session.user.id } });
   if (!proprietario) redirect("/non-autorizzato");
@@ -34,7 +38,7 @@ export async function requireProprietario() {
 
 export async function requireInquilino() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "INQUILINO") redirect("/login");
+  if (!session?.user || !session.user.profili.includes("INQUILINO")) redirect("/login");
 
   const inquilino = await prisma.inquilino.findUnique({ where: { userId: session.user.id } });
   if (!inquilino) redirect("/non-autorizzato");
@@ -44,7 +48,17 @@ export async function requireInquilino() {
 
 export async function requireAdmin() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") redirect("/login");
+  if (!session?.user || !session.user.profili.includes("ADMIN")) redirect("/login");
+
+  return { session };
+}
+
+/** Richiede almeno uno tra PROPRIETARIO e INQUILINO: usato dalla sezione unificata /casa. */
+export async function requirePrivato() {
+  const session = await auth();
+  const haProfiloPrivato =
+    session?.user?.profili.includes("PROPRIETARIO") || session?.user?.profili.includes("INQUILINO");
+  if (!session?.user || !haProfiloPrivato) redirect("/login");
 
   return { session };
 }

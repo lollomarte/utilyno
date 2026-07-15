@@ -2,6 +2,7 @@ import { logoutAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/notifiche/notification-bell";
 import { CommandPaletteTrigger } from "@/components/layout/command-palette";
+import { PortaliSwitcher, type PortaleVoce } from "@/components/layout/portali-switcher";
 import type { Notifica } from "@/lib/notifiche/raccogliNotifiche";
 import { cn } from "@/lib/utils";
 
@@ -38,16 +39,19 @@ export function Header({
   cognome,
   roleLabel,
   notifiche,
+  portaliVoci,
 }: {
   nome: string;
   cognome: string;
   roleLabel: string;
   notifiche: Notifica[];
+  portaliVoci?: PortaleVoce[];
 }) {
   return (
     <header className="hidden h-16 items-center justify-between border-b border-border bg-surface px-6 md:flex">
       <div />
       <div className="flex items-center gap-3">
+        {portaliVoci && <PortaliSwitcher voci={portaliVoci} />}
         <CommandPaletteTrigger />
         <NotificationBell notifiche={notifiche} />
         <UserBlock nome={nome} cognome={cognome} roleLabel={roleLabel} />

@@ -25,7 +25,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       nome={session.user.nome}
       cognome={session.user.cognome}
       userId={session.user.id}
-      role={session.user.role}
     >
       {children}
     </PortalShell>

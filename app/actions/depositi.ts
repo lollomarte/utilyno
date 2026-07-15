@@ -23,8 +23,8 @@ export async function gestisciRestituzioneDepositoAction(
   if (!contratto) return { success: false, error: "Contratto non trovato" };
 
   const [agenzia, proprietario] = await Promise.all([
-    session.user.role === "AGENZIA" ? prisma.agenzia.findUnique({ where: { userId: session.user.id } }) : null,
-    session.user.role === "PROPRIETARIO" ? prisma.proprietario.findUnique({ where: { userId: session.user.id } }) : null,
+    prisma.agenzia.findUnique({ where: { userId: session.user.id } }),
+    prisma.proprietario.findUnique({ where: { userId: session.user.id } }),
   ]);
   const autorizzato = agenzia?.id === contratto.agenziaId || proprietario?.id === contratto.immobile.proprietarioId;
   if (!autorizzato) return { success: false, error: "Non autorizzato" };

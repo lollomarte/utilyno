@@ -23,7 +23,7 @@ export default async function InquilinoLayout({ children }: { children: React.Re
       nome={session.user.nome}
       cognome={session.user.cognome}
       userId={session.user.id}
-      role={session.user.role}
+      profili={session.user.profili.filter((p): p is "PROPRIETARIO" | "INQUILINO" => p === "PROPRIETARIO" || p === "INQUILINO")}
     >
       {children}
     </PortalShell>

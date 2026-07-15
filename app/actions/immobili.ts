@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireAgenzia, requireAmministratore, requireProprietario } from "@/lib/auth-helpers";
 import { cercaAgenzie } from "@/lib/data/agenzia";
 import { registraLogAzione } from "@/lib/audit/registraLogAzione";
+import { risolviUserPerProfiloPrivato } from "@/lib/utenti/risolviUserPerProfiloPrivato";
 import {
   nuovoImmobileSchema,
   collegaImmobileEsistenteSchema,
@@ -39,29 +39,29 @@ async function risolviProprietario(data: {
     return { success: true, proprietarioId: data.proprietarioId };
   }
 
-  const existing = await prisma.user.findUnique({ where: { email: data.proprietarioEmail! } });
-  if (existing) {
-    return {
-      success: false,
-      error: "Email già registrata",
-      fieldErrors: { proprietarioEmail: "Questa email è già associata a un account esistente" },
-    };
+  const { userId } = await risolviUserPerProfiloPrivato(
+    {
+      email: data.proprietarioEmail!,
+      nome: data.proprietarioNome!,
+      cognome: data.proprietarioCognome!,
+      password: data.proprietarioPassword!,
+    },
+    "PROPRIETARIO"
+  );
+
+  // Se la persona ha già un profilo Proprietario (es. è già proprietario di un altro immobile,
+  // o l'operazione viene ripetuta), riusa lo stesso profilo invece di crearne un secondo:
+  // Proprietario.userId è unique, un secondo `create` fallirebbe comunque.
+  const proprietarioEsistente = await prisma.proprietario.findUnique({ where: { userId } });
+  if (proprietarioEsistente) {
+    return { success: true, proprietarioId: proprietarioEsistente.id };
   }
 
-  const passwordHash = await bcrypt.hash(data.proprietarioPassword!, 10);
   const nuovoProprietario = await prisma.proprietario.create({
     data: {
       codiceFiscale: data.proprietarioCodiceFiscale!,
       indirizzo: data.proprietarioIndirizzo!,
-      user: {
-        create: {
-          email: data.proprietarioEmail!,
-          passwordHash,
-          role: "PROPRIETARIO",
-          nome: data.proprietarioNome!,
-          cognome: data.proprietarioCognome!,
-        },
-      },
+      userId,
     },
   });
   return { success: true, proprietarioId: nuovoProprietario.id };

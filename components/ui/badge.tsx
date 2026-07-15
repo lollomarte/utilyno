@@ -133,3 +133,16 @@ export function StatoImmobileBadge({ stato, label }: { stato: string; label: str
 export function StatoRichiestaGestioneBadge({ stato, label }: { stato: string; label: string }) {
   return <Badge tone={RICHIESTA_GESTIONE_TONE[stato] ?? "neutral"}>{label}</Badge>;
 }
+
+const RELAZIONE_IMMOBILE_TONE: Record<string, BadgeTone> = {
+  PROPRIETARIO: "info",
+  INQUILINO: "success",
+};
+
+/** Ruolo dell'utente su un immobile specifico nella lista aggregata di /casa: un utente può
+ * essere Proprietario di un immobile e Inquilino di un altro, il badge chiarisce quale. */
+export function RelazioneImmobileBadge({ relazione }: { relazione: "PROPRIETARIO" | "INQUILINO" }) {
+  return (
+    <Badge tone={RELAZIONE_IMMOBILE_TONE[relazione]}>{relazione === "PROPRIETARIO" ? "Proprietario" : "Inquilino"}</Badge>
+  );
+}

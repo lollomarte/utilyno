@@ -7,24 +7,20 @@ import { attivaUtenzaSchema, type AttivaUtenzaInput } from "@/lib/validations/ut
 
 async function verificaAccessoImmobile(
   userId: string,
-  role: string,
   immobile: { id: string; agenziaId: string | null; proprietarioId: string }
 ): Promise<boolean> {
-  if (role === "AGENZIA") {
-    const agenzia = await prisma.agenzia.findUnique({ where: { userId } });
-    return agenzia?.id === immobile.agenziaId;
-  }
-  if (role === "PROPRIETARIO") {
-    const proprietario = await prisma.proprietario.findUnique({ where: { userId } });
-    return proprietario?.id === immobile.proprietarioId;
-  }
-  if (role === "INQUILINO") {
-    const inquilino = await prisma.inquilino.findUnique({ where: { userId } });
-    if (!inquilino) return false;
+  const [agenzia, proprietario, inquilino] = await Promise.all([
+    immobile.agenziaId ? prisma.agenzia.findUnique({ where: { userId } }) : null,
+    prisma.proprietario.findUnique({ where: { userId } }),
+    prisma.inquilino.findUnique({ where: { userId } }),
+  ]);
+  if (agenzia && agenzia.id === immobile.agenziaId) return true;
+  if (proprietario && proprietario.id === immobile.proprietarioId) return true;
+  if (inquilino) {
     const contratto = await prisma.contratto.findFirst({
       where: { immobileId: immobile.id, inquilinoId: inquilino.id, stato: "ATTIVO" },
     });
-    return !!contratto;
+    if (contratto) return true;
   }
   return false;
 }
@@ -42,7 +38,7 @@ export async function attivaUtenzaAction(
   const immobile = await prisma.immobile.findUnique({ where: { id: immobileId } });
   if (!immobile) return { success: false, error: "Immobile non trovato" };
 
-  const autorizzato = await verificaAccessoImmobile(session.user.id, session.user.role, immobile);
+  const autorizzato = await verificaAccessoImmobile(session.user.id, immobile);
   if (!autorizzato) return { success: false, error: "Non autorizzato" };
 
   const esistente = await prisma.utenza.findFirst({ where: { immobileId, tipo } });
