@@ -27,6 +27,32 @@ export async function getContrattoAttivoForInquilino(inquilinoId: string) {
   });
 }
 
+/** Il contratto dell'inquilino su UNO specifico immobile: a differenza di
+ * getContrattoAttivoForInquilino (che assume un solo contratto alla volta), questa serve
+ * /casa/[immobileId], dove un inquilino con più contratti su immobili diversi deve vedere
+ * sempre e solo quello dell'immobile selezionato. */
+export async function getContrattoPerImmobileInquilino(inquilinoId: string, immobileId: string) {
+  const include = {
+    immobile: true,
+    agenzia: true,
+    pagamenti: { orderBy: { dataScadenza: "asc" as const } },
+    checklist: { orderBy: { dataCompilazione: "desc" as const } },
+  };
+
+  const attivo = await prisma.contratto.findFirst({
+    where: { inquilinoId, immobileId, stato: "ATTIVO" },
+    include,
+    orderBy: { createdAt: "desc" },
+  });
+  if (attivo) return attivo;
+
+  return prisma.contratto.findFirst({
+    where: { inquilinoId, immobileId },
+    include,
+    orderBy: { dataFine: "desc" },
+  });
+}
+
 /** Tutti i contratti dell'inquilino (non solo quello attivo): per la scelta del contesto
  * quando carica un documento, così restano collegabili anche documenti di contratti passati. */
 export async function getContrattiForInquilino(inquilinoId: string) {

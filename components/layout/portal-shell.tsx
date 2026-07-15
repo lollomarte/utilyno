@@ -5,6 +5,7 @@ import { TabBar } from "@/components/layout/tab-bar";
 import { PageTransition } from "@/components/layout/page-transition";
 import { CommandPaletteProvider } from "@/components/layout/command-palette";
 import { raccogliNotifiche } from "@/lib/notifiche/raccogliNotifiche";
+import type { PortaleVoce } from "@/components/layout/portali-switcher";
 
 type ProfiloPrivato = "PROPRIETARIO" | "INQUILINO";
 
@@ -25,6 +26,7 @@ export async function PortalShell({
   cognome,
   userId,
   profili,
+  switcherVoci,
   children,
 }: {
   portalLabel: string;
@@ -36,19 +38,25 @@ export async function PortalShell({
   /** Presente solo per i portali Proprietario/Inquilino/casa: se l'utente possiede entrambi i
    * profili, mostra nell'header il selettore per passare dall'uno all'altro. */
   profili?: ProfiloPrivato[];
+  /** Override esplicito delle voci dello switcher in header — usato da /casa/[immobileId] per
+   * mostrare la lista di TUTTI gli immobili invece dei soli portali. Se presente ha priorità
+   * sul calcolo automatico da `profili`. */
+  switcherVoci?: PortaleVoce[];
   children: React.ReactNode;
 }) {
   const haDoppioProfilo = (profili?.length ?? 0) === 2;
-  const portaliVoci = haDoppioProfilo
-    ? [...profili!.map((p) => ({ href: PORTALE_HREF[p], label: PORTALE_LABEL[p] })), { href: "/casa", label: "I miei immobili" }]
-    : [];
+  const portaliVoci =
+    switcherVoci ??
+    (haDoppioProfilo
+      ? [...profili!.map((p) => ({ href: PORTALE_HREF[p], label: PORTALE_LABEL[p] })), { href: "/casa", label: "I miei immobili" }]
+      : []);
 
   // "Profilo" è raggiungibile solo dalla navigazione mobile: su desktop
-  // nome/ruolo/logout restano sempre visibili nell'header in alto. Con doppio profilo, anche
-  // "I miei immobili" (/casa) diventa raggiungibile da mobile allo stesso modo.
+  // nome/ruolo/logout restano sempre visibili nell'header in alto. Quando lo switcher ha più di
+  // una voce, anche "I miei immobili" (/casa) diventa raggiungibile da mobile allo stesso modo.
   const mobileNavItems: NavItem[] = [
     ...navItems,
-    ...(haDoppioProfilo && navItems[0]?.href !== "/casa" ? [{ href: "/casa", label: "I miei immobili" }] : []),
+    ...(portaliVoci.length > 1 && navItems[0]?.href !== "/casa" ? [{ href: "/casa", label: "I miei immobili" }] : []),
     { href: `${navItems[0]?.href ?? ""}/profilo`, label: "Profilo" },
   ];
 

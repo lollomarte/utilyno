@@ -1,0 +1,68 @@
+import { redirect } from "next/navigation";
+import { requirePrivato } from "@/lib/auth-helpers";
+import { getContestoImmobile, getImmobiliUtente } from "@/lib/immobili/getImmobiliUtente";
+import { PortalShell } from "@/components/layout/portal-shell";
+import type { NavItem } from "@/components/layout/sidebar";
+
+function navItemsPerRelazione(base: string, relazione: "PROPRIETARIO" | "INQUILINO"): NavItem[] {
+  if (relazione === "PROPRIETARIO") {
+    return [
+      { href: base, label: "Dashboard" },
+      { href: `${base}/pagamenti`, label: "Pagamenti e Depositi" },
+      { href: `${base}/segnalazioni`, label: "Segnalazioni" },
+      { href: `${base}/documenti`, label: "Documenti" },
+    ];
+  }
+  return [
+    { href: base, label: "Dashboard" },
+    { href: `${base}/pagamenti`, label: "Pagamenti" },
+    { href: `${base}/utenze`, label: "Utenze" },
+    { href: `${base}/segnalazioni`, label: "Segnalazioni" },
+    { href: `${base}/checklist`, label: "Checklist" },
+    { href: `${base}/documenti`, label: "Documenti" },
+  ];
+}
+
+export default async function ImmobileLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ immobileId: string }>;
+}) {
+  const { immobileId } = await params;
+  const { session } = await requirePrivato();
+
+  const [contesto, immobili] = await Promise.all([
+    getContestoImmobile(session.user.id, immobileId),
+    getImmobiliUtente(session.user.id),
+  ]);
+  if (!contesto) redirect("/non-autorizzato");
+
+  const immobile = immobili.find((i) => i.id === immobileId);
+  const base = `/casa/${immobileId}`;
+
+  // Lo switcher in header mostra TUTTI gli immobili dell'utente (non i portali): selezionandone
+  // uno diverso l'intera interfaccia si adatta alla relazione con quel nuovo immobile.
+  const switcherVoci =
+    immobili.length > 1
+      ? immobili.map((i) => ({
+          href: `/casa/${i.id}`,
+          label: `${i.indirizzo}, ${i.comune} · ${i.relazione === "PROPRIETARIO" ? "Proprietario" : "Inquilino"}`,
+        }))
+      : [];
+
+  return (
+    <PortalShell
+      portalLabel={immobile ? `${immobile.indirizzo}, ${immobile.comune}` : "I miei immobili"}
+      roleLabel={contesto.relazione === "PROPRIETARIO" ? "Proprietario" : "Inquilino"}
+      navItems={navItemsPerRelazione(base, contesto.relazione)}
+      nome={session.user.nome}
+      cognome={session.user.cognome}
+      userId={session.user.id}
+      switcherVoci={switcherVoci}
+    >
+      {children}
+    </PortalShell>
+  );
+}
