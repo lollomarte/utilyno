@@ -6,7 +6,7 @@ import { LoginForm } from "@/components/auth/login-form";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; profiloCreato?: string }>;
 }) {
   const session = await auth();
   if (session?.user) {
@@ -14,5 +14,14 @@ export default async function LoginPage({
   }
 
   const params = await searchParams;
-  return <LoginForm callbackUrl={params.callbackUrl} />;
+  return (
+    <div className="space-y-4">
+      {params.profiloCreato && (
+        <p className="rounded-control bg-success/10 px-4 py-3 text-center text-sm text-success ring-1 ring-inset ring-success/30">
+          Profilo attivato. Accedi di nuovo per vederlo nel tuo account.
+        </p>
+      )}
+      <LoginForm callbackUrl={params.callbackUrl} />
+    </div>
+  );
 }
