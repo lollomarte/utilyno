@@ -14,10 +14,9 @@ import { Button } from "@/components/ui/button";
 import { withTimeout } from "@/lib/utils";
 
 const ROLE_OPTIONS = [
+  { value: "PRIVATO", label: "Privato" },
   { value: "AGENZIA", label: "Agenzia" },
   { value: "AMMINISTRATORE", label: "Amministratore di condominio" },
-  { value: "PROPRIETARIO", label: "Proprietario" },
-  { value: "INQUILINO", label: "Inquilino" },
 ] as const;
 
 export function RegisterForm() {
@@ -31,7 +30,7 @@ export function RegisterForm() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
-    defaultValues: { role: "INQUILINO" },
+    defaultValues: { role: "PRIVATO" },
   });
 
   const role = watch("role");
@@ -150,27 +149,11 @@ export function RegisterForm() {
           </>
         )}
 
-        {role === "PROPRIETARIO" && (
-          <>
-            <div>
-              <Label htmlFor="codiceFiscale">Codice fiscale</Label>
-              <Input id="codiceFiscale" placeholder="RSSMRA80A01H501U" {...register("codiceFiscale")} />
-              <FieldError message={errors.codiceFiscale?.message} />
-            </div>
-            <div>
-              <Label htmlFor="indirizzo">Indirizzo</Label>
-              <Input id="indirizzo" {...register("indirizzo")} />
-              <FieldError message={errors.indirizzo?.message} />
-            </div>
-          </>
-        )}
-
-        {role === "INQUILINO" && (
-          <div>
-            <Label htmlFor="codiceFiscale">Codice fiscale</Label>
-            <Input id="codiceFiscale" placeholder="RSSMRA80A01H501U" {...register("codiceFiscale")} />
-            <FieldError message={errors.codiceFiscale?.message} />
-          </div>
+        {role === "PRIVATO" && (
+          <p className="text-xs text-slate-500">
+            Dopo la registrazione potrai attivare tu stesso il profilo Proprietario inserendo il tuo primo immobile,
+            oppure diventare Inquilino quando un&apos;agenzia ti collega a un contratto.
+          </p>
         )}
 
         {serverError && <p className="text-sm text-danger">{serverError}</p>}

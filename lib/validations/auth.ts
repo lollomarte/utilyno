@@ -11,13 +11,6 @@ const pivaSchema = z
   .string()
   .regex(/^\d{11}$/, "La Partita IVA deve avere esattamente 11 cifre numeriche");
 
-const codiceFiscaleSchema = z
-  .string()
-  .regex(
-    /^[A-Za-z]{6}\d{2}[A-Za-z]\d{2}[A-Za-z]\d{3}[A-Za-z]$/,
-    "Il codice fiscale deve essere in formato valido (16 caratteri, es. RSSMRA80A01H501U)"
-  );
-
 const baseRegisterSchema = z.object({
   nome: z.string().min(1, "Il nome è obbligatorio"),
   cognome: z.string().min(1, "Il cognome è obbligatorio"),
@@ -39,14 +32,11 @@ export const registerSchema = z.discriminatedUnion("role", [
     piva: pivaSchema,
     indirizzo: z.string().min(1, "L'indirizzo è obbligatorio"),
   }),
+  // Registrazione unificata per i privati: nessun profilo Proprietario/Inquilino ancora
+  // assegnato (niente codiceFiscale/indirizzo qui, verranno raccolti quando la persona attiva
+  // un profilo — self-service da /casa/profilo, o tramite agenzia). Vedi requirePrivato().
   baseRegisterSchema.extend({
-    role: z.literal("PROPRIETARIO"),
-    codiceFiscale: codiceFiscaleSchema,
-    indirizzo: z.string().min(1, "L'indirizzo è obbligatorio"),
-  }),
-  baseRegisterSchema.extend({
-    role: z.literal("INQUILINO"),
-    codiceFiscale: codiceFiscaleSchema,
+    role: z.literal("PRIVATO"),
   }),
 ]);
 
@@ -57,7 +47,7 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 // ai campi specifici del ruolo). La validazione forte resta `registerSchema`,
 // applicata di nuovo prima dell'invio e lato server in /api/register.
 export const registerFormSchema = z.object({
-  role: z.enum(["AGENZIA", "AMMINISTRATORE", "PROPRIETARIO", "INQUILINO"]),
+  role: z.enum(["AGENZIA", "AMMINISTRATORE", "PRIVATO"]),
   nome: z.string().min(1, "Il nome è obbligatorio"),
   cognome: z.string().min(1, "Il cognome è obbligatorio"),
   email: z.string().email("Inserisci un'email valida"),
@@ -66,7 +56,6 @@ export const registerFormSchema = z.object({
   ragioneSociale: z.string().optional(),
   piva: z.string().optional(),
   indirizzo: z.string().optional(),
-  codiceFiscale: z.string().optional(),
 });
 
 export type RegisterFormValues = z.infer<typeof registerFormSchema>;

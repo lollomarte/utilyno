@@ -22,7 +22,6 @@ export default async function AgenziaLayout({ children }: { children: React.Reac
       nome={session.user.nome}
       cognome={session.user.cognome}
       userId={session.user.id}
-      role={session.user.role}
     >
       {children}
     </PortalShell>

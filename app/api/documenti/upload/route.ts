@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   const data = parsed.data;
   const contesto: ContestoDocumento = { tipo: data.contestoTipo, id: data.contestoId };
 
-  const haAccesso = await verificaAccessoContesto(session.user.id, session.user.role, contesto);
+  const haAccesso = await verificaAccessoContesto(session.user.id, contesto);
   if (!haAccesso) {
     return NextResponse.json({ error: "Non hai accesso a questo contesto" }, { status: 403 });
   }

@@ -50,6 +50,10 @@ export function NuovoContrattoWizard({
     contrattoId: string;
     inquilinoTemporaryPassword?: string;
     inquilinoEmail?: string;
+    /** L'email inserita corrispondeva già a un account esistente (es. la persona è già
+     * Proprietario altrove): il contratto è stato collegato a quell'account, nessuna nuova
+     * password da comunicare. */
+    accountEsistente?: boolean;
   } | null>(null);
   const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
 
@@ -123,6 +127,13 @@ export function NuovoContrattoWizard({
             inquilinoTemporaryPassword: result.inquilinoTemporaryPassword,
             inquilinoEmail: result.inquilinoEmail,
           });
+          return;
+        }
+        if (form.inquilinoMode === "nuovo") {
+          // L'email inserita corrispondeva già a un account (es. la persona è già Proprietario
+          // altrove): il contratto si è collegato a quello, va comunicato — non c'è nessuna
+          // password provvisoria da mostrare in questo caso.
+          setEsitoCreazione({ contrattoId: result.contrattoId, accountEsistente: true });
           return;
         }
         router.push(`/agenzia/contratti/${result.contrattoId}`);
@@ -286,7 +297,9 @@ export function NuovoContrattoWizard({
                   </div>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Verrà creato un account con una password provvisoria, mostrata al termine della creazione del contratto.
+                  Se l&apos;email non è già associata a un account, ne verrà creato uno nuovo con una password
+                  provvisoria (mostrata al termine della creazione del contratto). Se è già associata a un account
+                  esistente (es. la persona è già Proprietario su LOQO), il contratto verrà collegato a quell&apos;account.
                 </p>
               </div>
             )}
@@ -406,7 +419,7 @@ export function NuovoContrattoWizard({
                 <dt className="text-xs font-medium uppercase text-slate-400">Inquilino</dt>
                 <dd className="mt-1 text-ink">
                   {form.inquilinoMode === "nuovo"
-                    ? `${form.inquilinoNome ?? ""} ${form.inquilinoCognome ?? ""} (nuovo account)`
+                    ? `${form.inquilinoNome ?? ""} ${form.inquilinoCognome ?? ""} (nuovo account, o esistente se l'email è già registrata)`
                     : selectedInquilino
                       ? `${selectedInquilino.user.nome} ${selectedInquilino.user.cognome}`
                       : "-"}
@@ -463,14 +476,24 @@ export function NuovoContrattoWizard({
 
       <Modal open={!!esitoCreazione} onClose={() => {}} title="Contratto creato">
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">
-            È stato creato un nuovo account per l&apos;inquilino <strong>{esitoCreazione?.inquilinoEmail}</strong> con la
-            seguente password provvisoria. Comunicala all&apos;inquilino in modo sicuro: non sarà più visibile dopo questo
-            passaggio.
-          </p>
-          <p className="rounded-md bg-slate-100 px-4 py-3 font-mono text-sm text-ink">
-            {esitoCreazione?.inquilinoTemporaryPassword}
-          </p>
+          {esitoCreazione?.accountEsistente ? (
+            <p className="text-sm text-slate-600">
+              L&apos;email inserita era già associata a un account esistente su LOQO: il contratto è stato collegato a
+              quell&apos;account, che ora vede anche questo immobile tra i propri. Non è stato creato nessun account
+              nuovo né una password provvisoria.
+            </p>
+          ) : (
+            <>
+              <p className="text-sm text-slate-600">
+                È stato creato un nuovo account per l&apos;inquilino <strong>{esitoCreazione?.inquilinoEmail}</strong> con la
+                seguente password provvisoria. Comunicala all&apos;inquilino in modo sicuro: non sarà più visibile dopo questo
+                passaggio.
+              </p>
+              <p className="rounded-md bg-slate-100 px-4 py-3 font-mono text-sm text-ink">
+                {esitoCreazione?.inquilinoTemporaryPassword}
+              </p>
+            </>
+          )}
           <Button
             onClick={() => {
               if (esitoCreazione) router.push(`/agenzia/contratti/${esitoCreazione.contrattoId}`);

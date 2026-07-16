@@ -3,7 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { ROLE_LABELS } from "@/lib/labels";
 
-export function ProfiloContent({ nome, cognome, role }: { nome: string; cognome: string; role: string }) {
+export function ProfiloContent({
+  nome,
+  cognome,
+  role,
+  roleLabel,
+}: {
+  nome: string;
+  cognome: string;
+  role: string;
+  /** Etichetta esplicita, per i casi (es. profilo unificato /casa) dove non esiste un singolo
+   * ruolo mappato in ROLE_LABELS. Se assente, usa ROLE_LABELS[role] come sempre. */
+  roleLabel?: string;
+}) {
   const initials = `${nome[0] ?? ""}${cognome[0] ?? ""}`.toUpperCase();
 
   return (
@@ -16,7 +28,7 @@ export function ProfiloContent({ nome, cognome, role }: { nome: string; cognome:
           <p className="text-lg font-semibold text-ink">
             {nome} {cognome}
           </p>
-          <p className="mt-1 text-sm text-slate-500">{ROLE_LABELS[role] ?? role}</p>
+          <p className="mt-1 text-sm text-slate-500">{roleLabel ?? ROLE_LABELS[role] ?? role}</p>
         </div>
       </Card>
 

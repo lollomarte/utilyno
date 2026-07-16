@@ -1,29 +1,35 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { requireAgenzia, requireAmministratore, requireProprietario } from "@/lib/auth-helpers";
+import { signOut } from "@/auth";
+import { requireAgenzia, requireAmministratore, requireProprietario, requirePrivato } from "@/lib/auth-helpers";
 import { cercaAgenzie } from "@/lib/data/agenzia";
 import { registraLogAzione } from "@/lib/audit/registraLogAzione";
+import { risolviUserPerProfiloPrivato } from "@/lib/utenti/risolviUserPerProfiloPrivato";
 import {
   nuovoImmobileSchema,
   collegaImmobileEsistenteSchema,
   creaImmobilePerCondominioSchema,
   nuovoImmobileProprietarioSchema,
+  diventaProprietarioSchema,
   richiediGestioneImmobileSchema,
   rispondiRichiestaGestioneSchema,
   type NuovoImmobileInput,
   type CollegaImmobileEsistenteInput,
   type CreaImmobilePerCondominioInput,
   type NuovoImmobileProprietarioInput,
+  type DiventaProprietarioInput,
   type RichiediGestioneImmobileInput,
   type RispondiRichiestaGestioneInput,
 } from "@/lib/validations/immobile";
 
 type ImmobileSummary = { id: string; indirizzo: string; comune: string; provincia: string };
 
-/** Risolve il proprietarioId da usare per un nuovo Immobile: crea l'utente al volo se in modalità "nuovo". */
+/** Risolve il proprietarioId da usare per un nuovo Immobile: crea l'utente al volo se in modalità "nuovo".
+ * `accountEsistente: true` segnala al chiamante che l'email inserita era già di un account esistente
+ * (es. la persona è già Inquilino altrove): in quel caso la password inserita nel form non è stata
+ * usata (l'account mantiene la propria), il chiamante deve informarne l'operatore. */
 async function risolviProprietario(data: {
   proprietarioMode: "esistente" | "nuovo";
   proprietarioId?: string;
@@ -33,44 +39,47 @@ async function risolviProprietario(data: {
   proprietarioCodiceFiscale?: string;
   proprietarioIndirizzo?: string;
   proprietarioPassword?: string;
-}): Promise<{ success: true; proprietarioId: string } | { success: false; error: string; fieldErrors?: Record<string, string> }> {
+}): Promise<
+  | { success: true; proprietarioId: string; accountEsistente: boolean }
+  | { success: false; error: string; fieldErrors?: Record<string, string> }
+> {
   if (data.proprietarioMode === "esistente") {
     if (!data.proprietarioId) return { success: false, error: "Proprietario non valido" };
-    return { success: true, proprietarioId: data.proprietarioId };
+    return { success: true, proprietarioId: data.proprietarioId, accountEsistente: false };
   }
 
-  const existing = await prisma.user.findUnique({ where: { email: data.proprietarioEmail! } });
-  if (existing) {
-    return {
-      success: false,
-      error: "Email già registrata",
-      fieldErrors: { proprietarioEmail: "Questa email è già associata a un account esistente" },
-    };
+  const { userId, nuovoUser } = await risolviUserPerProfiloPrivato(
+    {
+      email: data.proprietarioEmail!,
+      nome: data.proprietarioNome!,
+      cognome: data.proprietarioCognome!,
+      password: data.proprietarioPassword!,
+    },
+    "PROPRIETARIO"
+  );
+
+  // Se la persona ha già un profilo Proprietario (es. è già proprietario di un altro immobile,
+  // o l'operazione viene ripetuta), riusa lo stesso profilo invece di crearne un secondo:
+  // Proprietario.userId è unique, un secondo `create` fallirebbe comunque.
+  const proprietarioEsistente = await prisma.proprietario.findUnique({ where: { userId } });
+  if (proprietarioEsistente) {
+    return { success: true, proprietarioId: proprietarioEsistente.id, accountEsistente: !nuovoUser };
   }
 
-  const passwordHash = await bcrypt.hash(data.proprietarioPassword!, 10);
   const nuovoProprietario = await prisma.proprietario.create({
     data: {
       codiceFiscale: data.proprietarioCodiceFiscale!,
       indirizzo: data.proprietarioIndirizzo!,
-      user: {
-        create: {
-          email: data.proprietarioEmail!,
-          passwordHash,
-          role: "PROPRIETARIO",
-          nome: data.proprietarioNome!,
-          cognome: data.proprietarioCognome!,
-        },
-      },
+      userId,
     },
   });
-  return { success: true, proprietarioId: nuovoProprietario.id };
+  return { success: true, proprietarioId: nuovoProprietario.id, accountEsistente: !nuovoUser };
 }
 
 export async function creaImmobileAction(
   input: NuovoImmobileInput
 ): Promise<
-  | { success: true; immobile: ImmobileSummary }
+  | { success: true; immobile: ImmobileSummary; proprietarioAccountEsistente: boolean }
   | { success: false; error: string; fieldErrors?: Record<string, string> }
 > {
   const { agenzia } = await requireAgenzia();
@@ -111,6 +120,7 @@ export async function creaImmobileAction(
   return {
     success: true,
     immobile: { id: immobile.id, indirizzo: immobile.indirizzo, comune: immobile.comune, provincia: immobile.provincia },
+    proprietarioAccountEsistente: risolto.accountEsistente,
   };
 }
 
@@ -141,7 +151,10 @@ export async function collegaImmobileEsistenteAction(
 
 export async function creaImmobilePerCondominioAction(
   input: CreaImmobilePerCondominioInput
-): Promise<{ success: true } | { success: false; error: string; fieldErrors?: Record<string, string> }> {
+): Promise<
+  | { success: true; proprietarioAccountEsistente: boolean }
+  | { success: false; error: string; fieldErrors?: Record<string, string> }
+> {
   const { amministratore } = await requireAmministratore();
 
   const parsed = creaImmobilePerCondominioSchema.safeParse(input);
@@ -185,7 +198,7 @@ export async function creaImmobilePerCondominioAction(
 
   revalidatePath(`/amministratore/condomini/${condominio.id}`);
 
-  return { success: true };
+  return { success: true, proprietarioAccountEsistente: risolto.accountEsistente };
 }
 
 /**
@@ -230,6 +243,79 @@ export async function creaImmobileProprietarioAction(
     success: true,
     immobile: { id: immobile.id, indirizzo: immobile.indirizzo, comune: immobile.comune, provincia: immobile.provincia },
   };
+}
+
+/**
+ * Un utente già registrato (con un profilo Inquilino, o comunque privo di profilo Proprietario)
+ * attiva da solo anche il profilo Proprietario sul proprio account, inserendo il primo immobile
+ * in un unico passaggio — nessuna agenzia coinvolta, stesso stato BOZZA_PROPRIETARIO di
+ * creaImmobileProprietarioAction. Non esiste l'equivalente per Inquilino: un contratto di
+ * locazione presuppone un'agenzia reale, non può essere autodichiarato dall'utente.
+ *
+ * Il nuovo profilo va riflesso nella sessione: il JWT (strategy "jwt") non si aggiorna da solo a
+ * metà sessione, e auth.config.ts deve restare edge-safe (nessun accesso a Prisma) perché è
+ * importato anche dal middleware — niente hook "update" che tocchi il DB da lì. La via sicura è
+ * forzare un nuovo login: da quel momento authorize() ricalcola profili correttamente.
+ */
+export async function diventaProprietarioAction(
+  input: DiventaProprietarioInput
+): Promise<{ success: false; error: string; fieldErrors?: Record<string, string> } | void> {
+  const { session } = await requirePrivato();
+
+  if (session.user.profili.includes("PROPRIETARIO")) {
+    return { success: false, error: "Hai già un profilo Proprietario su questo account." };
+  }
+
+  const parsed = diventaProprietarioSchema.safeParse(input);
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path.join(".");
+      if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+    }
+    return { success: false, error: "Dati non validi", fieldErrors };
+  }
+  const data = parsed.data;
+
+  let immobileId: string;
+  try {
+    const proprietario = await prisma.proprietario.create({
+      data: {
+        userId: session.user.id,
+        codiceFiscale: data.proprietarioCodiceFiscale,
+        indirizzo: data.proprietarioIndirizzo,
+        immobili: {
+          create: {
+            indirizzo: data.indirizzo,
+            comune: data.comune,
+            provincia: data.provincia.toUpperCase(),
+            datiCatastali: data.datiCatastali,
+            superficieMq: data.superficieMq,
+            tipoImmobile: data.tipoImmobile,
+            apeClasse: data.apeClasse || null,
+            valoreStimato: data.valoreStimato,
+          },
+        },
+      },
+      include: { immobili: true },
+    });
+    immobileId = proprietario.immobili[0].id;
+  } catch {
+    return {
+      success: false,
+      error: "Codice fiscale già in uso da un altro profilo Proprietario.",
+      fieldErrors: { proprietarioCodiceFiscale: "Già in uso" },
+    };
+  }
+
+  await registraLogAzione({
+    userId: session.user.id,
+    azione: "Attivato profilo Proprietario (self-service)",
+    entita: "Immobile",
+    entitaId: immobileId,
+  });
+
+  await signOut({ redirectTo: "/login?profiloCreato=1" });
 }
 
 export interface AgenziaRisultatoRicerca {

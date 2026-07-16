@@ -145,6 +145,21 @@ export const nuovoImmobileProprietarioSchema = z.object(immobileBaseFields);
 export type NuovoImmobileProprietarioInput = z.infer<typeof nuovoImmobileProprietarioSchema>;
 export type NuovoImmobileProprietarioFormInput = z.input<typeof nuovoImmobileProprietarioSchema>;
 
+/**
+ * Un utente già registrato (come Inquilino, o su un altro profilo) attiva da solo anche il
+ * profilo Proprietario sul proprio account, inserendo il primo immobile: stesso spirito di
+ * nuovoImmobileProprietarioSchema, con in più i dati anagrafici necessari a creare il
+ * Proprietario stesso (che qui non esiste ancora). Non ha equivalente per Inquilino: diventare
+ * inquilino presuppone un contratto reale creato da un'agenzia, non può essere autodichiarato.
+ */
+export const diventaProprietarioSchema = z.object({
+  proprietarioCodiceFiscale: codiceFiscaleSchema,
+  proprietarioIndirizzo: z.string().min(1, "L'indirizzo è obbligatorio"),
+  ...immobileBaseFields,
+});
+export type DiventaProprietarioInput = z.infer<typeof diventaProprietarioSchema>;
+export type DiventaProprietarioFormInput = z.input<typeof diventaProprietarioSchema>;
+
 export const richiediGestioneImmobileSchema = z.object({
   immobileId: z.string().min(1),
   agenziaId: z.string().min(1, "Seleziona un'agenzia"),

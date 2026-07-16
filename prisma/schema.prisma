@@ -16,6 +16,10 @@ enum Role {
   AMMINISTRATORE
   PROPRIETARIO
   INQUILINO
+  /// Registrazione unificata per i privati: nessun profilo Proprietario/Inquilino ancora
+  /// assegnato. Diventa Proprietario e/o Inquilino in un secondo momento (self-service o
+  /// tramite agenzia) — vedi requirePrivato() e diventaProprietarioAction.
+  PRIVATO
 }
 
 enum TipoImmobile {

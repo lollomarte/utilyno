@@ -1,18 +1,13 @@
 "use server";
 
-import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { addMonths } from "date-fns";
-import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireAgenzia } from "@/lib/auth-helpers";
 import { adeRegistrationProvider } from "@/lib/services/ade-registration";
 import { registraLogAzione } from "@/lib/audit/registraLogAzione";
+import { risolviUserPerProfiloPrivato } from "@/lib/utenti/risolviUserPerProfiloPrivato";
 import { nuovoContrattoSchema, type NuovoContrattoInput } from "@/lib/validations/contratto";
-
-function generaPasswordProvvisoria(): string {
-  return randomBytes(9).toString("base64url");
-}
 
 export async function registraContrattoAdEAction(
   contrattoId: string
@@ -108,33 +103,30 @@ export async function creaContrattoAction(
   let inquilinoTemporaryPassword: string | undefined;
 
   if (data.inquilinoMode === "nuovo") {
-    const existing = await prisma.user.findUnique({ where: { email: data.inquilinoEmail! } });
-    if (existing) {
-      return {
-        success: false,
-        error: "Email già registrata",
-        fieldErrors: { inquilinoEmail: "Questa email è già associata a un account esistente" },
-      };
-    }
-
-    inquilinoTemporaryPassword = generaPasswordProvvisoria();
-    const passwordHash = await bcrypt.hash(inquilinoTemporaryPassword, 10);
-    const nuovoInquilino = await prisma.inquilino.create({
-      data: {
-        codiceFiscale: data.inquilinoCodiceFiscale!,
-        user: {
-          create: {
-            email: data.inquilinoEmail!,
-            passwordHash,
-            role: "INQUILINO",
-            nome: data.inquilinoNome!,
-            cognome: data.inquilinoCognome!,
-            telefono: data.inquilinoTelefono || null,
-          },
-        },
+    const { userId, nuovoUser, passwordProvvisoria } = await risolviUserPerProfiloPrivato(
+      {
+        email: data.inquilinoEmail!,
+        nome: data.inquilinoNome!,
+        cognome: data.inquilinoCognome!,
+        telefono: data.inquilinoTelefono || null,
       },
-    });
-    inquilinoId = nuovoInquilino.id;
+      "INQUILINO"
+    );
+
+    // Se la persona ha già un profilo Inquilino (es. è già affittuario altrove), il nuovo
+    // contratto si aggiunge ai suoi contratti esistenti invece di duplicare il profilo.
+    const inquilinoEsistente = await prisma.inquilino.findUnique({ where: { userId } });
+    if (inquilinoEsistente) {
+      inquilinoId = inquilinoEsistente.id;
+    } else {
+      const nuovoInquilino = await prisma.inquilino.create({
+        data: { codiceFiscale: data.inquilinoCodiceFiscale!, userId },
+      });
+      inquilinoId = nuovoInquilino.id;
+    }
+    // Credenziali provvisorie solo se è stato creato un account nuovo: chi aveva già un
+    // account (nuovoUser === false) continua a usare la propria password esistente.
+    inquilinoTemporaryPassword = nuovoUser ? passwordProvvisoria : undefined;
   }
 
   if (!inquilinoId) {

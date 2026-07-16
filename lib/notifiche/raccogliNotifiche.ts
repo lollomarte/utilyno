@@ -10,7 +10,6 @@ import {
 } from "@/lib/data/proprietario";
 import { getContrattoAttivoForInquilino, getComunicazioniPerInquilino } from "@/lib/data/inquilino";
 import { getPagamentiInRitardoPerAgenzia, getContrattiInScadenza, getRichiesteGestionePerAgenzia } from "@/lib/data/agenzia";
-import type { Role } from "@prisma/client";
 
 /** Entro questa soglia una scadenza (contratto, registrazione AdE, assicurazione) diventa
  * una notifica: coerente con la soglia di "Rinnova" già usata per le assicurazioni. */
@@ -51,46 +50,59 @@ function ordinaPerUrgenza(notifiche: Notifica[]): Notifica[] {
 const TTL_CACHE_MS = 20_000;
 const cache = new Map<string, { scadenza: number; notifiche: Notifica[] }>();
 
-/** Punto unico di aggregazione degli allarmi sparsi nelle dashboard: dato uno userId e il suo
- * ruolo, richiama le funzioni di calcolo già esistenti per ciascuna fonte (mai duplicate qui)
- * e le normalizza in una lista piatta ordinata per urgenza/data. */
-export async function raccogliNotifiche(userId: string, role: Role): Promise<Notifica[]> {
-  const chiave = `${role}:${userId}`;
-  const voceCache = cache.get(chiave);
+/** Punto unico di aggregazione degli allarmi sparsi nelle dashboard: dato uno userId, verifica
+ * quali profili possiede (un utente può averne più di uno, es. Proprietario e Inquilino
+ * contemporaneamente) e aggrega le notifiche di ciascuno — mai duplicate qui. */
+export async function raccogliNotifiche(userId: string): Promise<Notifica[]> {
+  const voceCache = cache.get(userId);
   if (voceCache && voceCache.scadenza > Date.now()) {
     return voceCache.notifiche;
   }
 
-  const notifiche = await calcolaNotifiche(userId, role);
-  cache.set(chiave, { scadenza: Date.now() + TTL_CACHE_MS, notifiche });
+  const notifiche = await calcolaNotifiche(userId);
+  cache.set(userId, { scadenza: Date.now() + TTL_CACHE_MS, notifiche });
   return notifiche;
 }
 
-async function calcolaNotifiche(userId: string, role: Role): Promise<Notifica[]> {
-  switch (role) {
-    case "PROPRIETARIO":
-      return raccogliNotifichePerProprietario(userId);
-    case "INQUILINO":
-      return raccogliNotifichePerInquilino(userId);
-    case "AGENZIA":
-      return raccogliNotifichePerAgenzia(userId);
-    case "AMMINISTRATORE":
-      return raccogliNotifichePerAmministratore(userId);
-    default:
-      return [];
-  }
+async function calcolaNotifiche(userId: string): Promise<Notifica[]> {
+  // Una sola query invece di 4 findUnique separati: raccogliNotifiche gira a ogni navigazione
+  // in ogni portale, e il pool di connessioni verso Neon in questo ambiente è volutamente
+  // piccolo (pgbouncer, connection_limit=5) — moltiplicare le query qui esaurisce il pool
+  // sotto carico concorrente.
+  const utente = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      proprietario: { select: { id: true } },
+      inquilino: { select: { id: true } },
+      agenzia: { select: { id: true } },
+      amministratore: { select: { id: true } },
+    },
+  });
+  if (!utente) return [];
+
+  const gruppi = await Promise.all([
+    utente.proprietario ? raccogliNotifichePerProprietario(userId, utente.proprietario.id) : [],
+    utente.inquilino ? raccogliNotifichePerInquilino(userId, utente.inquilino.id) : [],
+    utente.agenzia ? raccogliNotifichePerAgenzia(userId, utente.agenzia.id) : [],
+    utente.amministratore ? raccogliNotifichePerAmministratore(userId) : [],
+  ]);
+
+  return ordinaPerUrgenza(gruppi.flat());
 }
 
-async function raccogliNotifichePerProprietario(userId: string): Promise<Notifica[]> {
-  const proprietario = await prisma.proprietario.findUnique({ where: { userId } });
-  if (!proprietario) return [];
-
-  const [pagamentiInRitardo, immobili, comunicazioni, segnalazioniNonLette] = await Promise.all([
-    getPagamentiInRitardoPerProprietario(proprietario.id),
-    getImmobiliForProprietario(proprietario.id),
-    getComunicazioniPerProprietario(proprietario.id, userId),
+async function raccogliNotifichePerProprietario(userId: string, proprietarioId: string): Promise<Notifica[]> {
+  const [pagamentiInRitardo, immobili, comunicazioni, segnalazioniNonLetteTutte] = await Promise.all([
+    getPagamentiInRitardoPerProprietario(proprietarioId),
+    getImmobiliForProprietario(proprietarioId),
+    getComunicazioniPerProprietario(proprietarioId, userId),
     getSegnalazioniNonLettePerUser(userId),
   ]);
+  // Un utente con anche il profilo Inquilino riceve la stessa lista grezza dall'altro branch:
+  // qui va filtrata solo agli immobili di cui è effettivamente proprietario, altrimenti una
+  // segnalazione su un immobile in cui è inquilino comparirebbe anche con link "/proprietario/...".
+  const segnalazioniNonLette = segnalazioniNonLetteTutte.filter(
+    (d) => d.segnalazione.immobile.proprietarioId === proprietarioId
+  );
 
   const notifiche: Notifica[] = [];
 
@@ -151,14 +163,16 @@ async function raccogliNotifichePerProprietario(userId: string): Promise<Notific
   return ordinaPerUrgenza(notifiche);
 }
 
-async function raccogliNotifichePerInquilino(userId: string): Promise<Notifica[]> {
-  const inquilino = await prisma.inquilino.findUnique({ where: { userId } });
-  if (!inquilino) return [];
-
-  const [contratto, segnalazioniNonLette] = await Promise.all([
-    getContrattoAttivoForInquilino(inquilino.id),
+async function raccogliNotifichePerInquilino(userId: string, inquilinoId: string): Promise<Notifica[]> {
+  const [contratto, contrattiAttivi, segnalazioniNonLetteTutte] = await Promise.all([
+    getContrattoAttivoForInquilino(inquilinoId),
+    prisma.contratto.findMany({ where: { inquilinoId, stato: "ATTIVO" }, select: { immobileId: true } }),
     getSegnalazioniNonLettePerUser(userId),
   ]);
+  // Stesso filtro del branch Proprietario: un utente con anche quel profilo riceverebbe altrimenti
+  // le stesse segnalazioni due volte, la seconda con un link "/inquilino/..." non pertinente.
+  const immobiliInAffitto = new Set(contrattiAttivi.map((c) => c.immobileId));
+  const segnalazioniNonLette = segnalazioniNonLetteTutte.filter((d) => immobiliInAffitto.has(d.segnalazione.immobileId));
 
   const notifiche: Notifica[] = [];
 
@@ -204,15 +218,12 @@ async function raccogliNotifichePerInquilino(userId: string): Promise<Notifica[]
   return ordinaPerUrgenza(notifiche);
 }
 
-async function raccogliNotifichePerAgenzia(userId: string): Promise<Notifica[]> {
-  const agenzia = await prisma.agenzia.findUnique({ where: { userId } });
-  if (!agenzia) return [];
-
+async function raccogliNotifichePerAgenzia(userId: string, agenziaId: string): Promise<Notifica[]> {
   const [pagamentiInRitardo, contrattiInScadenza, segnalazioniNonLette, richiesteGestione] = await Promise.all([
-    getPagamentiInRitardoPerAgenzia(agenzia.id),
-    getContrattiInScadenza(agenzia.id, GIORNI_SOGLIA_SCADENZA),
+    getPagamentiInRitardoPerAgenzia(agenziaId),
+    getContrattiInScadenza(agenziaId, GIORNI_SOGLIA_SCADENZA),
     getSegnalazioniNonLettePerUser(userId),
-    getRichiesteGestionePerAgenzia(agenzia.id),
+    getRichiesteGestionePerAgenzia(agenziaId),
   ]);
 
   const notifiche: Notifica[] = [];

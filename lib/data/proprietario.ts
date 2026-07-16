@@ -96,10 +96,11 @@ export async function getProprietarioDashboardStats(proprietarioId: string) {
   };
 }
 
-/** Tutti i contratti (qualsiasi stato) sugli immobili del proprietario, con inquilino e pagamenti. */
-export async function getContrattiForProprietario(proprietarioId: string) {
+/** Tutti i contratti (qualsiasi stato) sugli immobili del proprietario, con inquilino e pagamenti.
+ * `immobileId` opzionale: limita a un solo immobile, per la vista per-immobile in /casa/[immobileId]. */
+export async function getContrattiForProprietario(proprietarioId: string, immobileId?: string) {
   return prisma.contratto.findMany({
-    where: { immobile: { proprietarioId } },
+    where: { immobile: { proprietarioId, ...(immobileId ? { id: immobileId } : {}) } },
     include: {
       immobile: true,
       inquilino: { include: { user: true } },
@@ -110,18 +111,18 @@ export async function getContrattiForProprietario(proprietarioId: string) {
 }
 
 /** Tutti i pagamenti (qualsiasi stato) sugli immobili del proprietario, per la vista "Pagamenti e Depositi". */
-export async function getPagamentiPerProprietario(proprietarioId: string) {
+export async function getPagamentiPerProprietario(proprietarioId: string, immobileId?: string) {
   return prisma.pagamento.findMany({
-    where: { contratto: { immobile: { proprietarioId } } },
+    where: { contratto: { immobile: { proprietarioId, ...(immobileId ? { id: immobileId } : {}) } } },
     include: { contratto: { include: { immobile: true } } },
     orderBy: { dataScadenza: "desc" },
   });
 }
 
-export async function getDepositiDaRestituire(proprietarioId: string) {
+export async function getDepositiDaRestituire(proprietarioId: string, immobileId?: string) {
   return prisma.contratto.findMany({
     where: {
-      immobile: { proprietarioId },
+      immobile: { proprietarioId, ...(immobileId ? { id: immobileId } : {}) },
       stato: { in: ["SCADUTO", "RISOLTO"] },
       depositoStato: { in: ["VERSATO", "IN_CONTESTAZIONE"] },
     },
