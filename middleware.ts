@@ -6,7 +6,7 @@ const { auth } = NextAuth(authConfig);
 
 // Tipo letterale locale (non da @prisma/client): stesso motivo di auth.config.ts, questo file
 // va nel bundle Edge del middleware.
-type Role = "ADMIN" | "AGENZIA" | "AMMINISTRATORE" | "PROPRIETARIO" | "INQUILINO";
+type Role = "ADMIN" | "AGENZIA" | "AMMINISTRATORE" | "PROPRIETARIO" | "INQUILINO" | "PRIVATO";
 
 // Per ogni sezione, i profili che danno accesso (basta possederne uno): /casa è la lista
 // aggregata degli immobili, accessibile a chi è Proprietario e/o Inquilino di almeno uno.
@@ -40,8 +40,12 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
+  // /casa ammette anche chi si è registrato come PRIVATO ma non ha ancora nessun profilo
+  // Proprietario/Inquilino attivo (mostra uno stato vuoto con l'invito ad attivarne uno).
+  const haRuoloPrivato = matchedSection === "/casa" && req.auth?.user?.role === "PRIVATO";
+
   const profiliAmmessi = PROFILI_RICHIESTI_PER_SEZIONE[matchedSection];
-  if (!profiliAmmessi.some((p) => profili.includes(p))) {
+  if (!haRuoloPrivato && !profiliAmmessi.some((p) => profili.includes(p))) {
     return NextResponse.redirect(new URL("/non-autorizzato", nextUrl));
   }
 

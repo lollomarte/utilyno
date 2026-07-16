@@ -53,11 +53,14 @@ export async function requireAdmin() {
   return { session };
 }
 
-/** Richiede almeno uno tra PROPRIETARIO e INQUILINO: usato dalla sezione unificata /casa. */
+/** Richiede almeno uno tra PROPRIETARIO e INQUILINO, oppure il ruolo PRIVATO (registrato ma
+ * senza ancora nessun profilo attivo): usato dalla sezione unificata /casa. */
 export async function requirePrivato() {
   const session = await auth();
   const haProfiloPrivato =
-    session?.user?.profili.includes("PROPRIETARIO") || session?.user?.profili.includes("INQUILINO");
+    session?.user?.role === "PRIVATO" ||
+    session?.user?.profili.includes("PROPRIETARIO") ||
+    session?.user?.profili.includes("INQUILINO");
   if (!session?.user || !haProfiloPrivato) redirect("/login");
 
   return { session };
@@ -69,6 +72,7 @@ const PORTAL_PATH_BY_ROLE: Record<string, string> = {
   AMMINISTRATORE: "/amministratore",
   PROPRIETARIO: "/proprietario",
   INQUILINO: "/inquilino",
+  PRIVATO: "/casa",
 };
 
 /**
@@ -106,6 +110,10 @@ export async function resolvePortalForSession(
     case "INQUILINO": {
       const inquilino = await prisma.inquilino.findUnique({ where: { userId } });
       return inquilino ? path : null;
+    }
+    case "PRIVATO": {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      return user ? path : null;
     }
     default:
       return null;

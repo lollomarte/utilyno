@@ -4,6 +4,7 @@ import type { NavItem } from "@/components/layout/sidebar";
 import { ProfiloContent } from "@/components/layout/profilo-content";
 import { DiventaProprietarioForm } from "@/components/immobili/diventa-proprietario-form";
 import { Card, CardHeader } from "@/components/ui/card";
+import { roleLabelPrivato } from "@/lib/labels";
 
 const NAV_ITEMS: NavItem[] = [{ href: "/casa", label: "I miei immobili" }];
 
@@ -13,8 +14,7 @@ export default async function CasaProfiloPage() {
   const profili = session.user.profili.filter(
     (p): p is "PROPRIETARIO" | "INQUILINO" => p === "PROPRIETARIO" || p === "INQUILINO"
   );
-  const haDoppioProfilo = profili.length === 2;
-  const roleLabel = haDoppioProfilo ? "Proprietario e Inquilino" : profili[0] === "PROPRIETARIO" ? "Proprietario" : "Inquilino";
+  const roleLabel = roleLabelPrivato(profili);
 
   return (
     <PortalShell
@@ -31,14 +31,18 @@ export default async function CasaProfiloPage() {
           nome={session.user.nome}
           cognome={session.user.cognome}
           role={session.user.role}
-          roleLabel={haDoppioProfilo ? "Proprietario e Inquilino" : undefined}
+          roleLabel={roleLabel}
         />
 
         {!profili.includes("PROPRIETARIO") && (
           <Card>
             <CardHeader
-              title="Diventa anche Proprietario"
-              description="Hai anche un immobile di tua proprietà? Attiva il profilo Proprietario sullo stesso account."
+              title={profili.length === 0 ? "Attiva il profilo Proprietario" : "Diventa anche Proprietario"}
+              description={
+                profili.length === 0
+                  ? "Inserisci i tuoi dati e il tuo primo immobile per iniziare a usare LOQO come Proprietario."
+                  : "Hai anche un immobile di tua proprietà? Attiva il profilo Proprietario sullo stesso account."
+              }
             />
             <DiventaProprietarioForm />
           </Card>

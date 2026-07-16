@@ -49,21 +49,8 @@ export async function POST(request: Request) {
           },
         },
       }),
-      ...(data.role === "PROPRIETARIO" && {
-        proprietario: {
-          create: {
-            codiceFiscale: data.codiceFiscale,
-            indirizzo: data.indirizzo,
-          },
-        },
-      }),
-      ...(data.role === "INQUILINO" && {
-        inquilino: {
-          create: {
-            codiceFiscale: data.codiceFiscale,
-          },
-        },
-      }),
+      // PRIVATO: solo lo User, nessun profilo Proprietario/Inquilino ancora — vengono attivati
+      // dopo, self-service (diventaProprietarioAction) o tramite agenzia (Inquilino).
     },
   });
 

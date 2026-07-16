@@ -4,7 +4,7 @@ import type { NextAuthConfig } from "next-auth";
 // restare edge-safe perché è l'unico modulo importato da middleware.ts (Edge
 // Runtime). Anche un import di solo tipo da @prisma/client trascinerebbe il
 // pacchetto nel bundle del middleware e rompe il deploy su Vercel.
-type Role = "ADMIN" | "AGENZIA" | "AMMINISTRATORE" | "PROPRIETARIO" | "INQUILINO";
+type Role = "ADMIN" | "AGENZIA" | "AMMINISTRATORE" | "PROPRIETARIO" | "INQUILINO" | "PRIVATO";
 
 export const PORTAL_BY_ROLE: Record<string, string> = {
   ADMIN: "/admin",
@@ -12,6 +12,7 @@ export const PORTAL_BY_ROLE: Record<string, string> = {
   AMMINISTRATORE: "/amministratore",
   PROPRIETARIO: "/proprietario",
   INQUILINO: "/inquilino",
+  PRIVATO: "/casa",
 };
 
 export const authConfig = {

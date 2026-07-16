@@ -6,6 +6,7 @@ import type { NavItem } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { RelazioneImmobileBadge } from "@/components/ui/badge";
+import { roleLabelPrivato } from "@/lib/labels";
 
 const NAV_ITEMS: NavItem[] = [{ href: "/casa", label: "I miei immobili" }];
 
@@ -16,7 +17,7 @@ export default async function CasaPage() {
   const profili = session.user.profili.filter(
     (p): p is "PROPRIETARIO" | "INQUILINO" => p === "PROPRIETARIO" || p === "INQUILINO"
   );
-  const roleLabel = profili.length === 2 ? "Proprietario e Inquilino" : profili[0] === "PROPRIETARIO" ? "Proprietario" : "Inquilino";
+  const roleLabel = roleLabelPrivato(profili);
 
   return (
     <PortalShell
@@ -38,7 +39,16 @@ export default async function CasaPage() {
 
         <Card className="p-0">
           {immobili.length === 0 ? (
-            <EmptyState message="Nessun immobile associato al tuo account." />
+            <EmptyState
+              message="Nessun immobile associato al tuo account."
+              action={
+                !profili.includes("PROPRIETARIO") ? (
+                  <Link href="/casa/profilo" className="text-sm font-medium text-primary hover:underline">
+                    Attiva il profilo Proprietario e aggiungi il tuo primo immobile
+                  </Link>
+                ) : undefined
+              }
+            />
           ) : (
             <Table>
               <TableHead>
