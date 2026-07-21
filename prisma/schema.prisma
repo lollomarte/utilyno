@@ -27,6 +27,11 @@ enum TipoImmobile {
   COMMERCIALE
 }
 
+enum TipoNotaSviluppatore {
+  BUG
+  SUGGERIMENTO
+}
+
 /// BOZZA_PROPRIETARIO: auto-inserito dal Proprietario, nessuna agenzia ancora assegnata.
 /// IN_GESTIONE_AGENZIA: un'Agenzia ha accettato la richiesta di gestione (vedi RichiestaGestioneImmobile).
 /// ATTIVO: creato direttamente da Agenzia o Amministratore (flusso preesistente, agenzia già presente dalla creazione).
@@ -162,6 +167,7 @@ model User {
   richiestePreventivo  RichiestaPreventivo[]
   documentiCaricati    Documento[]                @relation("DocumentiCaricati")
   documentiCondivisi   DocumentoCondivisione[]
+  noteSviluppatore     NotaSviluppatore[]
 }
 
 /// Storico dei tentativi di login (falliti e riusciti), usato per il blocco temporaneo
@@ -604,4 +610,22 @@ model DocumentoCondivisione {
 
   @@unique([documentoId, userId])
   @@index([userId])
+}
+
+/// Bacheca unica per raccogliere segnalazioni/suggerimenti rivolti allo sviluppatore, letta da
+/// TUTTI gli utenti di TUTTI i portali (memoria universale, coerente con la natura demo del
+/// prodotto): non è scoperta per immobile/ruolo come Segnalazione, è visibile globalmente.
+model NotaSviluppatore {
+  id      String               @id @default(cuid())
+  testo   String
+  tipo    TipoNotaSviluppatore @default(SUGGERIMENTO)
+  risolta Boolean              @default(false)
+
+  createdAt DateTime @default(now())
+
+  autoreUserId String
+  autore       User   @relation(fields: [autoreUserId], references: [id], onDelete: Cascade)
+
+  @@index([autoreUserId])
+  @@index([createdAt])
 }

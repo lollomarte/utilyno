@@ -11,6 +11,7 @@ function navItemsPerRelazione(base: string, relazione: "PROPRIETARIO" | "INQUILI
       { href: `${base}/pagamenti`, label: "Pagamenti e Depositi" },
       { href: `${base}/segnalazioni`, label: "Segnalazioni" },
       { href: `${base}/documenti`, label: "Documenti" },
+      { href: `${base}/note-sviluppatore`, label: "Note per lo sviluppatore" },
     ];
   }
   return [
@@ -20,6 +21,7 @@ function navItemsPerRelazione(base: string, relazione: "PROPRIETARIO" | "INQUILI
     { href: `${base}/segnalazioni`, label: "Segnalazioni" },
     { href: `${base}/checklist`, label: "Checklist" },
     { href: `${base}/documenti`, label: "Documenti" },
+    { href: `${base}/note-sviluppatore`, label: "Note per lo sviluppatore" },
   ];
 }
 

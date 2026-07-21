@@ -9,6 +9,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/proprietario/pagamenti", label: "Pagamenti e Depositi" },
   { href: "/proprietario/segnalazioni", label: "Segnalazioni" },
   { href: "/proprietario/documenti", label: "Documenti" },
+  { href: "/proprietario/note-sviluppatore", label: "Note per lo sviluppatore" },
 ];
 
 export default async function ProprietarioLayout({ children }: { children: React.ReactNode }) {

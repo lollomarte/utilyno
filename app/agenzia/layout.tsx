@@ -9,6 +9,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/agenzia/segnalazioni", label: "Segnalazioni" },
   { href: "/agenzia/richieste-gestione", label: "Richieste di gestione" },
   { href: "/agenzia/documenti", label: "Documenti" },
+  { href: "/agenzia/note-sviluppatore", label: "Note per lo sviluppatore" },
 ];
 
 export default async function AgenziaLayout({ children }: { children: React.ReactNode }) {

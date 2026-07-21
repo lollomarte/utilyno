@@ -10,6 +10,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/inquilino/segnalazioni", label: "Segnalazioni" },
   { href: "/inquilino/checklist", label: "Checklist" },
   { href: "/inquilino/documenti", label: "Documenti" },
+  { href: "/inquilino/note-sviluppatore", label: "Note per lo sviluppatore" },
 ];
 
 export default async function InquilinoLayout({ children }: { children: React.ReactNode }) {
