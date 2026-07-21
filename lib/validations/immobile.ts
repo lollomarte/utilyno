@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalNumber, optionalDate, optionalString } from "@/lib/validations/common";
 
 const codiceFiscaleSchema = z
   .string()
@@ -18,6 +19,31 @@ const proprietarioFields = {
   proprietarioPassword: z.string().optional(),
 };
 
+/**
+ * Dati aggiuntivi opzionali (Fase 2 "arricchimento entità business"): non necessari al
+ * funzionamento attuale della piattaforma, ma evitano di dover richiedere di nuovo gli stessi
+ * dati a valle (passaggio in gestione ad agenzia, RLI, quotazione assicurativa...). Nessuno di
+ * questi campi è obbligatorio: raggruppati in una sezione collassabile nei form più lunghi.
+ */
+export const immobileDatiAggiuntiviFields = {
+  foglio: optionalString,
+  particella: optionalString,
+  subalterno: optionalString,
+  categoriaCatastale: optionalString,
+  renditaCatastale: optionalNumber,
+  apeScadenza: optionalDate,
+  numeroVani: optionalNumber,
+  piano: optionalString,
+  ascensore: z.boolean().optional(),
+  annoCostruzione: optionalNumber,
+  condizioneImmobile: z.enum(["NUOVO", "RISTRUTTURATO", "DA_RISTRUTTURARE"]).optional(),
+  arredato: z.boolean().optional(),
+  dotazioni: z.array(z.string()).optional().default([]),
+  tipoRiscaldamento: z.enum(["AUTONOMO", "CENTRALIZZATO"]).optional(),
+  speseCondominialiMensili: optionalNumber,
+  noteStima: optionalString,
+};
+
 /** Campi base condivisi da ogni form che crea un Immobile, incluso quello semplificato del Proprietario. */
 const immobileBaseFields = {
   indirizzo: z.string().min(1, "L'indirizzo è obbligatorio"),
@@ -28,6 +54,7 @@ const immobileBaseFields = {
   tipoImmobile: z.enum(["RESIDENZIALE", "COMMERCIALE"]),
   apeClasse: z.string().optional(),
   valoreStimato: z.coerce.number().positive("Il valore stimato deve essere maggiore di zero"),
+  ...immobileDatiAggiuntiviFields,
 };
 
 /** Validazione condivisa del blocco "proprietario esistente|nuovo", riusata da ogni form che crea un Immobile. */
@@ -83,16 +110,7 @@ function validaProprietario(
 
 export const nuovoImmobileSchema = z
   .object({
-    indirizzo: z.string().min(1, "L'indirizzo è obbligatorio"),
-    comune: z.string().min(1, "Il comune è obbligatorio"),
-    provincia: z
-      .string()
-      .regex(/^[A-Za-z]{2}$/, "La provincia deve essere una sigla di 2 lettere (es. MI)"),
-    datiCatastali: z.string().min(1, "I dati catastali sono obbligatori"),
-    superficieMq: z.coerce.number().positive("La superficie deve essere maggiore di zero"),
-    tipoImmobile: z.enum(["RESIDENZIALE", "COMMERCIALE"]),
-    apeClasse: z.string().optional(),
-    valoreStimato: z.coerce.number().positive("Il valore stimato deve essere maggiore di zero"),
+    ...immobileBaseFields,
     condominioId: z.string().optional(),
     ...proprietarioFields,
   })
@@ -117,17 +135,8 @@ export type CollegaImmobileEsistenteInput = z.infer<typeof collegaImmobileEsiste
  */
 export const creaImmobilePerCondominioSchema = z
   .object({
+    ...immobileBaseFields,
     condominioId: z.string().min(1),
-    indirizzo: z.string().min(1, "L'indirizzo è obbligatorio"),
-    comune: z.string().min(1, "Il comune è obbligatorio"),
-    provincia: z
-      .string()
-      .regex(/^[A-Za-z]{2}$/, "La provincia deve essere una sigla di 2 lettere (es. MI)"),
-    datiCatastali: z.string().min(1, "I dati catastali sono obbligatori"),
-    superficieMq: z.coerce.number().positive("La superficie deve essere maggiore di zero"),
-    tipoImmobile: z.enum(["RESIDENZIALE", "COMMERCIALE"]),
-    apeClasse: z.string().optional(),
-    valoreStimato: z.coerce.number().positive("Il valore stimato deve essere maggiore di zero"),
     agenziaId: z.string().min(1, "Seleziona un'agenzia di riferimento"),
     ...proprietarioFields,
   })
@@ -159,6 +168,19 @@ export const diventaProprietarioSchema = z.object({
 });
 export type DiventaProprietarioInput = z.infer<typeof diventaProprietarioSchema>;
 export type DiventaProprietarioFormInput = z.input<typeof diventaProprietarioSchema>;
+
+/**
+ * Modifica i dati di un Immobile già esistente: solo i campi propri dell'immobile (non le
+ * relazioni proprietario/agenzia/condominio, che non si spostano da qui). Nasce insieme ai
+ * "dati aggiuntivi opzionali": prima di questi campi non esisteva nessun form di modifica per
+ * un Immobile, solo di creazione.
+ */
+export const aggiornaImmobileSchema = z.object({
+  immobileId: z.string().min(1),
+  ...immobileBaseFields,
+});
+export type AggiornaImmobileInput = z.infer<typeof aggiornaImmobileSchema>;
+export type AggiornaImmobileFormInput = z.input<typeof aggiornaImmobileSchema>;
 
 export const richiediGestioneImmobileSchema = z.object({
   immobileId: z.string().min(1),

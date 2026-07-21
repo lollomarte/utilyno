@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CATEGORIA_INTERVENTO_OPTIONS } from "@/lib/validations/segnalazione";
+import { optionalString } from "@/lib/validations/common";
 
 export const partnerSchema = z.object({
   nome: z.string().min(1, "Il nome è obbligatorio").max(120),
@@ -9,6 +10,9 @@ export const partnerSchema = z.object({
   email: z.string().email("Email non valida"),
   contattoReferente: z.string().min(1, "Il contatto referente è obbligatorio").max(120),
   commissioneMedia: z.coerce.number().nonnegative().optional(),
+  // Per fatturazione/contrattualistica col partner: opzionali.
+  piva: optionalString,
+  pec: optionalString,
 });
 
 export type PartnerInput = z.infer<typeof partnerSchema>;

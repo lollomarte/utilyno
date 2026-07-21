@@ -7,11 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { creaSegnalazioneAction } from "@/app/actions/segnalazioni";
 import {
   nuovaSegnalazioneSchema,
+  FASCIA_ORARIA_OPTIONS,
   type NuovaSegnalazioneInput,
   type NuovaSegnalazioneFormInput,
 } from "@/lib/validations/segnalazione";
 import { Input, Label, Select, Textarea, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { CATEGORIA_SEGNALAZIONE_LABELS, CATEGORIA_INTERVENTO_LABELS } from "@/lib/labels";
 import { withTimeout } from "@/lib/utils";
 import type { CategoriaSegnalazione } from "@prisma/client";
@@ -30,6 +32,7 @@ export function NuovaSegnalazioneForm({
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [esito, setEsito] = useState<{ nome: string; cognome: string; ruolo: string }[] | null>(null);
+  const [foto, setFoto] = useState<File[]>([]);
 
   const {
     register,
@@ -54,7 +57,10 @@ export function NuovaSegnalazioneForm({
   async function onSubmit(data: NuovaSegnalazioneInput) {
     setServerError(null);
     try {
-      const result = await withTimeout(creaSegnalazioneAction(data));
+      // Nessun upload reale: stesso mock (URL derivato dal nome file) già usato per le foto
+      // della checklist ingresso/uscita, vedi app/actions/checklist.ts.
+      const fotoUrls = foto.map((f) => `/segnalazioni/mock/${f.name}`);
+      const result = await withTimeout(creaSegnalazioneAction({ ...data, fotoUrls }));
       if (!result.success) {
         setServerError(result.error);
         return;
@@ -66,7 +72,9 @@ export function NuovaSegnalazioneForm({
         priorita: "MEDIA",
         categoria: undefined,
         categoriaIntervento: undefined,
+        fasciaOrariaDisponibile: undefined,
       });
+      setFoto([]);
       router.refresh();
       setEsito(result.destinatari);
     } catch {
@@ -164,6 +172,32 @@ export function NuovaSegnalazioneForm({
           <option value="ALTA">Alta</option>
         </Select>
       </div>
+
+      <CollapsibleSection title="Dati aggiuntivi (opzionali)" description="Aiutano chi deve intervenire a organizzarsi">
+        <div>
+          <Label htmlFor="foto">Foto allegate</Label>
+          <input
+            id="foto"
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => setFoto(Array.from(e.target.files ?? []))}
+            className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+          />
+        </div>
+        <div>
+          <Label htmlFor="fasciaOrariaDisponibile">Fascia oraria disponibile per l&apos;intervento</Label>
+          <Select id="fasciaOrariaDisponibile" {...register("fasciaOrariaDisponibile")}>
+            <option value="">Non specificata</option>
+            {FASCIA_ORARIA_OPTIONS.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </CollapsibleSection>
+
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" disabled={isSubmitting || !immobileId}>
         {isSubmitting ? "Invio in corso..." : "Crea segnalazione"}

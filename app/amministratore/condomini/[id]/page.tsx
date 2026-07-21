@@ -11,6 +11,7 @@ import {
 import { getProprietariDisponibili } from "@/lib/data/agenzia";
 import { NuovaComunicazioneForm } from "@/components/amministratore/nuova-comunicazione-form";
 import { CollegaImmobileButton } from "@/components/amministratore/collega-immobile-button";
+import { ModificaCondominioButton } from "@/components/amministratore/modifica-condominio-button";
 import { SegnalazioniTable } from "@/components/segnalazioni/segnalazioni-table";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
@@ -38,11 +39,14 @@ export default async function CondominioDetailPage({ params }: { params: Promise
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-ink">{condominio.nome}</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {condominio.indirizzo}, {condominio.comune}
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-ink">{condominio.nome}</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {condominio.indirizzo}, {condominio.comune}
+          </p>
+        </div>
+        <ModificaCondominioButton condominio={condominio} />
       </div>
 
       <Card>
@@ -52,6 +56,13 @@ export default async function CondominioDetailPage({ params }: { params: Promise
             { label: "Indirizzo", value: `${condominio.indirizzo}, ${condominio.comune}` },
             { label: "Numero unità", value: String(condominio.numeroUnita) },
             { label: "Immobili collegati su LOQO", value: String(condominio.immobili.length) },
+            ...(condominio.codiceFiscale ? [{ label: "Codice fiscale", value: condominio.codiceFiscale }] : []),
+            ...(condominio.ibanCondominio ? [{ label: "IBAN", value: condominio.ibanCondominio }] : []),
+            ...(condominio.annoCostruzione ? [{ label: "Anno di costruzione", value: String(condominio.annoCostruzione) }] : []),
+            ...(condominio.ascensore !== null ? [{ label: "Ascensore", value: condominio.ascensore ? "Sì" : "No" }] : []),
+            ...(condominio.impiantiComuni.length > 0
+              ? [{ label: "Impianti comuni", value: condominio.impiantiComuni.join(", ") }]
+              : []),
           ]}
         />
       </Card>

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { signOut } from "@/auth";
+import { auth, signOut } from "@/auth";
 import { requireAgenzia, requireAmministratore, requireProprietario, requirePrivato } from "@/lib/auth-helpers";
 import { cercaAgenzie } from "@/lib/data/agenzia";
 import { registraLogAzione } from "@/lib/audit/registraLogAzione";
@@ -13,6 +13,7 @@ import {
   creaImmobilePerCondominioSchema,
   nuovoImmobileProprietarioSchema,
   diventaProprietarioSchema,
+  aggiornaImmobileSchema,
   richiediGestioneImmobileSchema,
   rispondiRichiestaGestioneSchema,
   type NuovoImmobileInput,
@@ -20,11 +21,53 @@ import {
   type CreaImmobilePerCondominioInput,
   type NuovoImmobileProprietarioInput,
   type DiventaProprietarioInput,
+  type AggiornaImmobileInput,
   type RichiediGestioneImmobileInput,
   type RispondiRichiestaGestioneInput,
 } from "@/lib/validations/immobile";
 
 type ImmobileSummary = { id: string; indirizzo: string; comune: string; provincia: string };
+
+/** Mappa i "dati aggiuntivi opzionali" condivisi da ogni schema di creazione/modifica Immobile
+ * (vedi immobileDatiAggiuntiviFields) sui campi Prisma corrispondenti, con `null` esplicito per
+ * chi resta non compilato: evita di ripetere gli stessi 16 campi in ogni azione. */
+function datiAggiuntiviImmobile(data: {
+  foglio?: string;
+  particella?: string;
+  subalterno?: string;
+  categoriaCatastale?: string;
+  renditaCatastale?: number;
+  apeScadenza?: Date;
+  numeroVani?: number;
+  piano?: string;
+  ascensore?: boolean;
+  annoCostruzione?: number;
+  condizioneImmobile?: "NUOVO" | "RISTRUTTURATO" | "DA_RISTRUTTURARE";
+  arredato?: boolean;
+  dotazioni?: string[];
+  tipoRiscaldamento?: "AUTONOMO" | "CENTRALIZZATO";
+  speseCondominialiMensili?: number;
+  noteStima?: string;
+}) {
+  return {
+    foglio: data.foglio ?? null,
+    particella: data.particella ?? null,
+    subalterno: data.subalterno ?? null,
+    categoriaCatastale: data.categoriaCatastale ?? null,
+    renditaCatastale: data.renditaCatastale ?? null,
+    apeScadenza: data.apeScadenza ?? null,
+    numeroVani: data.numeroVani ?? null,
+    piano: data.piano ?? null,
+    ascensore: data.ascensore ?? null,
+    annoCostruzione: data.annoCostruzione ?? null,
+    condizioneImmobile: data.condizioneImmobile ?? null,
+    arredato: data.arredato ?? null,
+    dotazioni: data.dotazioni ?? [],
+    tipoRiscaldamento: data.tipoRiscaldamento ?? null,
+    speseCondominialiMensili: data.speseCondominialiMensili ?? null,
+    noteStima: data.noteStima ?? null,
+  };
+}
 
 /** Risolve il proprietarioId da usare per un nuovo Immobile: crea l'utente al volo se in modalità "nuovo".
  * `accountEsistente: true` segnala al chiamante che l'email inserita era già di un account esistente
@@ -112,6 +155,7 @@ export async function creaImmobileAction(
       apeClasse: data.apeClasse || null,
       valoreStimato: data.valoreStimato,
       stato: "ATTIVO",
+      ...datiAggiuntiviImmobile(data),
     },
   });
 
@@ -193,6 +237,7 @@ export async function creaImmobilePerCondominioAction(
       apeClasse: data.apeClasse || null,
       valoreStimato: data.valoreStimato,
       stato: "ATTIVO",
+      ...datiAggiuntiviImmobile(data),
     },
   });
 
@@ -233,6 +278,7 @@ export async function creaImmobileProprietarioAction(
       tipoImmobile: data.tipoImmobile,
       apeClasse: data.apeClasse || null,
       valoreStimato: data.valoreStimato,
+      ...datiAggiuntiviImmobile(data),
     },
   });
 
@@ -294,6 +340,7 @@ export async function diventaProprietarioAction(
             tipoImmobile: data.tipoImmobile,
             apeClasse: data.apeClasse || null,
             valoreStimato: data.valoreStimato,
+            ...datiAggiuntiviImmobile(data),
           },
         },
       },
@@ -316,6 +363,67 @@ export async function diventaProprietarioAction(
   });
 
   await signOut({ redirectTo: "/login?profiloCreato=1" });
+}
+
+/** Chi può modificare i dati di un Immobile: il Proprietario stesso, l'Agenzia che lo gestisce,
+ * o l'Amministratore del condominio a cui appartiene — stessa logica di verificaAccessoImmobile
+ * in app/actions/segnalazioni.ts. */
+async function verificaAccessoModificaImmobile(userId: string, immobileId: string): Promise<boolean> {
+  const immobile = await prisma.immobile.findUnique({
+    where: { id: immobileId },
+    include: { proprietario: true, agenzia: true, condominio: true },
+  });
+  if (!immobile) return false;
+
+  if (immobile.proprietario.userId === userId) return true;
+  if (immobile.agenzia?.userId === userId) return true;
+  if (immobile.condominio) {
+    const amministratore = await prisma.amministratore.findUnique({ where: { userId } });
+    if (amministratore?.id === immobile.condominio.amministratoreId) return true;
+  }
+  return false;
+}
+
+/**
+ * Modifica i dati propri di un Immobile già esistente (non le relazioni proprietario/agenzia/
+ * condominio, che non si spostano da qui). Prima d'ora non esisteva nessun form di modifica:
+ * i dati "aggiuntivi opzionali" nati con questa azione dovevano poter essere compilati anche
+ * in un secondo momento, non solo alla creazione.
+ */
+export async function aggiornaImmobileAction(
+  input: AggiornaImmobileInput
+): Promise<{ success: true } | { success: false; error: string }> {
+  const session = await auth();
+  if (!session?.user) return { success: false, error: "Sessione non valida" };
+
+  const parsed = aggiornaImmobileSchema.safeParse(input);
+  if (!parsed.success) return { success: false, error: "Dati non validi" };
+  const data = parsed.data;
+
+  const haAccesso = await verificaAccessoModificaImmobile(session.user.id, data.immobileId);
+  if (!haAccesso) return { success: false, error: "Non hai accesso a questo immobile" };
+
+  await prisma.immobile.update({
+    where: { id: data.immobileId },
+    data: {
+      indirizzo: data.indirizzo,
+      comune: data.comune,
+      provincia: data.provincia.toUpperCase(),
+      datiCatastali: data.datiCatastali,
+      superficieMq: data.superficieMq,
+      tipoImmobile: data.tipoImmobile,
+      apeClasse: data.apeClasse || null,
+      valoreStimato: data.valoreStimato,
+      ...datiAggiuntiviImmobile(data),
+    },
+  });
+
+  revalidatePath("/proprietario/immobili");
+  revalidatePath(`/proprietario/immobili/${data.immobileId}`);
+  revalidatePath("/agenzia/immobili");
+  revalidatePath(`/agenzia/immobili/${data.immobileId}`);
+
+  return { success: true };
 }
 
 export interface AgenziaRisultatoRicerca {

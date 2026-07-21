@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalNumber } from "@/lib/validations/common";
 
 export const TIPI_COPERTURA = ["Responsabilità civile", "Incendio e scoppio", "Multirischio abitazione"] as const;
 export type TipoCopertura = (typeof TIPI_COPERTURA)[number];
@@ -8,6 +9,8 @@ export const attivaAssicurazioneSchema = z.object({
   tipo: z.enum(TIPI_COPERTURA, { message: "Seleziona un tipo di copertura" }),
   fornitore: z.string().min(1, "Seleziona un fornitore"),
   premioAnnuale: z.coerce.number().positive("Il premio annuale deve essere maggiore di zero"),
+  // Valore indicativo ai fini di quotazione, distinto da Immobile.valoreStimato: opzionale.
+  valoreAssicurato: optionalNumber,
 });
 
 export type AttivaAssicurazioneInput = z.infer<typeof attivaAssicurazioneSchema>;

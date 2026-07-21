@@ -9,6 +9,7 @@ import { nuovoImmobileSchema, type NuovoImmobileInput, type NuovoImmobileFormInp
 import { TIPO_IMMOBILE_LABELS } from "@/lib/labels";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DatiAggiuntiviImmobileFields } from "@/components/immobili/dati-aggiuntivi-immobile-fields";
 import { withTimeout } from "@/lib/utils";
 
 type Proprietario = { id: string; user: { nome: string; cognome: string; email: string } };
@@ -124,6 +125,8 @@ export function NuovoImmobileForm({
           </Select>
         </div>
       </div>
+
+      <DatiAggiuntiviImmobileFields register={register} errors={errors} />
 
       <div className="border-t border-slate-200 pt-4">
         <Label htmlFor="proprietarioMode">Proprietario</Label>

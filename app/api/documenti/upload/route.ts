@@ -40,6 +40,9 @@ export async function POST(request: Request) {
     contestoId: formData.get("contestoId"),
     scadenzaAutoEliminazione: formData.get("scadenzaAutoEliminazione") ?? "",
     destinatari: formData.getAll("destinatari"),
+    categoria: formData.get("categoria") ?? "",
+    scadenzaDocumento: formData.get("scadenzaDocumento") ?? "",
+    nota: formData.get("nota") ?? "",
   });
   if (!parsed.success) {
     return NextResponse.json({ error: "Dati non validi" }, { status: 400 });
@@ -64,6 +67,9 @@ export async function POST(request: Request) {
       tipo: file.type || "application/octet-stream",
       caricatoDaUserId: session.user.id,
       scadenzaAutoEliminazione: data.scadenzaAutoEliminazione ?? null,
+      categoria: data.categoria ?? null,
+      scadenzaDocumento: data.scadenzaDocumento ?? null,
+      nota: data.nota ?? null,
       immobileId: data.contestoTipo === "IMMOBILE" ? data.contestoId : null,
       contrattoId: data.contestoTipo === "CONTRATTO" ? data.contestoId : null,
       condominioId: data.contestoTipo === "CONDOMINIO" ? data.contestoId : null,

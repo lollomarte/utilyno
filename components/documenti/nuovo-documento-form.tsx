@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Input, Label, Select } from "@/components/ui/input";
+import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ROLE_LABELS } from "@/lib/labels";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
+import { ROLE_LABELS, CATEGORIA_DOCUMENTO_LABELS } from "@/lib/labels";
 import { withTimeout } from "@/lib/utils";
 import type { ContestoDocumento } from "@/lib/documenti/risolviDestinatariDocumento";
 
@@ -19,6 +20,9 @@ export function NuovoDocumentoForm({ contesti, onSuccess }: { contesti: Contesto
   const router = useRouter();
   const [contestoId, setContestoId] = useState(contesti[0]?.id ?? "");
   const [scadenza, setScadenza] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [scadenzaDocumento, setScadenzaDocumento] = useState("");
+  const [nota, setNota] = useState("");
   const [destinatari, setDestinatari] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,6 +52,9 @@ export function NuovoDocumentoForm({ contesti, onSuccess }: { contesti: Contesto
     formData.append("contestoTipo", contesto.tipo);
     formData.append("contestoId", contesto.id);
     if (scadenza) formData.append("scadenzaAutoEliminazione", scadenza);
+    if (categoria) formData.append("categoria", categoria);
+    if (scadenzaDocumento) formData.append("scadenzaDocumento", scadenzaDocumento);
+    if (nota) formData.append("nota", nota);
     for (const id of destinatari) formData.append("destinatari", id);
 
     setIsSubmitting(true);
@@ -129,6 +136,35 @@ export function NuovoDocumentoForm({ contesti, onSuccess }: { contesti: Contesto
           className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
         />
       </div>
+      <CollapsibleSection title="Dati aggiuntivi (opzionali)" description="Utili per lo scadenzario e per ritrovare il documento">
+        <div>
+          <Label htmlFor="categoria">Categoria</Label>
+          <Select id="categoria" value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+            <option value="">Non specificata</option>
+            {Object.entries(CATEGORIA_DOCUMENTO_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="scadenzaDocumento">Scadenza del documento</Label>
+          <Input
+            id="scadenzaDocumento"
+            type="date"
+            value={scadenzaDocumento}
+            onChange={(e) => setScadenzaDocumento(e.target.value)}
+          />
+          <p className="mt-1 text-xs text-slate-400">
+            Scadenza reale del documento (es. carta d&apos;identità, APE, polizza), per lo scadenzario.
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="nota">Nota</Label>
+          <Textarea id="nota" rows={2} value={nota} onChange={(e) => setNota(e.target.value)} />
+        </div>
+      </CollapsibleSection>
       <div>
         <Label htmlFor="scadenza">Eliminazione automatica (opzionale)</Label>
         <Input id="scadenza" type="date" value={scadenza} onChange={(e) => setScadenza(e.target.value)} />

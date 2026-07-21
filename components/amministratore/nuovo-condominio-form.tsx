@@ -8,6 +8,7 @@ import { creaCondominioAction } from "@/app/actions/condomini";
 import { nuovoCondominioSchema, type NuovoCondominioInput, type NuovoCondominioFormInput } from "@/lib/validations/condominio";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DatiAggiuntiviCondominioFields } from "@/components/amministratore/dati-aggiuntivi-condominio-fields";
 import { withTimeout } from "@/lib/utils";
 
 export function NuovoCondominioForm() {
@@ -57,6 +58,9 @@ export function NuovoCondominioForm() {
           <FieldError message={errors.numeroUnita?.message} />
         </div>
       </div>
+
+      <DatiAggiuntiviCondominioFields register={register} />
+
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Creazione in corso..." : "Crea condominio"}

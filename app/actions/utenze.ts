@@ -33,7 +33,7 @@ export async function attivaUtenzaAction(
 
   const parsed = attivaUtenzaSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: "Dati non validi" };
-  const { immobileId, tipo, fornitore } = parsed.data;
+  const { immobileId, tipo, fornitore, codicePod, codicePdr, fornitoreUscente, indirizzoFornitura } = parsed.data;
 
   const immobile = await prisma.immobile.findUnique({ where: { id: immobileId } });
   if (!immobile) return { success: false, error: "Immobile non trovato" };
@@ -41,15 +41,22 @@ export async function attivaUtenzaAction(
   const autorizzato = await verificaAccessoImmobile(session.user.id, immobile);
   if (!autorizzato) return { success: false, error: "Non autorizzato" };
 
+  const datiAggiuntivi = {
+    codicePod: codicePod ?? null,
+    codicePdr: codicePdr ?? null,
+    fornitoreUscente: fornitoreUscente ?? null,
+    indirizzoFornitura: indirizzoFornitura ?? null,
+  };
+
   const esistente = await prisma.utenza.findFirst({ where: { immobileId, tipo } });
   if (esistente) {
     await prisma.utenza.update({
       where: { id: esistente.id },
-      data: { fornitore, stato: "ATTIVA", dataAttivazione: new Date() },
+      data: { fornitore, stato: "ATTIVA", dataAttivazione: new Date(), ...datiAggiuntivi },
     });
   } else {
     await prisma.utenza.create({
-      data: { immobileId, tipo, fornitore, stato: "ATTIVA", dataAttivazione: new Date() },
+      data: { immobileId, tipo, fornitore, stato: "ATTIVA", dataAttivazione: new Date(), ...datiAggiuntivi },
     });
   }
 

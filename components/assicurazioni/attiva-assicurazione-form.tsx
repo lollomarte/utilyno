@@ -93,6 +93,11 @@ export function AttivaAssicurazioneForm({
         <p className="mt-1 text-xs text-slate-400">Valore suggerito in base alla copertura, modificabile.</p>
         <FieldError message={errors.premioAnnuale?.message} />
       </div>
+      <div>
+        <Label htmlFor="valoreAssicurato">Valore assicurato indicativo (EUR, opzionale)</Label>
+        <Input id="valoreAssicurato" type="number" min="0" step="1000" {...register("valoreAssicurato")} />
+        <p className="mt-1 text-xs text-slate-400">Ai fini di quotazione: può differire dal valore di mercato dell&apos;immobile.</p>
+      </div>
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Attivazione in corso..." : "Attiva copertura"}

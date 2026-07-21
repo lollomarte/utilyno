@@ -6,7 +6,8 @@ import type { TipoUtenza } from "@prisma/client";
 import { attivaUtenzaAction } from "@/app/actions/utenze";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
-import { Label, Select } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { TIPO_UTENZA_LABELS } from "@/lib/labels";
 import { withTimeout } from "@/lib/utils";
 
@@ -22,6 +23,10 @@ export function AttivaUtenzaButton({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [fornitore, setFornitore] = useState(fornitoriDisponibili[0] ?? "");
+  const [codicePod, setCodicePod] = useState("");
+  const [codicePdr, setCodicePdr] = useState("");
+  const [fornitoreUscente, setFornitoreUscente] = useState("");
+  const [indirizzoFornitura, setIndirizzoFornitura] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attivata, setAttivata] = useState(false);
@@ -36,7 +41,17 @@ export function AttivaUtenzaButton({
     setIsSubmitting(true);
     setError(null);
     try {
-      const result = await withTimeout(attivaUtenzaAction({ immobileId, tipo, fornitore }));
+      const result = await withTimeout(
+        attivaUtenzaAction({
+          immobileId,
+          tipo,
+          fornitore,
+          codicePod: codicePod || undefined,
+          codicePdr: codicePdr || undefined,
+          fornitoreUscente: fornitoreUscente || undefined,
+          indirizzoFornitura: indirizzoFornitura || undefined,
+        })
+      );
       if (!result.success) {
         setError(result.error);
         return;
@@ -77,6 +92,35 @@ export function AttivaUtenzaButton({
               </Select>
               <p className="mt-1 text-xs text-slate-400">Simulazione: nessuna richiesta reale verrà inviata al fornitore.</p>
             </div>
+
+            <CollapsibleSection title="Dati aggiuntivi (opzionali)" description="Utili per attivazione o voltura">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor={`codicePod-${tipo}`}>Codice POD (elettricità)</Label>
+                  <Input id={`codicePod-${tipo}`} value={codicePod} onChange={(e) => setCodicePod(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor={`codicePdr-${tipo}`}>Codice PDR (gas)</Label>
+                  <Input id={`codicePdr-${tipo}`} value={codicePdr} onChange={(e) => setCodicePdr(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor={`fornitoreUscente-${tipo}`}>Fornitore uscente (se subentro)</Label>
+                  <Input
+                    id={`fornitoreUscente-${tipo}`}
+                    value={fornitoreUscente}
+                    onChange={(e) => setFornitoreUscente(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`indirizzoFornitura-${tipo}`}>Indirizzo di fornitura (se diverso dall&apos;immobile)</Label>
+                  <Input
+                    id={`indirizzoFornitura-${tipo}`}
+                    value={indirizzoFornitura}
+                    onChange={(e) => setIndirizzoFornitura(e.target.value)}
+                  />
+                </div>
+              </div>
+            </CollapsibleSection>
 
             {error && <p className="text-sm text-danger">{error}</p>}
 

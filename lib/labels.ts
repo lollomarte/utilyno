@@ -126,3 +126,24 @@ export const METODO_PAGAMENTO_LABELS: Record<string, string> = {
   BONIFICO: "Bonifico",
   CARTA: "Carta",
 };
+
+export const CONDIZIONE_IMMOBILE_LABELS: Record<string, string> = {
+  NUOVO: "Nuovo",
+  RISTRUTTURATO: "Ristrutturato",
+  DA_RISTRUTTURARE: "Da ristrutturare",
+};
+
+export const TIPO_RISCALDAMENTO_LABELS: Record<string, string> = {
+  AUTONOMO: "Autonomo",
+  CENTRALIZZATO: "Centralizzato",
+};
+
+export const CATEGORIA_DOCUMENTO_LABELS: Record<string, string> = {
+  CONTRATTO: "Contratto",
+  APE: "APE",
+  PLANIMETRIA: "Planimetria",
+  CARTA_IDENTITA: "Carta d'identità",
+  VISURA_CATASTALE: "Visura catastale",
+  POLIZZA: "Polizza assicurativa",
+  ALTRO: "Altro",
+};

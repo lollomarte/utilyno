@@ -18,6 +18,8 @@ export const CATEGORIA_INTERVENTO_OPTIONS = [
   "ALTRO",
 ] as const;
 
+export const FASCIA_ORARIA_OPTIONS = ["Mattina", "Pomeriggio", "Sera", "Tutto il giorno"] as const;
+
 export const nuovaSegnalazioneSchema = z.object({
   immobileId: z.string().min(1, "Seleziona un immobile"),
   categoria: z.enum(CATEGORIA_SEGNALAZIONE_OPTIONS).optional(),
@@ -28,6 +30,12 @@ export const nuovaSegnalazioneSchema = z.object({
   titolo: z.string().min(1, "Il titolo è obbligatorio").max(120),
   descrizione: z.string().min(1, "La descrizione è obbligatoria").max(2000),
   priorita: z.enum(["BASSA", "MEDIA", "ALTA"]),
+  // Opzionali: chi segnala potrebbe non avere foto o disponibilità precise da subito.
+  fotoUrls: z.array(z.string()).optional().default([]),
+  fasciaOrariaDisponibile: z
+    .union([z.enum(FASCIA_ORARIA_OPTIONS), z.literal("")])
+    .optional()
+    .transform((v) => (v === "" ? undefined : v)),
 });
 
 export type NuovaSegnalazioneInput = z.infer<typeof nuovaSegnalazioneSchema>;

@@ -83,6 +83,8 @@ export async function creaSegnalazioneAction(
       categoria: parsed.data.categoria,
       categoriaIntervento: parsed.data.categoriaIntervento,
       priorita: parsed.data.priorita,
+      fotoUrls: parsed.data.fotoUrls ?? [],
+      fasciaOrariaDisponibile: parsed.data.fasciaOrariaDisponibile ?? null,
       creatoDaUserId: session.user.id,
       immobileId: parsed.data.immobileId,
       destinatari: {

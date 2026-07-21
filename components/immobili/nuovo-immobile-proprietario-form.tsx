@@ -13,6 +13,7 @@ import {
 import { TIPO_IMMOBILE_LABELS } from "@/lib/labels";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DatiAggiuntiviImmobileFields } from "@/components/immobili/dati-aggiuntivi-immobile-fields";
 import { withTimeout } from "@/lib/utils";
 
 export function NuovoImmobileProprietarioForm({
@@ -98,6 +99,8 @@ export function NuovoImmobileProprietarioForm({
           <FieldError message={errors.valoreStimato?.message} />
         </div>
       </div>
+
+      <DatiAggiuntiviImmobileFields register={register} errors={errors} />
 
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
 

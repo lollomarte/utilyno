@@ -6,6 +6,8 @@ import { getFornitoriAssicurazione } from "@/lib/data/assicurazioni";
 import { SegnalazioniTable } from "@/components/segnalazioni/segnalazioni-table";
 import { UtenzeSection } from "@/components/utenze/utenze-section";
 import { AssicurazioneSection } from "@/components/assicurazioni/assicurazione-section";
+import { ModificaImmobileButton } from "@/components/immobili/modifica-immobile-button";
+import { datiAggiuntiviImmobileRows } from "@/lib/immobili/datiAggiuntiviImmobileRows";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { StatoContrattoBadge, StatoPagamentoBadge, StatoDepositoBadge, StatoImmobileBadge } from "@/components/ui/badge";
@@ -44,7 +46,10 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
           </h1>
           <p className="mt-1 text-sm text-slate-500">{TIPO_IMMOBILE_LABELS[immobile.tipoImmobile]}</p>
         </div>
-        <StatoImmobileBadge stato={immobile.stato} label={STATO_IMMOBILE_LABELS[immobile.stato]} />
+        <div className="flex items-center gap-3">
+          <StatoImmobileBadge stato={immobile.stato} label={STATO_IMMOBILE_LABELS[immobile.stato]} />
+          <ModificaImmobileButton immobile={immobile} />
+        </div>
       </div>
 
       <Card>
@@ -56,6 +61,7 @@ export default async function ImmobileDetailPage({ params }: { params: Promise<{
             { label: "Superficie", value: `${immobile.superficieMq} m²` },
             { label: "Classe APE", value: immobile.apeClasse ?? "-" },
             { label: "Valore stimato", value: formatCurrency(immobile.valoreStimato) },
+            ...datiAggiuntiviImmobileRows(immobile),
           ]}
         />
       </Card>

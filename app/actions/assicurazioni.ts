@@ -39,7 +39,7 @@ export async function attivaAssicurazioneAction(
 
   const parsed = attivaAssicurazioneSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: "Dati non validi" };
-  const { immobileId, tipo, fornitore, premioAnnuale } = parsed.data;
+  const { immobileId, tipo, fornitore, premioAnnuale, valoreAssicurato } = parsed.data;
 
   const immobile = await prisma.immobile.findUnique({ where: { id: immobileId } });
   if (!immobile) return { success: false, error: "Immobile non trovato" };
@@ -57,6 +57,7 @@ export async function attivaAssicurazioneAction(
       stato: "ATTIVA",
       dataScadenza: addYears(oggi, 1),
       commissioneLoqo: calcolaCommissioneLoqo(premioAnnuale),
+      valoreAssicurato: valoreAssicurato ?? null,
     },
   });
 

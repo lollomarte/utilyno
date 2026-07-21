@@ -6,6 +6,7 @@ import { creaChecklistAction } from "@/app/actions/checklist";
 import { TIPO_CHECKLIST_LABELS } from "@/lib/labels";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { withTimeout } from "@/lib/utils";
 
 export function ChecklistForm({ contrattoId }: { contrattoId: string }) {
@@ -64,6 +65,24 @@ export function ChecklistForm({ contrattoId }: { contrattoId: string }) {
         <Label htmlFor="note">Note</Label>
         <Textarea id="note" name="note" rows={3} />
       </div>
+
+      <CollapsibleSection title="Letture contatori (opzionali)" description="Utili per voltura utenze e contestazioni consumi">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div>
+            <Label htmlFor="letturaLuce">Luce (kWh)</Label>
+            <Input id="letturaLuce" name="letturaLuce" type="number" min="0" step="0.01" />
+          </div>
+          <div>
+            <Label htmlFor="letturaGas">Gas (mc)</Label>
+            <Input id="letturaGas" name="letturaGas" type="number" min="0" step="0.01" />
+          </div>
+          <div>
+            <Label htmlFor="letturaAcqua">Acqua (mc)</Label>
+            <Input id="letturaAcqua" name="letturaAcqua" type="number" min="0" step="0.01" />
+          </div>
+        </div>
+      </CollapsibleSection>
+
       <label className="flex items-center gap-2 text-sm text-slate-700">
         <input type="checkbox" name="firmaProprietario" className="h-4 w-4" />
         Firma proprietario confermata (presente al momento della compilazione)

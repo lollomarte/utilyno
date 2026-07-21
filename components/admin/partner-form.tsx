@@ -21,6 +21,8 @@ export interface PartnerEsistente {
   contattoReferente: string;
   commissioneMedia: number | null;
   attivo: boolean;
+  piva: string | null;
+  pec: string | null;
 }
 
 export function PartnerForm({ partner, onSuccess }: { partner?: PartnerEsistente; onSuccess?: () => void }) {
@@ -42,6 +44,8 @@ export function PartnerForm({ partner, onSuccess }: { partner?: PartnerEsistente
           email: partner.email,
           contattoReferente: partner.contattoReferente,
           commissioneMedia: partner.commissioneMedia ?? undefined,
+          piva: partner.piva ?? "",
+          pec: partner.pec ?? "",
         }
       : { categoria: "IDRAULICO" },
   });
@@ -105,6 +109,16 @@ export function PartnerForm({ partner, onSuccess }: { partner?: PartnerEsistente
       <div>
         <Label htmlFor="commissioneMedia">Commissione media stimata per lead (opzionale, solo uso interno)</Label>
         <Input id="commissioneMedia" type="number" step="0.01" {...register("commissioneMedia")} />
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="piva">Partita IVA (opzionale)</Label>
+          <Input id="piva" {...register("piva")} />
+        </div>
+        <div>
+          <Label htmlFor="pec">PEC (opzionale)</Label>
+          <Input id="pec" type="email" {...register("pec")} />
+        </div>
       </div>
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" disabled={isSubmitting}>

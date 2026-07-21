@@ -25,6 +25,8 @@ export async function creaPartnerAction(input: PartnerInput): Promise<{ success:
       email: parsed.data.email,
       contattoReferente: parsed.data.contattoReferente,
       commissioneMedia: parsed.data.commissioneMedia,
+      piva: parsed.data.piva ?? null,
+      pec: parsed.data.pec ?? null,
     },
   });
 
@@ -52,6 +54,8 @@ export async function aggiornaPartnerAction(
       email: parsed.data.email,
       contattoReferente: parsed.data.contattoReferente,
       commissioneMedia: parsed.data.commissioneMedia,
+      piva: parsed.data.piva ?? null,
+      pec: parsed.data.pec ?? null,
     },
   });
 

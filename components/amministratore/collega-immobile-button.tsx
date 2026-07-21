@@ -14,6 +14,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { TIPO_IMMOBILE_LABELS } from "@/lib/labels";
+import { DatiAggiuntiviImmobileFields } from "@/components/immobili/dati-aggiuntivi-immobile-fields";
 import { cn, withTimeout } from "@/lib/utils";
 
 type ImmobileDisponibile = {
@@ -253,6 +254,8 @@ function CreaImmobileForm({
           <FieldError message={errors.agenziaId?.message} />
         </div>
       </div>
+
+      <DatiAggiuntiviImmobileFields register={register} errors={errors} />
 
       <div className="border-t border-slate-200 pt-4">
         <Label htmlFor="proprietarioMode">Proprietario</Label>

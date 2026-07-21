@@ -6,11 +6,13 @@ import { getUtenzeComplete, getFornitoriPerTutteLeUtenze } from "@/lib/data/uten
 import { getFornitoriAssicurazione } from "@/lib/data/assicurazioni";
 import { UtenzeSection } from "@/components/utenze/utenze-section";
 import { AssicurazioneSection } from "@/components/assicurazioni/assicurazione-section";
+import { ModificaImmobileButton } from "@/components/immobili/modifica-immobile-button";
 import { Card, CardHeader, DescriptionList } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { StatoContrattoBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { TIPO_IMMOBILE_LABELS, STATO_CONTRATTO_LABELS } from "@/lib/labels";
+import { datiAggiuntiviImmobileRows } from "@/lib/immobili/datiAggiuntiviImmobileRows";
 
 export default async function AgenziaImmobileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -29,11 +31,14 @@ export default async function AgenziaImmobileDetailPage({ params }: { params: Pr
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-ink">
-          {immobile.indirizzo}, {immobile.comune}
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">{TIPO_IMMOBILE_LABELS[immobile.tipoImmobile]}</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-ink">
+            {immobile.indirizzo}, {immobile.comune}
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">{TIPO_IMMOBILE_LABELS[immobile.tipoImmobile]}</p>
+        </div>
+        <ModificaImmobileButton immobile={immobile} />
       </div>
 
       <Card>
@@ -47,6 +52,7 @@ export default async function AgenziaImmobileDetailPage({ params }: { params: Pr
             { label: "Valore stimato", value: formatCurrency(immobile.valoreStimato) },
             { label: "Proprietario", value: `${immobile.proprietario.user.nome} ${immobile.proprietario.user.cognome}` },
             { label: "Condominio", value: immobile.condominio?.nome ?? "-" },
+            ...datiAggiuntiviImmobileRows(immobile),
           ]}
         />
       </Card>

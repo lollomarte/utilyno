@@ -13,6 +13,9 @@ export async function creaChecklistAction(formData: FormData): Promise<{ success
     tipo: formData.get("tipo"),
     note: formData.get("note") || undefined,
     firmaProprietario: formData.get("firmaProprietario") === "on",
+    letturaLuce: formData.get("letturaLuce") ?? "",
+    letturaGas: formData.get("letturaGas") ?? "",
+    letturaAcqua: formData.get("letturaAcqua") ?? "",
   });
   if (!parsed.success) {
     return { success: false, error: "Dati non validi" };
@@ -35,6 +38,9 @@ export async function creaChecklistAction(formData: FormData): Promise<{ success
       fotoUrls,
       firmaProprietario: data.firmaProprietario,
       firmaProprietarioAt: data.firmaProprietario ? new Date() : null,
+      letturaLuce: data.letturaLuce ?? null,
+      letturaGas: data.letturaGas ?? null,
+      letturaAcqua: data.letturaAcqua ?? null,
     },
   });
 

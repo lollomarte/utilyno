@@ -27,6 +27,27 @@ enum TipoImmobile {
   COMMERCIALE
 }
 
+enum CondizioneImmobile {
+  NUOVO
+  RISTRUTTURATO
+  DA_RISTRUTTURARE
+}
+
+enum TipoRiscaldamento {
+  AUTONOMO
+  CENTRALIZZATO
+}
+
+enum CategoriaDocumento {
+  CONTRATTO
+  APE
+  PLANIMETRIA
+  CARTA_IDENTITA
+  VISURA_CATASTALE
+  POLIZZA
+  ALTRO
+}
+
 enum TipoNotaSviluppatore {
   BUG
   SUGGERIMENTO
@@ -143,14 +164,14 @@ enum StatoRichiestaPreventivo {
 // ---------- Models ----------
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  role         Role
-  nome         String
-  cognome      String
-  telefono     String?
-  createdAt    DateTime @default(now())
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String
+  role           Role
+  nome           String
+  cognome        String
+  telefono       String?
+  createdAt      DateTime  @default(now())
   /// Valorizzato quando l'account viene anonimizzato da un Admin (GDPR): nome/cognome/email/
   /// telefono sono già stati sostituiti con placeholder. Righe storiche (contratti, pagamenti,
   /// log) restano intatte, solo i dati personali diretti sull'utente vengono rimossi.
@@ -209,6 +230,11 @@ model Agenzia {
   piva           String  @unique
   indirizzo      String
   telefono       String?
+  /// PEC per comunicazioni legali/RLI: opzionale, compilabile anche dopo la registrazione.
+  pec            String?
+  /// Codice destinatario SDI per fatturazione elettronica.
+  codiceSdi      String?
+  ibanAgenzia    String?
 
   immobili          Immobile[]
   contratti         Contratto[]
@@ -223,6 +249,8 @@ model Amministratore {
   piva           String  @unique
   indirizzo      String
   telefono       String?
+  pec            String?
+  codiceSdi      String?
 
   condomini Condominio[]
 }
@@ -238,6 +266,14 @@ model Condominio {
   numeroUnita Int
   createdAt   DateTime @default(now())
 
+  /// Codice fiscale del condominio (distinto dalla P.IVA dell'Amministratore): richiesto per la polizza globale fabbricato.
+  codiceFiscale   String?
+  ibanCondominio  String?
+  annoCostruzione Int?
+  ascensore       Boolean?
+  /// Impianti comuni rilevanti per la polizza (es. autoclave, riscaldamento centralizzato, cancello automatico).
+  impiantiComuni  String[] @default([])
+
   immobili      Immobile[]
   comunicazioni ComunicazioneCondominiale[]
   documenti     Documento[]
@@ -246,11 +282,14 @@ model Condominio {
 }
 
 model Proprietario {
-  id            String @id @default(cuid())
-  userId        String @unique
-  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  codiceFiscale String @unique
-  indirizzo     String
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codiceFiscale    String  @unique
+  indirizzo        String
+  /// Per accredito canoni/deposito: vive sul Proprietario (non sull'Immobile) perché lo stesso
+  /// IBAN vale per tutti gli immobili di quel proprietario.
+  ibanProprietario String?
 
   immobili          Immobile[]
   richiesteGestione RichiestaGestioneImmobile[]
@@ -284,7 +323,28 @@ model Immobile {
   apeClasse     String?
   valoreStimato Float
   stato         StatoImmobile @default(BOZZA_PROPRIETARIO)
-  createdAt     DateTime     @default(now())
+  createdAt     DateTime      @default(now())
+
+  // ---- Dati aggiuntivi opzionali: non richiesti per l'uso attuale della piattaforma, ma
+  // servono a valle (passaggio in gestione ad agenzia, RLI, quotazione assicurativa, ecc.)
+  // senza dover richiedere di nuovo gli stessi dati in un secondo momento.
+  foglio                   String?
+  particella               String?
+  subalterno               String?
+  categoriaCatastale       String?
+  renditaCatastale         Float?
+  apeScadenza              DateTime?
+  numeroVani               Int?
+  piano                    String?
+  ascensore                Boolean?
+  annoCostruzione          Int?
+  condizioneImmobile       CondizioneImmobile?
+  arredato                 Boolean?
+  /// Dotazioni libere (es. climatizzazione, cantina, box auto) — stesso pattern di fotoUrls su ChecklistImmobile.
+  dotazioni                String[]            @default([])
+  tipoRiscaldamento        TipoRiscaldamento?
+  speseCondominialiMensili Float?
+  noteStima                String?
 
   contratti         Contratto[]
   utenze            Utenza[]
@@ -391,6 +451,14 @@ model Utenza {
   stato           StatoUtenza @default(DA_ATTIVARE)
   dataAttivazione DateTime?
 
+  /// POD (elettricità) o PDR (gas): richiesti per attivazione/voltura, opzionali finché non disponibili.
+  codicePod          String?
+  codicePdr          String?
+  /// Fornitore precedente, per i casi di subentro/voltura.
+  fornitoreUscente   String?
+  /// Solo se diverso dall'indirizzo dell'immobile.
+  indirizzoFornitura String?
+
   @@index([immobileId])
 }
 
@@ -399,12 +467,15 @@ model Assicurazione {
   immobileId String
   immobile   Immobile @relation(fields: [immobileId], references: [id], onDelete: Cascade)
 
-  tipo            String
-  fornitore       String
-  premioAnnuale   Float
-  stato           StatoAssicurazione @default(ATTIVA)
-  dataScadenza    DateTime
-  commissioneLoqo Float
+  tipo             String
+  fornitore        String
+  premioAnnuale    Float
+  stato            StatoAssicurazione @default(ATTIVA)
+  dataScadenza     DateTime
+  commissioneLoqo  Float
+  /// Valore indicativo ai fini di quotazione: distinto da Immobile.valoreStimato (valore di
+  /// mercato), può differire legittimamente dal valore da assicurare (es. costo di ricostruzione).
+  valoreAssicurato Float?
 
   @@index([immobileId])
 }
@@ -423,17 +494,26 @@ model ChecklistImmobile {
   note                String?
   dataCompilazione    DateTime      @default(now())
 
+  /// Letture contatori a verbale ingresso/uscita: utili per voltura utenze e contestazioni consumi.
+  letturaLuce  Float?
+  letturaGas   Float?
+  letturaAcqua Float?
+
   @@index([contrattoId])
 }
 
 model Segnalazione {
-  id                  String                 @id @default(cuid())
-  titolo              String
-  descrizione         String
-  categoria           CategoriaSegnalazione?
-  categoriaIntervento CategoriaIntervento?
-  priorita            String
-  stato               StatoSegnalazione      @default(APERTA)
+  id                      String                 @id @default(cuid())
+  titolo                  String
+  descrizione             String
+  categoria               CategoriaSegnalazione?
+  categoriaIntervento     CategoriaIntervento?
+  priorita                String
+  stato                   StatoSegnalazione      @default(APERTA)
+  /// Stesso pattern di ChecklistImmobile.fotoUrls: mock (nessun upload reale), coerente con
+  /// l'unico altro punto della piattaforma che oggi allega foto.
+  fotoUrls                String[]               @default([])
+  fasciaOrariaDisponibile String?
 
   creatoDaUserId String
   creatoDa       User   @relation("SegnalazioniCreate", fields: [creatoDaUserId], references: [id], onDelete: Cascade)
@@ -488,6 +568,9 @@ model Partner {
   email             String
   contattoReferente String
   attivo            Boolean             @default(true)
+  /// Per fatturazione/contrattualistica col partner.
+  piva              String?
+  pec               String?
   /**
    * Percentuale o importo fisso stimato per lead: solo per uso interno/admin, non esposto agli altri ruoli.
    */
@@ -564,25 +647,34 @@ model InvitoInquilino {
 }
 
 model Documento {
-  id          String      @id @default(cuid())
-  contrattoId String?
-  contratto   Contratto?  @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
-  immobileId  String?
-  immobile    Immobile?   @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+  id           String      @id @default(cuid())
+  contrattoId  String?
+  contratto    Contratto?  @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
+  immobileId   String?
+  immobile     Immobile?   @relation(fields: [immobileId], references: [id], onDelete: Cascade)
   condominioId String?
-  condominio  Condominio? @relation(fields: [condominioId], references: [id], onDelete: Cascade)
+  condominio   Condominio? @relation(fields: [condominioId], references: [id], onDelete: Cascade)
 
   caricatoDaUserId String
   caricatoDa       User   @relation("DocumentiCaricati", fields: [caricatoDaUserId], references: [id], onDelete: Cascade)
 
-  nome       String
-  url        String
-  tipo       String
-  uploadedAt DateTime @default(now())
+  nome                     String
+  url                      String
+  /// Tecnico: MIME type rilevato dal file caricato (es. "application/pdf"), non una
+  /// classificazione business — vedi `categoria` per quella.
+  tipo                     String
+  uploadedAt               DateTime  @default(now())
   /// Se valorizzata, il documento (record + file su Blob) viene eliminato la prima volta che
   /// qualcuno legge la lista documenti dopo questa data (eliminazione lazy, niente cron: vedi
-  /// lib/documenti/eliminaDocumentiScaduti.ts).
+  /// lib/documenti/eliminaDocumentiScaduti.ts). Meccanismo tecnico di pulizia storage, distinto
+  /// da `scadenzaDocumento` (scadenza reale del documento, per lo scadenzario).
   scadenzaAutoEliminazione DateTime?
+
+  /// Classificazione business del documento (contratto, APE, planimetria, ...), scelta dall'utente.
+  categoria         CategoriaDocumento?
+  /// Scadenza reale del documento (es. carta d'identità, APE, polizza), per alimentare lo scadenzario.
+  scadenzaDocumento DateTime?
+  nota              String?
 
   condivisioni DocumentoCondivisione[]
 
