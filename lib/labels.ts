@@ -7,15 +7,6 @@ export const ROLE_LABELS: Record<string, string> = {
   PRIVATO: "Privato",
 };
 
-/** Etichetta di ruolo per la sezione unificata /casa, dove un utente può avere 0, 1 o
- * entrambi i profili Proprietario/Inquilino (0 = registrato come PRIVATO, non ancora attivato). */
-export function roleLabelPrivato(profili: ("PROPRIETARIO" | "INQUILINO")[]): string {
-  if (profili.length === 2) return "Proprietario e Inquilino";
-  if (profili[0] === "PROPRIETARIO") return "Proprietario";
-  if (profili[0] === "INQUILINO") return "Inquilino";
-  return "Privato";
-}
-
 export const TIPO_CONTRATTO_LABELS: Record<string, string> = {
   QUATTRO_PIU_QUATTRO: "4+4",
   TRE_PIU_DUE: "3+2",

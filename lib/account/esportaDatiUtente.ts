@@ -5,18 +5,17 @@ import { prisma } from "@/lib/prisma";
  * solo le entità di cui l'utente è titolare/parte, mai dati di altri utenti collegati
  * (es. un proprietario non deve poter esportare i dati personali del suo inquilino).
  * `passwordHash` non è mai incluso (omesso di default dal client Prisma, vedi lib/prisma.ts).
- * Un utente può possedere più profili contemporaneamente (es. Proprietario di un immobile e
- * Inquilino di un altro): l'export aggrega i dati di ciascun profilo effettivamente posseduto,
- * non di un singolo ruolo dichiarato.
+ * Un Privato può avere più relazioni contemporaneamente (es. proprietario di un immobile e
+ * inquilino di un altro): l'export aggrega i dati di ciascun ruolo effettivamente ricoperto su
+ * ogni immobile, non di un singolo ruolo dichiarato a livello di account.
  */
 export async function esportaDatiUtente(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
 
-  const [datiAgenzia, datiProprietario, datiInquilino, datiAmministratore] = await Promise.all([
+  const [datiAgenzia, datiPrivato, datiAmministratore] = await Promise.all([
     raccogliDatiAgenzia(userId),
-    raccogliDatiProprietario(userId),
-    raccogliDatiInquilino(userId),
+    raccogliDatiPrivato(userId),
     raccogliDatiAmministratore(userId),
   ]);
 
@@ -24,8 +23,7 @@ export async function esportaDatiUtente(userId: string) {
     esportatoIl: new Date().toISOString(),
     account: user,
     ...datiAgenzia,
-    ...datiProprietario,
-    ...datiInquilino,
+    ...datiPrivato,
     ...datiAmministratore,
   };
 }
@@ -40,25 +38,16 @@ async function raccogliDatiAgenzia(userId: string) {
   return { agenzia, immobili, contratti };
 }
 
-async function raccogliDatiProprietario(userId: string) {
-  const proprietario = await prisma.proprietario.findUnique({ where: { userId } });
-  if (!proprietario) return {};
-  const immobili = await prisma.immobile.findMany({ where: { proprietarioId: proprietario.id } });
-  const [contratti, assicurazioni] = await Promise.all([
-    prisma.contratto.findMany({ where: { immobile: { proprietarioId: proprietario.id } } }),
-    prisma.assicurazione.findMany({ where: { immobile: { proprietarioId: proprietario.id } } }),
+async function raccogliDatiPrivato(userId: string) {
+  const privato = await prisma.privato.findUnique({ where: { userId } });
+  if (!privato) return {};
+  const [immobiliProprietario, contrattiProprietario, assicurazioni, contrattiInquilino] = await Promise.all([
+    prisma.immobile.findMany({ where: { relazioni: { some: { privatoId: privato.id, ruolo: "PROPRIETARIO" } } } }),
+    prisma.contratto.findMany({ where: { proprietarioId: privato.id } }),
+    prisma.assicurazione.findMany({ where: { immobile: { relazioni: { some: { privatoId: privato.id, ruolo: "PROPRIETARIO" } } } } }),
+    prisma.contratto.findMany({ where: { inquilinoId: privato.id }, include: { pagamenti: true } }),
   ]);
-  return { proprietario, immobiliProprietario: immobili, contrattiProprietario: contratti, assicurazioni };
-}
-
-async function raccogliDatiInquilino(userId: string) {
-  const inquilino = await prisma.inquilino.findUnique({ where: { userId } });
-  if (!inquilino) return {};
-  const contratti = await prisma.contratto.findMany({
-    where: { inquilinoId: inquilino.id },
-    include: { pagamenti: true },
-  });
-  return { inquilino, contrattiInquilino: contratti };
+  return { privato, immobiliProprietario, contrattiProprietario, assicurazioni, contrattiInquilino };
 }
 
 async function raccogliDatiAmministratore(userId: string) {

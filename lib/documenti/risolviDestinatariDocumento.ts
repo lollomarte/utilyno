@@ -6,16 +6,19 @@ export type ContestoDocumento =
   | { tipo: "CONTRATTO"; id: string }
   | { tipo: "CONDOMINIO"; id: string };
 
-/** Pool per un Contratto specifico: usa l'inquilino di QUEL contratto (non necessariamente
- * quello attivo oggi sull'immobile), utile per documenti storici legati a un contratto concluso. */
+/** Pool per un Contratto specifico: usa proprietario e inquilino DI QUEL contratto (non
+ * necessariamente le relazioni attive oggi sull'immobile), utile per documenti storici legati a
+ * un contratto concluso. A differenza del pool-immobile, qui proprietario/inquilino vengono
+ * direttamente dai campi del Contratto (non da RelazioneImmobilePrivato), perché sono quelli
+ * validi al momento della firma, non quelli correnti. */
 async function getPoolContratto(contrattoId: string): Promise<PartePool[]> {
   const contratto = await prisma.contratto.findUniqueOrThrow({
     where: { id: contrattoId },
     include: {
+      proprietario: { include: { user: true } },
       inquilino: { include: { user: true } },
       immobile: {
         include: {
-          proprietario: { include: { user: true } },
           agenzia: { include: { user: true } },
           condominio: { include: { amministratore: { include: { user: true } } } },
         },
@@ -25,10 +28,10 @@ async function getPoolContratto(contrattoId: string): Promise<PartePool[]> {
 
   const pool: PartePool[] = [
     {
-      userId: contratto.immobile.proprietario.user.id,
+      userId: contratto.proprietario.user.id,
       ruolo: "PROPRIETARIO",
-      nome: contratto.immobile.proprietario.user.nome,
-      cognome: contratto.immobile.proprietario.user.cognome,
+      nome: contratto.proprietario.user.nome,
+      cognome: contratto.proprietario.user.cognome,
     },
     {
       userId: contratto.inquilino.user.id,
@@ -39,7 +42,7 @@ async function getPoolContratto(contrattoId: string): Promise<PartePool[]> {
   ];
 
   // Un Contratto esiste solo su un immobile già in gestione a un'agenzia, ma il campo resta
-  // nullable a livello di tipo (immobili auto-inseriti dal Proprietario partono senza agenzia).
+  // nullable a livello di tipo (immobili auto-inseriti da un privato partono senza agenzia).
   if (contratto.immobile.agenzia) {
     pool.push({
       userId: contratto.immobile.agenzia.user.id,
@@ -62,9 +65,10 @@ async function getPoolContratto(contrattoId: string): Promise<PartePool[]> {
   return pool;
 }
 
-/** Pool per un intero Condominio: l'amministratore più, senza duplicati, proprietario/agenzia/
- * inquilino attivo di ciascun immobile collegato. Usato per documenti "di palazzo" (es. regolamento
- * condominiale) che l'Amministratore vuole condividere con tutte le parti collegate all'edificio. */
+/** Pool per un intero Condominio: l'amministratore più, senza duplicati, proprietario/i, agenzia
+ * e inquilino/i attivi di ciascun immobile collegato. Usato per documenti "di palazzo" (es.
+ * regolamento condominiale) che l'Amministratore vuole condividere con tutte le parti collegate
+ * all'edificio. */
 async function getPoolCondominio(condominioId: string): Promise<PartePool[]> {
   const condominio = await prisma.condominio.findUniqueOrThrow({
     where: { id: condominioId },
@@ -72,9 +76,11 @@ async function getPoolCondominio(condominioId: string): Promise<PartePool[]> {
       amministratore: { include: { user: true } },
       immobili: {
         include: {
-          proprietario: { include: { user: true } },
           agenzia: { include: { user: true } },
-          contratti: { where: { stato: "ATTIVO" }, include: { inquilino: { include: { user: true } } }, take: 1 },
+          relazioni: {
+            where: { stato: "ATTIVA" },
+            include: { privato: { include: { user: true } } },
+          },
         },
       },
     },
@@ -97,17 +103,12 @@ async function getPoolCondominio(condominioId: string): Promise<PartePool[]> {
   );
 
   for (const immobile of condominio.immobili) {
-    aggiungi(
-      immobile.proprietario.user.id,
-      "PROPRIETARIO",
-      immobile.proprietario.user.nome,
-      immobile.proprietario.user.cognome
-    );
+    for (const r of immobile.relazioni) {
+      aggiungi(r.privato.user.id, r.ruolo, r.privato.user.nome, r.privato.user.cognome);
+    }
     if (immobile.agenzia) {
       aggiungi(immobile.agenzia.user.id, "AGENZIA", immobile.agenzia.user.nome, immobile.agenzia.user.cognome);
     }
-    const inquilinoUser = immobile.contratti[0]?.inquilino.user;
-    if (inquilinoUser) aggiungi(inquilinoUser.id, "INQUILINO", inquilinoUser.nome, inquilinoUser.cognome);
   }
 
   return pool;

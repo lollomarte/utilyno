@@ -49,27 +49,25 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/amministratore/comunicazioni": Megaphone,
   "/amministratore/documenti": FileStack,
   "/amministratore/note-sviluppatore": MessageSquareText,
-  "/proprietario": LayoutDashboard,
-  "/proprietario/immobili": Building2,
-  "/proprietario/contratti": FileText,
-  "/proprietario/pagamenti": Wallet,
-  "/proprietario/segnalazioni": MessageSquareWarning,
-  "/proprietario/documenti": FileStack,
-  "/proprietario/note-sviluppatore": MessageSquareText,
-  "/inquilino": LayoutDashboard,
-  "/inquilino/contratto": FileText,
-  "/inquilino/pagamenti": Wallet,
-  "/inquilino/utenze": Zap,
-  "/inquilino/segnalazioni": MessageSquareWarning,
-  "/inquilino/checklist": ClipboardCheck,
-  "/inquilino/documenti": FileStack,
-  "/inquilino/note-sviluppatore": MessageSquareText,
+  "/privato": Building2,
 };
+
+/// Suffisso -> icona, per le sotto-pagine di /privato/[immobileId]/*: il prefisso dinamico
+/// (l'id immobile) non può stare come chiave esatta nella mappa sopra, stessa ragione per cui
+/// non c'era prima per /casa/[immobileId]/*.
+const NAV_ICON_SUFFISSI: [string, LucideIcon][] = [
+  ["/profilo", UserRound],
+  ["/note-sviluppatore", MessageSquareText],
+  ["/pagamenti", Wallet],
+  ["/segnalazioni", MessageSquareWarning],
+  ["/documenti", FileStack],
+  ["/utenze", Zap],
+  ["/checklist", ClipboardCheck],
+];
 
 export function getNavIcon(href: string): LucideIcon {
   if (href in NAV_ICONS) return NAV_ICONS[href];
-  if (href.endsWith("/profilo")) return UserRound;
-  // Copre anche /casa/[immobileId]/note-sviluppatore, dove il prefisso dinamico non può stare nella mappa sopra.
-  if (href.endsWith("/note-sviluppatore")) return MessageSquareText;
+  const suffisso = NAV_ICON_SUFFISSI.find(([s]) => href.endsWith(s));
+  if (suffisso) return suffisso[1];
   return LayoutDashboard;
 }

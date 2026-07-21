@@ -5,16 +5,14 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { nuovaNotaSviluppatoreSchema, type NuovaNotaSviluppatoreInput } from "@/lib/validations/nota-sviluppatore";
 
-const LIST_PATHS = [
-  "/admin/note-sviluppatore",
-  "/agenzia/note-sviluppatore",
-  "/amministratore/note-sviluppatore",
-  "/proprietario/note-sviluppatore",
-  "/inquilino/note-sviluppatore",
-];
+const LIST_PATHS = ["/admin/note-sviluppatore", "/agenzia/note-sviluppatore", "/amministratore/note-sviluppatore"];
 
 function revalidateListe() {
   for (const path of LIST_PATHS) revalidatePath(path);
+  // /privato/[immobileId]/note-sviluppatore è sotto un segmento dinamico: serve il tipo "layout"
+  // per invalidare tutte le pagine sotto quel layout, un singolo revalidatePath("/privato/x/...")
+  // non basterebbe a coprire ogni immobile.
+  revalidatePath("/privato", "layout");
 }
 
 export async function creaNotaSviluppatoreAction(

@@ -12,7 +12,7 @@ export function ProfiloContent({
   nome: string;
   cognome: string;
   role: string;
-  /** Etichetta esplicita, per i casi (es. profilo unificato /casa) dove non esiste un singolo
+  /** Etichetta esplicita, per i casi (es. profilo unificato /privato) dove non esiste un singolo
    * ruolo mappato in ROLE_LABELS. Se assente, usa ROLE_LABELS[role] come sempre. */
   roleLabel?: string;
 }) {

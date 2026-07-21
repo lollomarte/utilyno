@@ -34,7 +34,7 @@ export async function getTuttiIDocumenti() {
 
 /** Verifica se l'utente ha diritto ad accedere (e scaricare) un documento: è chi lo ha
  * caricato, uno dei destinatari della condivisione, oppure un Admin (audit). */
-export async function getDocumentoConAccesso(documentoId: string, userId: string, profili: string[]) {
+export async function getDocumentoConAccesso(documentoId: string, userId: string, role: string) {
   const documento = await prisma.documento.findUnique({
     where: { id: documentoId },
     include: { condivisioni: true },
@@ -42,7 +42,7 @@ export async function getDocumentoConAccesso(documentoId: string, userId: string
   if (!documento) return null;
 
   const haAccesso =
-    profili.includes("ADMIN") ||
+    role === "ADMIN" ||
     documento.caricatoDaUserId === userId ||
     documento.condivisioni.some((c) => c.userId === userId);
 

@@ -2,17 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { auth, signOut } from "@/auth";
-import { requireAgenzia, requireAmministratore, requireProprietario, requirePrivato } from "@/lib/auth-helpers";
+import { auth } from "@/auth";
+import { requireAgenzia, requireAmministratore, requirePrivato } from "@/lib/auth-helpers";
 import { cercaAgenzie } from "@/lib/data/agenzia";
 import { registraLogAzione } from "@/lib/audit/registraLogAzione";
 import { risolviUserPerProfiloPrivato } from "@/lib/utenti/risolviUserPerProfiloPrivato";
+import { assicuraRelazioneAttiva, getRelazioneProprietarioAttiva } from "@/lib/immobili/relazioni";
 import {
   nuovoImmobileSchema,
   collegaImmobileEsistenteSchema,
   creaImmobilePerCondominioSchema,
   nuovoImmobileProprietarioSchema,
-  diventaProprietarioSchema,
   aggiornaImmobileSchema,
   richiediGestioneImmobileSchema,
   rispondiRichiestaGestioneSchema,
@@ -20,7 +20,6 @@ import {
   type CollegaImmobileEsistenteInput,
   type CreaImmobilePerCondominioInput,
   type NuovoImmobileProprietarioInput,
-  type DiventaProprietarioInput,
   type AggiornaImmobileInput,
   type RichiediGestioneImmobileInput,
   type RispondiRichiestaGestioneInput,
@@ -69,10 +68,11 @@ function datiAggiuntiviImmobile(data: {
   };
 }
 
-/** Risolve il proprietarioId da usare per un nuovo Immobile: crea l'utente al volo se in modalità "nuovo".
- * `accountEsistente: true` segnala al chiamante che l'email inserita era già di un account esistente
- * (es. la persona è già Inquilino altrove): in quel caso la password inserita nel form non è stata
- * usata (l'account mantiene la propria), il chiamante deve informarne l'operatore. */
+/** Risolve il Privato (proprietario) da usare per un nuovo Immobile: crea User+Privato al volo
+ * se in modalità "nuovo". `accountEsistente: true` segnala al chiamante che l'email inserita era
+ * già di un account esistente (es. la persona è già inquilina altrove): in quel caso la password
+ * inserita nel form non è stata usata (l'account mantiene la propria), il chiamante deve
+ * informarne l'operatore. */
 async function risolviProprietario(data: {
   proprietarioMode: "esistente" | "nuovo";
   proprietarioId?: string;
@@ -91,32 +91,16 @@ async function risolviProprietario(data: {
     return { success: true, proprietarioId: data.proprietarioId, accountEsistente: false };
   }
 
-  const { userId, nuovoUser } = await risolviUserPerProfiloPrivato(
-    {
-      email: data.proprietarioEmail!,
-      nome: data.proprietarioNome!,
-      cognome: data.proprietarioCognome!,
-      password: data.proprietarioPassword!,
-    },
-    "PROPRIETARIO"
-  );
-
-  // Se la persona ha già un profilo Proprietario (es. è già proprietario di un altro immobile,
-  // o l'operazione viene ripetuta), riusa lo stesso profilo invece di crearne un secondo:
-  // Proprietario.userId è unique, un secondo `create` fallirebbe comunque.
-  const proprietarioEsistente = await prisma.proprietario.findUnique({ where: { userId } });
-  if (proprietarioEsistente) {
-    return { success: true, proprietarioId: proprietarioEsistente.id, accountEsistente: !nuovoUser };
-  }
-
-  const nuovoProprietario = await prisma.proprietario.create({
-    data: {
-      codiceFiscale: data.proprietarioCodiceFiscale!,
-      indirizzo: data.proprietarioIndirizzo!,
-      userId,
-    },
+  const { privatoId, nuovoUser } = await risolviUserPerProfiloPrivato({
+    email: data.proprietarioEmail!,
+    nome: data.proprietarioNome!,
+    cognome: data.proprietarioCognome!,
+    password: data.proprietarioPassword!,
+    codiceFiscale: data.proprietarioCodiceFiscale!,
+    indirizzo: data.proprietarioIndirizzo!,
   });
-  return { success: true, proprietarioId: nuovoProprietario.id, accountEsistente: !nuovoUser };
+
+  return { success: true, proprietarioId: privatoId, accountEsistente: !nuovoUser };
 }
 
 export async function creaImmobileAction(
@@ -143,7 +127,6 @@ export async function creaImmobileAction(
 
   const immobile = await prisma.immobile.create({
     data: {
-      proprietarioId: risolto.proprietarioId,
       agenziaId: agenzia.id,
       condominioId: data.condominioId || null,
       indirizzo: data.indirizzo,
@@ -158,6 +141,8 @@ export async function creaImmobileAction(
       ...datiAggiuntiviImmobile(data),
     },
   });
+
+  await assicuraRelazioneAttiva({ privatoId: risolto.proprietarioId, immobileId: immobile.id, ruolo: "PROPRIETARIO" });
 
   revalidatePath("/agenzia/immobili");
 
@@ -223,9 +208,8 @@ export async function creaImmobilePerCondominioAction(
   const risolto = await risolviProprietario(data);
   if (!risolto.success) return risolto;
 
-  await prisma.immobile.create({
+  const immobile = await prisma.immobile.create({
     data: {
-      proprietarioId: risolto.proprietarioId,
       agenziaId: agenzia.id,
       condominioId: condominio.id,
       indirizzo: data.indirizzo,
@@ -241,20 +225,22 @@ export async function creaImmobilePerCondominioAction(
     },
   });
 
+  await assicuraRelazioneAttiva({ privatoId: risolto.proprietarioId, immobileId: immobile.id, ruolo: "PROPRIETARIO" });
+
   revalidatePath(`/amministratore/condomini/${condominio.id}`);
 
   return { success: true, proprietarioAccountEsistente: risolto.accountEsistente };
 }
 
 /**
- * Crea un Immobile auto-inserito dal Proprietario: nessuna agenzia, nessun contratto, solo i
- * dati base. Nasce in BOZZA_PROPRIETARIO (default dello schema), visibile solo a chi lo crea
- * finché non viene accettata una richiesta di gestione.
+ * Crea un Immobile auto-inserito da un Privato (ruolo PROPRIETARIO sull'immobile): nessuna
+ * agenzia, nessun contratto, solo i dati base. Nasce in BOZZA_PROPRIETARIO (default dello
+ * schema), visibile solo a chi lo crea finché non viene accettata una richiesta di gestione.
  */
 export async function creaImmobileProprietarioAction(
   input: NuovoImmobileProprietarioInput
 ): Promise<{ success: true; immobile: ImmobileSummary } | { success: false; error: string; fieldErrors?: Record<string, string> }> {
-  const { proprietario } = await requireProprietario();
+  const { privato } = await requirePrivato();
 
   const parsed = nuovoImmobileProprietarioSchema.safeParse(input);
   if (!parsed.success) {
@@ -269,7 +255,6 @@ export async function creaImmobileProprietarioAction(
 
   const immobile = await prisma.immobile.create({
     data: {
-      proprietarioId: proprietario.id,
       indirizzo: data.indirizzo,
       comune: data.comune,
       provincia: data.provincia.toUpperCase(),
@@ -282,8 +267,9 @@ export async function creaImmobileProprietarioAction(
     },
   });
 
-  revalidatePath("/proprietario/immobili");
-  revalidatePath("/proprietario");
+  await assicuraRelazioneAttiva({ privatoId: privato.id, immobileId: immobile.id, ruolo: "PROPRIETARIO" });
+
+  revalidatePath("/privato");
 
   return {
     success: true,
@@ -291,91 +277,21 @@ export async function creaImmobileProprietarioAction(
   };
 }
 
-/**
- * Un utente già registrato (con un profilo Inquilino, o comunque privo di profilo Proprietario)
- * attiva da solo anche il profilo Proprietario sul proprio account, inserendo il primo immobile
- * in un unico passaggio — nessuna agenzia coinvolta, stesso stato BOZZA_PROPRIETARIO di
- * creaImmobileProprietarioAction. Non esiste l'equivalente per Inquilino: un contratto di
- * locazione presuppone un'agenzia reale, non può essere autodichiarato dall'utente.
- *
- * Il nuovo profilo va riflesso nella sessione: il JWT (strategy "jwt") non si aggiorna da solo a
- * metà sessione, e auth.config.ts deve restare edge-safe (nessun accesso a Prisma) perché è
- * importato anche dal middleware — niente hook "update" che tocchi il DB da lì. La via sicura è
- * forzare un nuovo login: da quel momento authorize() ricalcola profili correttamente.
- */
-export async function diventaProprietarioAction(
-  input: DiventaProprietarioInput
-): Promise<{ success: false; error: string; fieldErrors?: Record<string, string> } | void> {
-  const { session } = await requirePrivato();
-
-  if (session.user.profili.includes("PROPRIETARIO")) {
-    return { success: false, error: "Hai già un profilo Proprietario su questo account." };
-  }
-
-  const parsed = diventaProprietarioSchema.safeParse(input);
-  if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of parsed.error.issues) {
-      const key = issue.path.join(".");
-      if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
-    }
-    return { success: false, error: "Dati non validi", fieldErrors };
-  }
-  const data = parsed.data;
-
-  let immobileId: string;
-  try {
-    const proprietario = await prisma.proprietario.create({
-      data: {
-        userId: session.user.id,
-        codiceFiscale: data.proprietarioCodiceFiscale,
-        indirizzo: data.proprietarioIndirizzo,
-        immobili: {
-          create: {
-            indirizzo: data.indirizzo,
-            comune: data.comune,
-            provincia: data.provincia.toUpperCase(),
-            datiCatastali: data.datiCatastali,
-            superficieMq: data.superficieMq,
-            tipoImmobile: data.tipoImmobile,
-            apeClasse: data.apeClasse || null,
-            valoreStimato: data.valoreStimato,
-            ...datiAggiuntiviImmobile(data),
-          },
-        },
-      },
-      include: { immobili: true },
-    });
-    immobileId = proprietario.immobili[0].id;
-  } catch {
-    return {
-      success: false,
-      error: "Codice fiscale già in uso da un altro profilo Proprietario.",
-      fieldErrors: { proprietarioCodiceFiscale: "Già in uso" },
-    };
-  }
-
-  await registraLogAzione({
-    userId: session.user.id,
-    azione: "Attivato profilo Proprietario (self-service)",
-    entita: "Immobile",
-    entitaId: immobileId,
-  });
-
-  await signOut({ redirectTo: "/login?profiloCreato=1" });
-}
-
-/** Chi può modificare i dati di un Immobile: il Proprietario stesso, l'Agenzia che lo gestisce,
+/** Chi può modificare i dati di un Immobile: il proprietario attivo, l'Agenzia che lo gestisce,
  * o l'Amministratore del condominio a cui appartiene — stessa logica di verificaAccessoImmobile
  * in app/actions/segnalazioni.ts. */
 async function verificaAccessoModificaImmobile(userId: string, immobileId: string): Promise<boolean> {
   const immobile = await prisma.immobile.findUnique({
     where: { id: immobileId },
-    include: { proprietario: true, agenzia: true, condominio: true },
+    include: {
+      agenzia: true,
+      condominio: true,
+      relazioni: { where: { ruolo: "PROPRIETARIO", stato: "ATTIVA" }, include: { privato: true } },
+    },
   });
   if (!immobile) return false;
 
-  if (immobile.proprietario.userId === userId) return true;
+  if (immobile.relazioni.some((r) => r.privato.userId === userId)) return true;
   if (immobile.agenzia?.userId === userId) return true;
   if (immobile.condominio) {
     const amministratore = await prisma.amministratore.findUnique({ where: { userId } });
@@ -418,8 +334,8 @@ export async function aggiornaImmobileAction(
     },
   });
 
-  revalidatePath("/proprietario/immobili");
-  revalidatePath(`/proprietario/immobili/${data.immobileId}`);
+  revalidatePath("/privato");
+  revalidatePath(`/privato/${data.immobileId}`);
   revalidatePath("/agenzia/immobili");
   revalidatePath(`/agenzia/immobili/${data.immobileId}`);
 
@@ -435,7 +351,7 @@ export interface AgenziaRisultatoRicerca {
 
 /** Cerca tra le agenzie già registrate sulla piattaforma, per ragione sociale o email. */
 export async function cercaAgenzieAction(query: string): Promise<AgenziaRisultatoRicerca[]> {
-  await requireProprietario();
+  await requirePrivato();
 
   const risultati = await cercaAgenzie(query);
   return risultati.map((a) => ({ id: a.id, ragioneSociale: a.ragioneSociale, piva: a.piva, email: a.user.email }));
@@ -446,13 +362,16 @@ export async function cercaAgenzieAction(query: string): Promise<AgenziaRisultat
 export async function richiediGestioneImmobileAction(
   input: RichiediGestioneImmobileInput
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const { proprietario } = await requireProprietario();
+  const { privato } = await requirePrivato();
 
   const parsed = richiediGestioneImmobileSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: "Dati non validi" };
   const data = parsed.data;
 
-  const immobile = await prisma.immobile.findFirst({ where: { id: data.immobileId, proprietarioId: proprietario.id } });
+  const relazione = await getRelazioneProprietarioAttiva(data.immobileId);
+  if (!relazione || relazione.privatoId !== privato.id) return { success: false, error: "Immobile non trovato" };
+
+  const immobile = await prisma.immobile.findUnique({ where: { id: data.immobileId } });
   if (!immobile) return { success: false, error: "Immobile non trovato" };
   if (immobile.stato !== "BOZZA_PROPRIETARIO") {
     return { success: false, error: "Questo immobile è già in gestione a un'agenzia" };
@@ -471,13 +390,13 @@ export async function richiediGestioneImmobileAction(
   await prisma.richiestaGestioneImmobile.create({
     data: {
       immobileId: immobile.id,
-      proprietarioId: proprietario.id,
+      proprietarioId: privato.id,
       agenziaId: agenzia.id,
       messaggio: data.messaggio || null,
     },
   });
 
-  revalidatePath("/proprietario/immobili");
+  revalidatePath("/privato");
   revalidatePath("/agenzia/richieste-gestione");
 
   return { success: true };
@@ -525,7 +444,7 @@ export async function rispondiRichiestaGestioneAction(
 
   revalidatePath("/agenzia/richieste-gestione");
   revalidatePath("/agenzia/immobili");
-  revalidatePath("/proprietario/immobili");
+  revalidatePath("/privato");
 
   return { success: true };
 }

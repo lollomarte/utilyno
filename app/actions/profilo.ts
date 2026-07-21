@@ -2,14 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireAgenzia, requireAmministratore, requireProprietario } from "@/lib/auth-helpers";
+import { requireAgenzia, requireAmministratore, requirePrivato } from "@/lib/auth-helpers";
 import {
   aggiornaAgenziaSchema,
   aggiornaAmministratoreSchema,
-  aggiornaProprietarioSchema,
+  aggiornaPrivatoSchema,
   type AggiornaAgenziaInput,
   type AggiornaAmministratoreInput,
-  type AggiornaProprietarioInput,
+  type AggiornaPrivatoInput,
 } from "@/lib/validations/profilo";
 
 /**
@@ -78,24 +78,32 @@ export async function aggiornaAmministratoreAction(
   return { success: true };
 }
 
-export async function aggiornaProprietarioAction(
-  input: AggiornaProprietarioInput
+export async function aggiornaPrivatoAction(
+  input: AggiornaPrivatoInput
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const { proprietario } = await requireProprietario();
+  const { privato } = await requirePrivato();
 
-  const parsed = aggiornaProprietarioSchema.safeParse(input);
+  const parsed = aggiornaPrivatoSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: "Dati non validi" };
   const data = parsed.data;
 
-  await prisma.proprietario.update({
-    where: { id: proprietario.id },
+  await prisma.privato.update({
+    where: { id: privato.id },
     data: {
-      indirizzo: data.indirizzo,
-      ibanProprietario: data.ibanProprietario ?? null,
+      indirizzo: data.indirizzo ?? null,
+      iban: data.iban ?? null,
+      // I campi azienda restano quelli esistenti se il form (mostrato solo per profili AZIENDA)
+      // non li invia: evita di azzerarli per un profilo PERSONA_FISICA che non li ha mai avuti.
+      ...(privato.tipoSoggetto === "AZIENDA" && {
+        ragioneSociale: data.ragioneSociale ?? privato.ragioneSociale,
+        piva: data.piva ?? privato.piva,
+        referenteNome: data.referenteNome ?? privato.referenteNome,
+        referenteRuolo: data.referenteRuolo ?? privato.referenteRuolo,
+      }),
     },
   });
 
-  revalidatePath("/proprietario/profilo");
+  revalidatePath("/privato/profilo");
 
   return { success: true };
 }

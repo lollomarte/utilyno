@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { addBusinessDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
-import { requireInquilino } from "@/lib/auth-helpers";
+import { requirePrivato } from "@/lib/auth-helpers";
 import { paymentProvider } from "@/lib/services/payment-provider";
 import { registraLogAzione } from "@/lib/audit/registraLogAzione";
 import { pagaOraSchema, type PagaOraInput } from "@/lib/validations/pagamento";
@@ -15,7 +15,7 @@ const GIORNI_LAVORATIVI_ACCREDITO = 2;
 export async function pagaOraAction(
   input: PagaOraInput
 ): Promise<{ success: true; dataAccredito: Date } | { success: false; error: string }> {
-  const { inquilino } = await requireInquilino();
+  const { privato } = await requirePrivato();
 
   const parsed = pagaOraSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: "Dati non validi" };
@@ -24,7 +24,7 @@ export async function pagaOraAction(
     where: { id: parsed.data.pagamentoId },
     include: { contratto: true },
   });
-  if (!pagamento || pagamento.contratto.inquilinoId !== inquilino.id) {
+  if (!pagamento || pagamento.contratto.inquilinoId !== privato.id) {
     return { success: false, error: "Pagamento non trovato" };
   }
   if (pagamento.stato === "PAGATO") {
@@ -54,16 +54,15 @@ export async function pagaOraAction(
     },
   });
   await registraLogAzione({
-    userId: inquilino.userId,
+    userId: privato.userId,
     azione: "PAGAMENTO",
     entita: "Pagamento",
     entitaId: pagamento.id,
     note: `${METODO_PAGAMENTO_LABELS[parsed.data.metodo]}, importo ${pagamento.importo}`,
   });
 
-  revalidatePath("/inquilino");
-  revalidatePath("/proprietario");
-  revalidatePath(`/proprietario/immobili/${pagamento.contratto.immobileId}`);
+  revalidatePath("/privato");
+  revalidatePath(`/privato/${pagamento.contratto.immobileId}`);
   revalidatePath(`/agenzia/contratti/${pagamento.contrattoId}`);
 
   return { success: true, dataAccredito };

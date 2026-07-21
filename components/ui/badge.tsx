@@ -139,7 +139,7 @@ const RELAZIONE_IMMOBILE_TONE: Record<string, BadgeTone> = {
   INQUILINO: "success",
 };
 
-/** Ruolo dell'utente su un immobile specifico nella lista aggregata di /casa: un utente può
+/** Ruolo dell'utente su un immobile specifico nella lista aggregata di /privato: un utente può
  * essere Proprietario di un immobile e Inquilino di un altro, il badge chiarisce quale. */
 export function RelazioneImmobileBadge({ relazione }: { relazione: "PROPRIETARIO" | "INQUILINO" }) {
   return (

@@ -51,7 +51,7 @@ export default async function ContrattoDetailPage({ params }: { params: Promise<
             { label: "Canone mensile", value: formatCurrency(contratto.canoneMensile) },
             { label: "Data inizio", value: formatDate(contratto.dataInizio) },
             { label: "Data fine", value: formatDate(contratto.dataFine) },
-            { label: "Proprietario", value: `${contratto.immobile.proprietario.user.nome} ${contratto.immobile.proprietario.user.cognome}` },
+            { label: "Proprietario", value: `${contratto.proprietario.user.nome} ${contratto.proprietario.user.cognome}` },
             {
               label: "Registrazione Agenzia delle Entrate",
               value: contratto.dataRegistrazioneAdE

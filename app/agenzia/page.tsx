@@ -204,7 +204,7 @@ export default async function AgenziaDashboardPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    {c.immobile.proprietario.user.nome} {c.immobile.proprietario.user.cognome}
+                    {c.proprietario.user.nome} {c.proprietario.user.cognome}
                   </TableCell>
                   <TableCell>{formatCurrency(c.canoneMensile)}</TableCell>
                   <TableCell>{formatDate(c.dataFine)}</TableCell>

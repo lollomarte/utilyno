@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireAgenzia, requireInquilino } from "@/lib/auth-helpers";
+import { requireAgenzia, requirePrivato } from "@/lib/auth-helpers";
 import { nuovaChecklistSchema } from "@/lib/validations/checklist";
 
 export async function creaChecklistAction(formData: FormData): Promise<{ success: true } | { success: false; error: string }> {
@@ -45,7 +45,7 @@ export async function creaChecklistAction(formData: FormData): Promise<{ success
   });
 
   revalidatePath(`/agenzia/contratti/${data.contrattoId}`);
-  revalidatePath("/inquilino");
+  revalidatePath("/privato");
 
   return { success: true };
 }
@@ -53,10 +53,10 @@ export async function creaChecklistAction(formData: FormData): Promise<{ success
 export async function firmaChecklistInquilinoAction(
   checklistId: string
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const { inquilino } = await requireInquilino();
+  const { privato } = await requirePrivato();
 
   const checklist = await prisma.checklistImmobile.findFirst({
-    where: { id: checklistId, contratto: { inquilinoId: inquilino.id } },
+    where: { id: checklistId, contratto: { inquilinoId: privato.id } },
   });
   if (!checklist) {
     return { success: false, error: "Checklist non trovata" };
@@ -67,7 +67,7 @@ export async function firmaChecklistInquilinoAction(
     data: { firmaInquilino: true, firmaInquilinoAt: new Date() },
   });
 
-  revalidatePath("/inquilino");
+  revalidatePath("/privato");
 
   return { success: true };
 }

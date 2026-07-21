@@ -7,20 +7,17 @@ import { prisma } from "@/lib/prisma";
 import { nuovoDocumentoSchema } from "@/lib/validations/documento";
 import { verificaAccessoContesto } from "@/lib/documenti/verificaAccessoContesto";
 import { getPoolContestoDocumento, type ContestoDocumento } from "@/lib/documenti/risolviDestinatariDocumento";
+import { ruoloPoolToRole } from "@/lib/segnalazioni/risolviDestinatari";
 import { registraLogAzione } from "@/lib/audit/registraLogAzione";
 import { ROLE_LABELS } from "@/lib/labels";
 
-const LIST_PATHS = [
-  "/admin/documenti",
-  "/agenzia/documenti",
-  "/amministratore/documenti",
-  "/proprietario/documenti",
-  "/proprietario",
-  "/inquilino/documenti",
-];
+const LIST_PATHS = ["/admin/documenti", "/agenzia/documenti", "/amministratore/documenti"];
 
 function revalidateListe() {
   for (const path of LIST_PATHS) revalidatePath(path);
+  // /privato/[immobileId]/documenti è sotto un segmento dinamico: serve "layout" per invalidare
+  // tutte le pagine sotto quel layout (ogni immobile), non un singolo path statico.
+  revalidatePath("/privato", "layout");
 }
 
 export async function POST(request: Request) {
@@ -74,7 +71,7 @@ export async function POST(request: Request) {
       contrattoId: data.contestoTipo === "CONTRATTO" ? data.contestoId : null,
       condominioId: data.contestoTipo === "CONDOMINIO" ? data.contestoId : null,
       condivisioni: {
-        create: destinatariValidi.map((d) => ({ userId: d.userId, ruolo: d.ruolo })),
+        create: destinatariValidi.map((d) => ({ userId: d.userId, ruolo: ruoloPoolToRole(d.ruolo) })),
       },
     },
   });

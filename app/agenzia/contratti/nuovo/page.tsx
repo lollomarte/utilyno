@@ -1,13 +1,12 @@
 import { requireAgenzia } from "@/lib/auth-helpers";
-import { getImmobiliForAgenzia, getInquiliniDisponibili, getProprietariDisponibili, getCondominiDisponibili } from "@/lib/data/agenzia";
+import { getImmobiliForAgenzia, getPrivatiDisponibili, getCondominiDisponibili } from "@/lib/data/agenzia";
 import { NuovoContrattoWizard } from "@/components/agenzia/nuovo-contratto-wizard";
 
 export default async function NuovoContrattoPage() {
   const { agenzia } = await requireAgenzia();
-  const [immobili, inquilini, proprietari, condomini] = await Promise.all([
+  const [immobili, privati, condomini] = await Promise.all([
     getImmobiliForAgenzia(agenzia.id),
-    getInquiliniDisponibili(),
-    getProprietariDisponibili(),
+    getPrivatiDisponibili(),
     getCondominiDisponibili(),
   ]);
 
@@ -19,8 +18,8 @@ export default async function NuovoContrattoPage() {
       </div>
       <NuovoContrattoWizard
         immobiliIniziali={immobili}
-        inquilini={inquilini}
-        proprietari={proprietari}
+        inquilini={privati}
+        proprietari={privati}
         condomini={condomini}
       />
     </div>

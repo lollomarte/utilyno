@@ -12,3 +12,12 @@ export const completaInvitoSchema = z
   });
 
 export type CompletaInvitoInput = z.infer<typeof completaInvitoSchema>;
+
+/** Un Privato già autenticato collega un contratto esistente al proprio account tramite il
+ * token di invito ricevuto dall'agenzia/proprietario, dal flusso "Aggiungi immobile" — distinto
+ * da completaInvitoSchema, che serve invece a impostare la password iniziale per chi non ha
+ * ancora effettuato il primo accesso. */
+export const redimiInvitoSchema = z.object({
+  token: z.string().min(1, "Inserisci il codice di invito"),
+});
+export type RedimiInvitoInput = z.infer<typeof redimiInvitoSchema>;

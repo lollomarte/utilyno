@@ -3,6 +3,15 @@ import { it } from "date-fns/locale";
 import { prisma } from "@/lib/prisma";
 import type { StatoContratto } from "@prisma/client";
 
+/** Solo la relazione PROPRIETARIO attiva più recente per immobile: usata ovunque si mostrava
+ * `immobile.proprietario` prima che Immobile perdesse il proprietarioId diretto. */
+const RELAZIONE_PROPRIETARIO_ATTIVA_INCLUDE = {
+  where: { ruolo: "PROPRIETARIO" as const, stato: "ATTIVA" as const },
+  include: { privato: { include: { user: true } } },
+  orderBy: { updatedAt: "desc" as const },
+  take: 1,
+};
+
 export async function getAgenziaByUserId(userId: string) {
   return prisma.agenzia.findUnique({ where: { userId } });
 }
@@ -60,7 +69,8 @@ export async function getContrattiInScadenza(agenziaId: string, entroGiorni: num
   return prisma.contratto.findMany({
     where: { agenziaId, stato: "ATTIVO", dataFine: { gte: now, lte: addDays(now, entroGiorni) } },
     include: {
-      immobile: { include: { proprietario: { include: { user: true } } } },
+      immobile: true,
+      proprietario: { include: { user: true } },
       inquilino: { include: { user: true } },
     },
     orderBy: { dataFine: "asc" },
@@ -90,7 +100,8 @@ export async function getContrattoDetail(contrattoId: string, agenziaId: string)
   return prisma.contratto.findFirst({
     where: { id: contrattoId, agenziaId },
     include: {
-      immobile: { include: { proprietario: { include: { user: true } } } },
+      immobile: true,
+      proprietario: { include: { user: true } },
       inquilino: { include: { user: true } },
       pagamenti: { orderBy: { dataScadenza: "asc" } },
       documenti: { orderBy: { uploadedAt: "desc" } },
@@ -102,7 +113,7 @@ export async function getContrattoDetail(contrattoId: string, agenziaId: string)
 export async function getImmobiliForAgenzia(agenziaId: string) {
   return prisma.immobile.findMany({
     where: { agenziaId },
-    include: { proprietario: { include: { user: true } }, condominio: true },
+    include: { relazioni: RELAZIONE_PROPRIETARIO_ATTIVA_INCLUDE, condominio: true },
     orderBy: { indirizzo: "asc" },
   });
 }
@@ -111,7 +122,7 @@ export async function getImmobileDetailForAgenzia(immobileId: string, agenziaId:
   return prisma.immobile.findFirst({
     where: { id: immobileId, agenziaId },
     include: {
-      proprietario: { include: { user: true } },
+      relazioni: RELAZIONE_PROPRIETARIO_ATTIVA_INCLUDE,
       condominio: true,
       contratti: {
         include: { inquilino: { include: { user: true } } },
@@ -122,15 +133,11 @@ export async function getImmobileDetailForAgenzia(immobileId: string, agenziaId:
   });
 }
 
-export async function getInquiliniDisponibili() {
-  return prisma.inquilino.findMany({
-    include: { user: true },
-    orderBy: { user: { cognome: "asc" } },
-  });
-}
-
-export async function getProprietariDisponibili() {
-  return prisma.proprietario.findMany({
+/** Tutti i profili Privato registrati: non esiste più un sottoinsieme "solo inquilini" o "solo
+ * proprietari" a livello di account (il ruolo vive per-immobile), quindi la stessa lista serve
+ * sia per scegliere un inquilino esistente sia un proprietario esistente nei form dell'agenzia. */
+export async function getPrivatiDisponibili() {
+  return prisma.privato.findMany({
     include: { user: true },
     orderBy: { user: { cognome: "asc" } },
   });
@@ -143,7 +150,7 @@ export async function getCondominiDisponibili() {
 }
 
 /** Ricerca agenzie già registrate per ragione sociale o email, per la richiesta di gestione
- * immobile del Proprietario: mai un elenco libero, solo un risultato mirato per query. */
+ * immobile del privato-proprietario: mai un elenco libero, solo un risultato mirato per query. */
 export async function cercaAgenzie(query: string) {
   const termine = query.trim();
   if (!termine) return [];

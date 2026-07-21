@@ -50,7 +50,12 @@ export default async function AgenziaImmobileDetailPage({ params }: { params: Pr
             { label: "Superficie", value: `${immobile.superficieMq} m²` },
             { label: "Classe APE", value: immobile.apeClasse ?? "-" },
             { label: "Valore stimato", value: formatCurrency(immobile.valoreStimato) },
-            { label: "Proprietario", value: `${immobile.proprietario.user.nome} ${immobile.proprietario.user.cognome}` },
+            {
+              label: "Proprietario",
+              value: immobile.relazioni[0]
+                ? `${immobile.relazioni[0].privato.user.nome} ${immobile.relazioni[0].privato.user.cognome}`
+                : "-",
+            },
             { label: "Condominio", value: immobile.condominio?.nome ?? "-" },
             ...datiAggiuntiviImmobileRows(immobile),
           ]}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAgenzia } from "@/lib/auth-helpers";
-import { getContrattiForAgenzia, getImmobiliForAgenzia, getInquiliniDisponibili } from "@/lib/data/agenzia";
+import { getContrattiForAgenzia, getImmobiliForAgenzia, getPrivatiDisponibili } from "@/lib/data/agenzia";
 import { Card } from "@/components/ui/card";
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, EmptyState } from "@/components/ui/table";
 import { StatoContrattoBadge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ export default async function ContrattiPage({
       inquilinoId: params.inquilinoId || undefined,
     }),
     getImmobiliForAgenzia(agenzia.id),
-    getInquiliniDisponibili(),
+    getPrivatiDisponibili(),
   ]);
 
   return (

@@ -44,7 +44,7 @@ export function NuovoImmobileProprietarioForm({
         onSuccess(result.immobile);
         return;
       }
-      router.push("/proprietario/immobili");
+      router.push("/privato");
       router.refresh();
     } catch {
       setServerError("Qualcosa è andato storto, riprova.");

@@ -16,31 +16,32 @@ import {
 import { ROLE_LABELS } from "@/lib/labels";
 import type { StatoSegnalazione } from "@prisma/client";
 
-const LIST_PATHS = ["/amministratore/segnalazioni", "/inquilino/segnalazioni", "/proprietario/segnalazioni", "/agenzia/segnalazioni"];
+const LIST_PATHS = ["/amministratore/segnalazioni", "/agenzia/segnalazioni"];
 
 function revalidateListe() {
   for (const path of LIST_PATHS) revalidatePath(path);
+  // /privato/[immobileId]/segnalazioni e /privato/segnalazioni/[id] sono sotto segmenti
+  // dinamici: serve "layout" per invalidare tutte le pagine sotto /privato, non un singolo path.
+  revalidatePath("/privato", "layout");
 }
 
-/** Verifica che l'utente corrente abbia una relazione legittima con l'immobile, in una
- * qualunque delle vesti che può avere (un utente può essere Proprietario di un immobile e
- * Inquilino di un altro contemporaneamente: si controllano tutte le relazioni possibili,
+/** Verifica che l'utente corrente abbia una relazione legittima con l'immobile, in uno
+ * qualunque dei ruoli che può avere (un utente può essere proprietario di un immobile e
+ * inquilino di un altro contemporaneamente: si controllano tutte le relazioni possibili,
  * non un singolo ruolo dichiarato). */
 async function verificaAccessoImmobile(userId: string, immobileId: string): Promise<boolean> {
   const immobile = await prisma.immobile.findUnique({
     where: { id: immobileId },
     include: {
-      proprietario: true,
       agenzia: true,
       condominio: true,
-      contratti: { where: { stato: "ATTIVO" }, include: { inquilino: true }, take: 1 },
+      relazioni: { where: { stato: "ATTIVA" }, include: { privato: true } },
     },
   });
   if (!immobile) return false;
 
-  if (immobile.proprietario.userId === userId) return true;
+  if (immobile.relazioni.some((r) => r.privato.userId === userId)) return true;
   if (immobile.agenzia?.userId === userId) return true;
-  if (immobile.contratti[0]?.inquilino.userId === userId) return true;
   if (immobile.condominio) {
     const amministratore = await prisma.amministratore.findUnique({ where: { userId } });
     if (amministratore?.id === immobile.condominio.amministratoreId) return true;
@@ -121,7 +122,7 @@ export async function aggiornaStatoSegnalazioneAction(
   if (!segnalazione) return { success: false, error: "Segnalazione non trovata" };
 
   let autorizzato = segnalazione.creatoDaUserId === session.user.id;
-  if (!autorizzato && session.user.profili.includes("AMMINISTRATORE") && segnalazione.immobile.condominio) {
+  if (!autorizzato && session.user.role === "AMMINISTRATORE" && segnalazione.immobile.condominio) {
     const amministratore = await prisma.amministratore.findUnique({ where: { userId: session.user.id } });
     autorizzato = amministratore?.id === segnalazione.immobile.condominio.amministratoreId;
   }

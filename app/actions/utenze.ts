@@ -5,23 +5,15 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { attivaUtenzaSchema, type AttivaUtenzaInput } from "@/lib/validations/utenza";
 
-async function verificaAccessoImmobile(
-  userId: string,
-  immobile: { id: string; agenziaId: string | null; proprietarioId: string }
-): Promise<boolean> {
-  const [agenzia, proprietario, inquilino] = await Promise.all([
+async function verificaAccessoImmobile(userId: string, immobile: { id: string; agenziaId: string | null }): Promise<boolean> {
+  const [agenzia, relazione] = await Promise.all([
     immobile.agenziaId ? prisma.agenzia.findUnique({ where: { userId } }) : null,
-    prisma.proprietario.findUnique({ where: { userId } }),
-    prisma.inquilino.findUnique({ where: { userId } }),
+    prisma.relazioneImmobilePrivato.findFirst({
+      where: { immobileId: immobile.id, stato: "ATTIVA", privato: { userId } },
+    }),
   ]);
   if (agenzia && agenzia.id === immobile.agenziaId) return true;
-  if (proprietario && proprietario.id === immobile.proprietarioId) return true;
-  if (inquilino) {
-    const contratto = await prisma.contratto.findFirst({
-      where: { immobileId: immobile.id, inquilinoId: inquilino.id, stato: "ATTIVO" },
-    });
-    if (contratto) return true;
-  }
+  if (relazione) return true;
   return false;
 }
 
@@ -60,9 +52,8 @@ export async function attivaUtenzaAction(
     });
   }
 
-  revalidatePath(`/proprietario/immobili/${immobileId}`);
+  revalidatePath(`/privato/${immobileId}`);
   revalidatePath(`/agenzia/immobili/${immobileId}`);
-  revalidatePath("/inquilino");
 
   return { success: true };
 }

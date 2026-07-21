@@ -12,6 +12,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { withTimeout } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 const ROLE_OPTIONS = [
   { value: "PRIVATO", label: "Privato" },
@@ -26,15 +27,18 @@ export function RegisterForm() {
     register,
     handleSubmit,
     watch,
+    setValue,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
-    defaultValues: { role: "PRIVATO" },
+    defaultValues: { role: "PRIVATO", tipoSoggetto: "PERSONA_FISICA" },
   });
 
   const role = watch("role");
+  const tipoSoggetto = watch("tipoSoggetto");
   const isRagioneSocialeRole = role === "AGENZIA" || role === "AMMINISTRATORE";
+  const isPrivatoAzienda = role === "PRIVATO" && tipoSoggetto === "AZIENDA";
 
   async function onSubmit(data: RegisterFormValues) {
     setServerError(null);
@@ -99,6 +103,36 @@ export function RegisterForm() {
           </Select>
         </div>
 
+        {role === "PRIVATO" && (
+          <div>
+            <Label htmlFor="tipoSoggetto">Sei una persona fisica o un&apos;azienda?</Label>
+            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="tipoSoggetto">
+              {(
+                [
+                  { value: "PERSONA_FISICA", label: "Persona fisica" },
+                  { value: "AZIENDA", label: "Azienda" },
+                ] as const
+              ).map((opzione) => (
+                <button
+                  key={opzione.value}
+                  type="button"
+                  onClick={() => setValue("tipoSoggetto", opzione.value)}
+                  aria-pressed={tipoSoggetto === opzione.value}
+                  className={cn(
+                    "rounded-control px-4 py-2 text-sm font-medium ring-1 ring-inset transition-colors",
+                    tipoSoggetto === opzione.value
+                      ? "bg-primary text-white ring-primary"
+                      : "bg-white text-ink ring-border hover:bg-surface-muted"
+                  )}
+                >
+                  {opzione.label}
+                </button>
+              ))}
+            </div>
+            <input type="hidden" {...register("tipoSoggetto")} />
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="nome">Nome</Label>
@@ -149,10 +183,54 @@ export function RegisterForm() {
           </>
         )}
 
+        {role === "PRIVATO" && tipoSoggetto === "PERSONA_FISICA" && (
+          <div>
+            <Label htmlFor="codiceFiscale">Codice fiscale</Label>
+            <Input id="codiceFiscale" placeholder="RSSMRA80A01H501U" {...register("codiceFiscale")} />
+            <FieldError message={errors.codiceFiscale?.message} />
+          </div>
+        )}
+
+        {isPrivatoAzienda && (
+          <div className="space-y-4 rounded-md bg-surface-muted p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Dati azienda</p>
+            <div>
+              <Label htmlFor="ragioneSocialePrivato">Ragione sociale</Label>
+              <Input id="ragioneSocialePrivato" {...register("ragioneSociale")} />
+              <FieldError message={errors.ragioneSociale?.message} />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="pivaPrivato">Partita IVA</Label>
+                <Input id="pivaPrivato" inputMode="numeric" placeholder="12345678901" {...register("piva")} />
+                <FieldError message={errors.piva?.message} />
+              </div>
+              <div>
+                <Label htmlFor="codiceFiscaleAzienda">Codice fiscale azienda</Label>
+                <Input id="codiceFiscaleAzienda" {...register("codiceFiscale")} />
+                <FieldError message={errors.codiceFiscale?.message} />
+                <p className="mt-1 text-xs text-slate-400">Spesso coincide con la Partita IVA.</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="referenteNome">Nome del referente/firmatario</Label>
+                <Input id="referenteNome" {...register("referenteNome")} />
+                <FieldError message={errors.referenteNome?.message} />
+              </div>
+              <div>
+                <Label htmlFor="referenteRuolo">Ruolo del referente</Label>
+                <Input id="referenteRuolo" placeholder="Amministratore delegato" {...register("referenteRuolo")} />
+                <FieldError message={errors.referenteRuolo?.message} />
+              </div>
+            </div>
+          </div>
+        )}
+
         {role === "PRIVATO" && (
           <p className="text-xs text-slate-500">
-            Dopo la registrazione potrai attivare tu stesso il profilo Proprietario inserendo il tuo primo immobile,
-            oppure diventare Inquilino quando un&apos;agenzia ti collega a un contratto.
+            Dopo la registrazione potrai aggiungere il tuo primo immobile come proprietario, oppure collegarti a un
+            contratto come inquilino tramite un invito ricevuto dall&apos;agenzia.
           </p>
         )}
 

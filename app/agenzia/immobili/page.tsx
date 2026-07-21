@@ -47,7 +47,9 @@ export default async function ImmobiliPage() {
                   </TableCell>
                   <TableCell>{TIPO_IMMOBILE_LABELS[immobile.tipoImmobile]}</TableCell>
                   <TableCell>
-                    {immobile.proprietario.user.nome} {immobile.proprietario.user.cognome}
+                    {immobile.relazioni[0]
+                      ? `${immobile.relazioni[0].privato.user.nome} ${immobile.relazioni[0].privato.user.cognome}`
+                      : "-"}
                   </TableCell>
                   <TableCell>{immobile.condominio?.nome ?? "-"}</TableCell>
                   <TableCell>{formatCurrency(immobile.valoreStimato)}</TableCell>

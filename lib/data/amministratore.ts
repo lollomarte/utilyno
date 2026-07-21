@@ -108,7 +108,12 @@ export async function getCondominioDetail(condominioId: string, amministratoreId
     include: {
       immobili: {
         include: {
-          proprietario: { include: { user: true } },
+          relazioni: {
+            where: { ruolo: "PROPRIETARIO", stato: "ATTIVA" },
+            include: { privato: { include: { user: true } } },
+            orderBy: { updatedAt: "desc" },
+            take: 1,
+          },
           contratti: { where: { stato: "ATTIVO" }, include: { inquilino: { include: { user: true } } } },
         },
       },
@@ -156,7 +161,14 @@ export async function getComunicazioniForCondominio(condominioId: string, ammini
 export async function getImmobiliNonAssegnati() {
   return prisma.immobile.findMany({
     where: { condominioId: null },
-    include: { proprietario: { include: { user: true } } },
+    include: {
+      relazioni: {
+        where: { ruolo: "PROPRIETARIO", stato: "ATTIVA" },
+        include: { privato: { include: { user: true } } },
+        orderBy: { updatedAt: "desc" },
+        take: 1,
+      },
+    },
     orderBy: { indirizzo: "asc" },
   });
 }

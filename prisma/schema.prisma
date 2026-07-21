@@ -14,12 +14,29 @@ enum Role {
   ADMIN
   AGENZIA
   AMMINISTRATORE
+  /// Proprietario e Inquilino non sono più ruoli-account separati: un utente PRIVATO ha un
+  /// unico profilo Privato, e il ruolo PROPRIETARIO/INQUILINO vive per-immobile su
+  /// RelazioneImmobilePrivato, non più sull'account. Vedi requirePrivato().
+  PRIVATO
+}
+
+enum TipoSoggetto {
+  PERSONA_FISICA
+  AZIENDA
+}
+
+enum RuoloRelazioneImmobile {
   PROPRIETARIO
   INQUILINO
-  /// Registrazione unificata per i privati: nessun profilo Proprietario/Inquilino ancora
-  /// assegnato. Diventa Proprietario e/o Inquilino in un secondo momento (self-service o
-  /// tramite agenzia) — vedi requirePrivato() e diventaProprietarioAction.
-  PRIVATO
+}
+
+/// IN_ATTESA: relazione non ancora confermata (es. richiesta di collegamento immobile in corso).
+/// ATTIVA: relazione corrente e valida.
+/// CESSATA: relazione conclusa (es. era inquilino, ora è uscito) — mantenuta come storico.
+enum StatoRelazioneImmobile {
+  ATTIVA
+  CESSATA
+  IN_ATTESA
 }
 
 enum TipoImmobile {
@@ -179,8 +196,7 @@ model User {
 
   agenzia              Agenzia?
   amministratore       Amministratore?
-  proprietario         Proprietario?
-  inquilino            Inquilino?
+  privato              Privato?
   letture              LetturaComunicazione[]
   segnalazioniCreate   Segnalazione[]             @relation("SegnalazioniCreate")
   segnalazioniRicevute SegnalazioneDestinatario[]
@@ -281,38 +297,80 @@ model Condominio {
   @@index([amministratoreId])
 }
 
-model Proprietario {
-  id               String  @id @default(cuid())
-  userId           String  @unique
-  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  codiceFiscale    String  @unique
-  indirizzo        String
-  /// Per accredito canoni/deposito: vive sul Proprietario (non sull'Immobile) perché lo stesso
-  /// IBAN vale per tutti gli immobili di quel proprietario.
-  ibanProprietario String?
+/// Attore unificato per "privati" (ex Proprietario/Inquilino): un solo profilo per persona,
+/// collegato a User come Agenzia/Amministratore. Il ruolo PROPRIETARIO/INQUILINO non è più un
+/// attributo dell'account ma vive per-immobile su RelazioneImmobilePrivato — la stessa persona
+/// può essere proprietaria di un immobile e inquilina di un altro, o anche entrambe le cose nel
+/// tempo sullo stesso immobile.
+///
+/// Modello unico (non subclassato): i campi specifici di AZIENDA restano nullable e la
+/// validazione condizionale in base a `tipoSoggetto` vive lato applicativo (Zod), non come
+/// constraint DB rigidi, per restare flessibile.
+model Privato {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  immobili          Immobile[]
-  richiesteGestione RichiestaGestioneImmobile[]
+  tipoSoggetto TipoSoggetto
+
+  /// PERSONA_FISICA: codice fiscale personale. AZIENDA: codice fiscale dell'azienda (in Italia
+  /// numericamente coincide quasi sempre con la partita IVA, ma resta un campo esplicito
+  /// invece di essere dedotto da `piva`, per restare corretto anche nei rari casi in cui differisce).
+  codiceFiscale String? @unique
+
+  // --- Solo per tipoSoggetto = AZIENDA ---
+  ragioneSociale String?
+  piva           String? @unique
+  /// Nome del referente/firmatario per conto dell'azienda.
+  referenteNome  String?
+  /// Ruolo del referente (es. "Amministratore delegato", "Procuratore").
+  referenteRuolo String?
+
+  indirizzo String?
+  /// Per accredito canoni/deposito quando questo Privato ha relazioni PROPRIETARIO su uno o
+  /// più immobili: vive qui (non su Immobile/RelazioneImmobilePrivato) perché lo stesso IBAN
+  /// vale per tutti gli immobili di cui è proprietario.
+  iban      String?
+
+  relazioniImmobile         RelazioneImmobilePrivato[]
+  richiesteGestione         RichiestaGestioneImmobile[]
+  inviti                    InvitoInquilino[]
+  contrattiComeProprietario Contratto[]                 @relation("ContrattoProprietario")
+  contrattiComeInquilino    Contratto[]                 @relation("ContrattoInquilino")
 }
 
-model Inquilino {
-  id            String @id @default(cuid())
-  userId        String @unique
-  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  codiceFiscale String @unique
+/// Relazione N:N tra Privato e Immobile: il ruolo (PROPRIETARIO/INQUILINO) è specifico per
+/// ogni singola relazione, non per l'account. Un privato può avere più relazioni con lo stesso
+/// immobile nel tempo (es. era inquilino, ora è uscito): nessun vincolo di unicità stretto,
+/// solo un indice per le query più comuni (relazioni attive di un privato per ruolo).
+model RelazioneImmobilePrivato {
+  id String @id @default(cuid())
 
-  contratti Contratto[]
-  inviti    InvitoInquilino[]
+  privatoId  String
+  privato    Privato  @relation(fields: [privatoId], references: [id], onDelete: Cascade)
+  immobileId String
+  immobile   Immobile @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+
+  ruolo RuoloRelazioneImmobile
+  stato StatoRelazioneImmobile @default(ATTIVA)
+
+  /// Valorizzato quando la relazione nasce da un Contratto attivo (sempre per INQUILINO; per
+  /// PROPRIETARIO può restare null se l'immobile non è ancora sotto contratto, es. BOZZA_PROPRIETARIO).
+  contrattoId String?
+  contratto   Contratto? @relation(fields: [contrattoId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([privatoId, immobileId, ruolo, stato])
 }
 
 model Immobile {
-  id             String       @id @default(cuid())
-  proprietarioId String
-  proprietario   Proprietario @relation(fields: [proprietarioId], references: [id], onDelete: Cascade)
-  agenziaId      String?
-  agenzia        Agenzia?     @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
-  condominioId   String?
-  condominio     Condominio?  @relation(fields: [condominioId], references: [id], onDelete: SetNull)
+  id           String      @id @default(cuid())
+  agenziaId    String?
+  agenzia      Agenzia?    @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
+  condominioId String?
+  condominio   Condominio? @relation(fields: [condominioId], references: [id], onDelete: SetNull)
 
   indirizzo     String
   comune        String
@@ -352,8 +410,8 @@ model Immobile {
   documenti         Documento[]
   segnalazioni      Segnalazione[]
   richiesteGestione RichiestaGestioneImmobile[]
+  relazioni         RelazioneImmobilePrivato[]
 
-  @@index([proprietarioId])
   @@index([agenziaId])
   @@index([condominioId])
   @@index([stato])
@@ -368,7 +426,7 @@ model RichiestaGestioneImmobile {
   immobile   Immobile @relation(fields: [immobileId], references: [id], onDelete: Cascade)
 
   proprietarioId String
-  proprietario   Proprietario @relation(fields: [proprietarioId], references: [id], onDelete: Cascade)
+  proprietario   Privato @relation(fields: [proprietarioId], references: [id], onDelete: Cascade)
 
   agenziaId String
   agenzia   Agenzia @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
@@ -385,13 +443,18 @@ model RichiestaGestioneImmobile {
 }
 
 model Contratto {
-  id          String    @id @default(cuid())
-  immobileId  String
-  immobile    Immobile  @relation(fields: [immobileId], references: [id], onDelete: Cascade)
-  inquilinoId String
-  inquilino   Inquilino @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
-  agenziaId   String
-  agenzia     Agenzia   @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
+  immobileId     String
+  immobile       Immobile @relation(fields: [immobileId], references: [id], onDelete: Cascade)
+  /// Chi era proprietario dell'immobile al momento del contratto: esplicito qui (non derivato
+  /// da Immobile, che non ha più un proprietario diretto) perché la titolarità può cambiare nel
+  /// tempo mentre il contratto storico deve continuare a riflettere chi lo era allora.
+  proprietarioId String
+  proprietario   Privato  @relation("ContrattoProprietario", fields: [proprietarioId], references: [id], onDelete: Cascade)
+  inquilinoId    String
+  inquilino      Privato  @relation("ContrattoInquilino", fields: [inquilinoId], references: [id], onDelete: Cascade)
+  agenziaId      String
+  agenzia        Agenzia  @relation(fields: [agenziaId], references: [id], onDelete: Cascade)
 
   tipoContratto                  TipoContratto
   dataInizio                     DateTime
@@ -415,8 +478,10 @@ model Contratto {
   documenti Documento[]
   checklist ChecklistImmobile[]
   inviti    InvitoInquilino[]
+  relazioni RelazioneImmobilePrivato[]
 
   @@index([immobileId])
+  @@index([proprietarioId])
   @@index([inquilinoId])
   @@index([agenziaId])
   @@index([stato])
@@ -633,7 +698,7 @@ model InvitoInquilino {
   id          String    @id @default(cuid())
   token       String    @unique
   inquilinoId String
-  inquilino   Inquilino @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
+  inquilino   Privato   @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
   contrattoId String
   contratto   Contratto @relation(fields: [contrattoId], references: [id], onDelete: Cascade)
 

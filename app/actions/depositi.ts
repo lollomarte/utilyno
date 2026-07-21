@@ -18,15 +18,14 @@ export async function gestisciRestituzioneDepositoAction(
 
   const contratto = await prisma.contratto.findUnique({
     where: { id: parsed.data.contrattoId },
-    include: { immobile: true },
   });
   if (!contratto) return { success: false, error: "Contratto non trovato" };
 
-  const [agenzia, proprietario] = await Promise.all([
+  const [agenzia, privato] = await Promise.all([
     prisma.agenzia.findUnique({ where: { userId: session.user.id } }),
-    prisma.proprietario.findUnique({ where: { userId: session.user.id } }),
+    prisma.privato.findUnique({ where: { userId: session.user.id } }),
   ]);
-  const autorizzato = agenzia?.id === contratto.agenziaId || proprietario?.id === contratto.immobile.proprietarioId;
+  const autorizzato = agenzia?.id === contratto.agenziaId || privato?.id === contratto.proprietarioId;
   if (!autorizzato) return { success: false, error: "Non autorizzato" };
 
   // Vincolo lato server: il deposito non può essere gestito finché il contratto è ancora attivo.
@@ -63,9 +62,8 @@ export async function gestisciRestituzioneDepositoAction(
   });
 
   revalidatePath(`/agenzia/contratti/${contratto.id}`);
-  revalidatePath("/proprietario");
-  revalidatePath(`/proprietario/immobili/${contratto.immobileId}`);
-  revalidatePath("/inquilino");
+  revalidatePath("/privato");
+  revalidatePath(`/privato/${contratto.immobileId}`);
 
   return { success: true };
 }

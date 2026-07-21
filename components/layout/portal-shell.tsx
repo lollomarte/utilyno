@@ -7,17 +7,6 @@ import { CommandPaletteProvider } from "@/components/layout/command-palette";
 import { raccogliNotifiche } from "@/lib/notifiche/raccogliNotifiche";
 import type { PortaleVoce } from "@/components/layout/portali-switcher";
 
-type ProfiloPrivato = "PROPRIETARIO" | "INQUILINO";
-
-const PORTALE_LABEL: Record<ProfiloPrivato, string> = {
-  PROPRIETARIO: "Portale Proprietario",
-  INQUILINO: "Portale Inquilino",
-};
-const PORTALE_HREF: Record<ProfiloPrivato, string> = {
-  PROPRIETARIO: "/proprietario",
-  INQUILINO: "/inquilino",
-};
-
 export async function PortalShell({
   portalLabel,
   roleLabel,
@@ -25,7 +14,6 @@ export async function PortalShell({
   nome,
   cognome,
   userId,
-  profili,
   switcherVoci,
   children,
 }: {
@@ -35,28 +23,19 @@ export async function PortalShell({
   nome: string;
   cognome: string;
   userId: string;
-  /** Presente solo per i portali Proprietario/Inquilino/casa: se l'utente possiede entrambi i
-   * profili, mostra nell'header il selettore per passare dall'uno all'altro. */
-  profili?: ProfiloPrivato[];
-  /** Override esplicito delle voci dello switcher in header — usato da /casa/[immobileId] per
-   * mostrare la lista di TUTTI gli immobili invece dei soli portali. Se presente ha priorità
-   * sul calcolo automatico da `profili`. */
+  /** Presente solo in /privato/[immobileId]: elenco di tutti gli immobili dell'utente, per lo
+   * switcher in header che cambia il contesto (e con esso ruolo/nav) senza tornare alla lista. */
   switcherVoci?: PortaleVoce[];
   children: React.ReactNode;
 }) {
-  const haDoppioProfilo = (profili?.length ?? 0) === 2;
-  const portaliVoci =
-    switcherVoci ??
-    (haDoppioProfilo
-      ? [...profili!.map((p) => ({ href: PORTALE_HREF[p], label: PORTALE_LABEL[p] })), { href: "/casa", label: "I miei immobili" }]
-      : []);
+  const portaliVoci = switcherVoci ?? [];
 
   // "Profilo" è raggiungibile solo dalla navigazione mobile: su desktop
   // nome/ruolo/logout restano sempre visibili nell'header in alto. Quando lo switcher ha più di
-  // una voce, anche "I miei immobili" (/casa) diventa raggiungibile da mobile allo stesso modo.
+  // una voce, anche "I miei immobili" (/privato) diventa raggiungibile da mobile allo stesso modo.
   const mobileNavItems: NavItem[] = [
     ...navItems,
-    ...(portaliVoci.length > 1 && navItems[0]?.href !== "/casa" ? [{ href: "/casa", label: "I miei immobili" }] : []),
+    ...(portaliVoci.length > 1 && navItems[0]?.href !== "/privato" ? [{ href: "/privato", label: "I miei immobili" }] : []),
     { href: `${navItems[0]?.href ?? ""}/profilo`, label: "Profilo" },
   ];
 

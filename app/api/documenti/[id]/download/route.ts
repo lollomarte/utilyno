@@ -17,7 +17,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Documento non valido" }, { status: 400 });
   }
 
-  const documento = await getDocumentoConAccesso(parsed.data.documentoId, session.user.id, session.user.profili);
+  const documento = await getDocumentoConAccesso(parsed.data.documentoId, session.user.id, session.user.role);
   if (!documento) {
     return NextResponse.json({ error: "Documento non trovato" }, { status: 404 });
   }

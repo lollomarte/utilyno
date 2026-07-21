@@ -21,7 +21,7 @@ type ImmobileDisponibile = {
   id: string;
   indirizzo: string;
   comune: string;
-  proprietario: { user: { nome: string; cognome: string } };
+  relazioni: { privato: { user: { nome: string; cognome: string } } }[];
 };
 type Agenzia = { id: string; ragioneSociale: string };
 type Proprietario = { id: string; user: { nome: string; cognome: string; email: string } };
@@ -139,7 +139,8 @@ function CollegaEsistenteForm({
         <Select id="immobileId" value={immobileId} onChange={(e) => setImmobileId(e.target.value)}>
           {immobili.map((i) => (
             <option key={i.id} value={i.id}>
-              {i.indirizzo}, {i.comune} &middot; {i.proprietario.user.nome} {i.proprietario.user.cognome}
+              {i.indirizzo}, {i.comune}
+              {i.relazioni[0] ? ` · ${i.relazioni[0].privato.user.nome} ${i.relazioni[0].privato.user.cognome}` : ""}
             </option>
           ))}
         </Select>

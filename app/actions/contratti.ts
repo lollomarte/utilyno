@@ -7,6 +7,7 @@ import { requireAgenzia } from "@/lib/auth-helpers";
 import { adeRegistrationProvider } from "@/lib/services/ade-registration";
 import { registraLogAzione } from "@/lib/audit/registraLogAzione";
 import { risolviUserPerProfiloPrivato } from "@/lib/utenti/risolviUserPerProfiloPrivato";
+import { getRelazioneProprietarioAttiva, assicuraRelazioneAttiva } from "@/lib/immobili/relazioni";
 import { nuovoContrattoSchema, type NuovoContrattoInput } from "@/lib/validations/contratto";
 
 export async function registraContrattoAdEAction(
@@ -99,31 +100,23 @@ export async function creaContrattoAction(
     return { success: false, error: "Immobile non valido" };
   }
 
+  const relazioneProprietario = await getRelazioneProprietarioAttiva(immobile.id);
+  if (!relazioneProprietario) {
+    return { success: false, error: "Nessun proprietario attivo trovato per questo immobile" };
+  }
+
   let inquilinoId = data.inquilinoId;
   let inquilinoTemporaryPassword: string | undefined;
 
   if (data.inquilinoMode === "nuovo") {
-    const { userId, nuovoUser, passwordProvvisoria } = await risolviUserPerProfiloPrivato(
-      {
-        email: data.inquilinoEmail!,
-        nome: data.inquilinoNome!,
-        cognome: data.inquilinoCognome!,
-        telefono: data.inquilinoTelefono || null,
-      },
-      "INQUILINO"
-    );
-
-    // Se la persona ha già un profilo Inquilino (es. è già affittuario altrove), il nuovo
-    // contratto si aggiunge ai suoi contratti esistenti invece di duplicare il profilo.
-    const inquilinoEsistente = await prisma.inquilino.findUnique({ where: { userId } });
-    if (inquilinoEsistente) {
-      inquilinoId = inquilinoEsistente.id;
-    } else {
-      const nuovoInquilino = await prisma.inquilino.create({
-        data: { codiceFiscale: data.inquilinoCodiceFiscale!, userId },
-      });
-      inquilinoId = nuovoInquilino.id;
-    }
+    const { privatoId, nuovoUser, passwordProvvisoria } = await risolviUserPerProfiloPrivato({
+      email: data.inquilinoEmail!,
+      nome: data.inquilinoNome!,
+      cognome: data.inquilinoCognome!,
+      telefono: data.inquilinoTelefono || null,
+      codiceFiscale: data.inquilinoCodiceFiscale!,
+    });
+    inquilinoId = privatoId;
     // Credenziali provvisorie solo se è stato creato un account nuovo: chi aveva già un
     // account (nuovoUser === false) continua a usare la propria password esistente.
     inquilinoTemporaryPassword = nuovoUser ? passwordProvvisoria : undefined;
@@ -133,7 +126,7 @@ export async function creaContrattoAction(
     return { success: false, error: "Inquilino non valido" };
   }
 
-  const inquilino = await prisma.inquilino.findUnique({ where: { id: inquilinoId }, include: { user: true } });
+  const inquilino = await prisma.privato.findUnique({ where: { id: inquilinoId }, include: { user: true } });
   if (!inquilino) {
     return { success: false, error: "Inquilino non valido" };
   }
@@ -144,6 +137,7 @@ export async function creaContrattoAction(
   const contratto = await prisma.contratto.create({
     data: {
       immobileId: data.immobileId,
+      proprietarioId: relazioneProprietario.privatoId,
       inquilinoId,
       agenziaId: agenzia.id,
       tipoContratto: data.tipoContratto,
@@ -156,6 +150,23 @@ export async function creaContrattoAction(
       depositoStato: "NON_VERSATO",
     },
   });
+
+  // La relazione PROPRIETARIO esiste già (relazioneProprietario), ma la si allinea comunque a
+  // questo contratto; quella INQUILINO nasce qui per la prima volta.
+  await Promise.all([
+    assicuraRelazioneAttiva({
+      privatoId: relazioneProprietario.privatoId,
+      immobileId: data.immobileId,
+      ruolo: "PROPRIETARIO",
+      contrattoId: contratto.id,
+    }),
+    assicuraRelazioneAttiva({
+      privatoId: inquilinoId,
+      immobileId: data.immobileId,
+      ruolo: "INQUILINO",
+      contrattoId: contratto.id,
+    }),
+  ]);
 
   const numeroRate = Math.min(24, Math.max(1, Math.round((dataFine.getTime() - dataInizio.getTime()) / (1000 * 60 * 60 * 24 * 30))));
   await prisma.pagamento.createMany({

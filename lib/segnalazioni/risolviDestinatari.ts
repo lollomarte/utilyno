@@ -1,12 +1,28 @@
 import { prisma } from "@/lib/prisma";
 import type { CategoriaSegnalazione, Role } from "@prisma/client";
 
+/** Ruoli possibili in un pool di destinatari: unione tra i ruoli-immobile (per-relazione, ora su
+ * RelazioneImmobilePrivato) e i ruoli-account che restano fissi (Agenzia, Amministratore). Non è
+ * più un sottoinsieme dell'enum Prisma `Role`, che da questa versione non contiene più
+ * PROPRIETARIO/INQUILINO (vive solo su RelazioneImmobilePrivato). */
+export type RuoloPool = "PROPRIETARIO" | "INQUILINO" | "AGENZIA" | "AMMINISTRATORE";
+
+/** Converte un RuoloPool nel Role account-level corrispondente: serve solo dove un campo deve
+ * restare tipizzato Role (es. DocumentoCondivisione.ruolo, denormalizzato al momento della
+ * condivisione) — PROPRIETARIO e INQUILINO non sono più valori validi di Role, quindi entrambi
+ * diventano PRIVATO, perdendo qui la distinzione più fine (che resta invece intatta ovunque si
+ * legga RuoloPool direttamente, es. nei destinatari di una Segnalazione). */
+export function ruoloPoolToRole(ruolo: RuoloPool): Role {
+  if (ruolo === "PROPRIETARIO" || ruolo === "INQUILINO") return "PRIVATO";
+  return ruolo;
+}
+
 /**
  * Ruoli "pertinenti" per ciascuna categoria: chi, tra le parti collegate
  * all'immobile, deve essere avvisato. Il mittente viene sempre escluso
  * a valle, indipendentemente da questa tabella.
  */
-const RUOLI_PERTINENTI: Record<CategoriaSegnalazione, Role[]> = {
+const RUOLI_PERTINENTI: Record<CategoriaSegnalazione, RuoloPool[]> = {
   PROBLEMA_UNITA: ["PROPRIETARIO", "INQUILINO"],
   PROBLEMA_CONDOMINIALE: ["AMMINISTRATORE", "PROPRIETARIO", "INQUILINO"],
   PROBLEMA_MISTO: ["AMMINISTRATORE", "PROPRIETARIO", "INQUILINO"],
@@ -14,46 +30,43 @@ const RUOLI_PERTINENTI: Record<CategoriaSegnalazione, Role[]> = {
 };
 
 /** Categoria di fallback quando l'utente non ne sceglie una: comportamento più prudente e minimale. */
-const RUOLI_PERTINENTI_DEFAULT: Role[] = ["PROPRIETARIO", "INQUILINO"];
+const RUOLI_PERTINENTI_DEFAULT: RuoloPool[] = ["PROPRIETARIO", "INQUILINO"];
 
 export interface PartePool {
   userId: string;
-  ruolo: Role;
+  ruolo: RuoloPool;
   nome: string;
   cognome: string;
 }
 
 /**
- * Calcola il "pool" di tutte le parti potenzialmente coinvolte per un
- * immobile: proprietario e agenzia esistono sempre, inquilino solo se
- * c'è un contratto attivo su quell'unità, amministratore solo se
- * l'immobile è collegato a un condominio.
+ * Calcola il "pool" di tutte le parti potenzialmente coinvolte per un immobile: proprietario/i e
+ * inquilino/i vengono dalle RelazioneImmobilePrivato con stato ATTIVA (un immobile può avere più
+ * proprietari o più inquilini attivi contemporaneamente — es. comproprietà — quindi il pool ne
+ * include quanti ce ne sono, non uno solo), agenzia esiste sempre se l'immobile è in gestione,
+ * amministratore solo se l'immobile è collegato a un condominio.
  */
 export async function getPoolImmobile(immobileId: string): Promise<PartePool[]> {
   const immobile = await prisma.immobile.findUniqueOrThrow({
     where: { id: immobileId },
     include: {
-      proprietario: { include: { user: true } },
       agenzia: { include: { user: true } },
       condominio: { include: { amministratore: { include: { user: true } } } },
-      contratti: {
-        where: { stato: "ATTIVO" },
-        include: { inquilino: { include: { user: true } } },
-        take: 1,
+      relazioni: {
+        where: { stato: "ATTIVA" },
+        include: { privato: { include: { user: true } } },
       },
     },
   });
 
-  const pool: PartePool[] = [
-    {
-      userId: immobile.proprietario.user.id,
-      ruolo: "PROPRIETARIO",
-      nome: immobile.proprietario.user.nome,
-      cognome: immobile.proprietario.user.cognome,
-    },
-  ];
+  const pool: PartePool[] = immobile.relazioni.map((r) => ({
+    userId: r.privato.user.id,
+    ruolo: r.ruolo,
+    nome: r.privato.user.nome,
+    cognome: r.privato.user.cognome,
+  }));
 
-  // Un immobile auto-inserito dal Proprietario (stato BOZZA_PROPRIETARIO) non ha ancora
+  // Un immobile auto-inserito da un privato (stato BOZZA_PROPRIETARIO) non ha ancora
   // un'agenzia: nessuna segnalazione dovrebbe comunque poter nascere in quel contesto, ma
   // il pool resta corretto anche in quel caso limite.
   if (immobile.agenzia) {
@@ -63,11 +76,6 @@ export async function getPoolImmobile(immobileId: string): Promise<PartePool[]> 
       nome: immobile.agenzia.user.nome,
       cognome: immobile.agenzia.user.cognome,
     });
-  }
-
-  const inquilinoUser = immobile.contratti[0]?.inquilino.user;
-  if (inquilinoUser) {
-    pool.push({ userId: inquilinoUser.id, ruolo: "INQUILINO", nome: inquilinoUser.nome, cognome: inquilinoUser.cognome });
   }
 
   const amministratoreUser = immobile.condominio?.amministratore.user;
@@ -86,8 +94,8 @@ export async function getPoolImmobile(immobileId: string): Promise<PartePool[]> 
 /**
  * Funzione unica e riutilizzabile per determinare i destinatari automatici
  * di una segnalazione: dato l'immobile, la categoria e chi la sta creando,
- * risale le relazioni già esistenti nei dati (proprietario, inquilino con
- * contratto attivo, agenzia, amministratore del condominio) e restituisce
+ * risale le relazioni già esistenti nei dati (proprietario/i e inquilino/i
+ * attivi, agenzia, amministratore del condominio) e restituisce
  * solo le parti pertinenti alla categoria, escludendo sempre il mittente.
  *
  * Se una relazione non esiste per quell'immobile (es. nessun condominio,

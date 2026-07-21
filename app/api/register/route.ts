@@ -49,8 +49,27 @@ export async function POST(request: Request) {
           },
         },
       }),
-      // PRIVATO: solo lo User, nessun profilo Proprietario/Inquilino ancora — vengono attivati
-      // dopo, self-service (diventaProprietarioAction) o tramite agenzia (Inquilino).
+      // PRIVATO: il profilo Privato nasce subito con l'account (a differenza del vecchio
+      // Proprietario/Inquilino, non serve più un'attivazione separata) — il ruolo per-immobile
+      // (proprietario/inquilino) si sceglie dopo, nel flusso "Aggiungi immobile".
+      ...(data.role === "PRIVATO" && {
+        privato: {
+          create:
+            data.tipoSoggetto === "AZIENDA"
+              ? {
+                  tipoSoggetto: data.tipoSoggetto,
+                  ragioneSociale: data.ragioneSociale,
+                  piva: data.piva,
+                  codiceFiscale: data.codiceFiscale,
+                  referenteNome: data.referenteNome,
+                  referenteRuolo: data.referenteRuolo,
+                }
+              : {
+                  tipoSoggetto: data.tipoSoggetto,
+                  codiceFiscale: data.codiceFiscale,
+                },
+        },
+      }),
     },
   });
 

@@ -1,11 +1,11 @@
 import { requireAgenzia } from "@/lib/auth-helpers";
-import { getProprietariDisponibili, getCondominiDisponibili } from "@/lib/data/agenzia";
+import { getPrivatiDisponibili, getCondominiDisponibili } from "@/lib/data/agenzia";
 import { NuovoImmobileForm } from "@/components/agenzia/nuovo-immobile-form";
 import { Card } from "@/components/ui/card";
 
 export default async function NuovoImmobilePage() {
   await requireAgenzia();
-  const [proprietari, condomini] = await Promise.all([getProprietariDisponibili(), getCondominiDisponibili()]);
+  const [proprietari, condomini] = await Promise.all([getPrivatiDisponibili(), getCondominiDisponibili()]);
 
   return (
     <div className="space-y-6">

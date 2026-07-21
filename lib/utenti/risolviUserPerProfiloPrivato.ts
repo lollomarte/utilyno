@@ -1,6 +1,5 @@
 import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
-import type { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 type DatiAnagrafici = {
@@ -8,25 +7,33 @@ type DatiAnagrafici = {
   nome: string;
   cognome: string;
   telefono?: string | null;
+  codiceFiscale: string;
+  indirizzo?: string | null;
   /** Se non fornita, ne viene generata una provvisoria (restituita in `passwordProvvisoria`). */
   password?: string;
 };
 
 /**
- * Risolve lo userId a cui agganciare un nuovo profilo Proprietario o Inquilino creato "al volo"
- * da un'agenzia (es. alla creazione di un immobile o di un contratto). Se l'email corrisponde a
- * uno User già esistente — perché la persona ha già un altro profilo sulla piattaforma, es. è
- * già Proprietario e ora diventa anche Inquilino altrove — riusa lo stesso User invece di
- * bloccare l'operazione o crearne uno duplicato: `email` è unique a livello di schema, quindi
- * due account con la stessa email non sono mai stati possibili.
+ * Risolve lo userId a cui agganciare una relazione RelazioneImmobilePrivato creata "al volo" da
+ * un'agenzia (es. alla creazione di un immobile o di un contratto). Se l'email corrisponde a uno
+ * User già esistente — perché la persona ha già un profilo Privato sulla piattaforma, es. è già
+ * proprietaria altrove e ora diventa anche inquilina — riusa lo stesso User/Privato invece di
+ * bloccare l'operazione o crearne uno duplicato: `email` è unique a livello di schema, quindi due
+ * account con la stessa email non sono mai stati possibili.
+ *
+ * Il Privato creato al volo è sempre PERSONA_FISICA: questi flussi rapidi (form inline
+ * dell'agenzia) raccolgono solo nome/cognome/codice fiscale, mai i dati azienda — un'agenzia che
+ * gestisce un immobile per conto di una società dovrà completare il profilo separatamente.
  */
 export async function risolviUserPerProfiloPrivato(
-  dati: DatiAnagrafici,
-  ruoloPrimarioSeNuovo: Extract<Role, "PROPRIETARIO" | "INQUILINO">
-): Promise<{ userId: string; nuovoUser: boolean; passwordProvvisoria?: string }> {
-  const existing = await prisma.user.findUnique({ where: { email: dati.email } });
+  dati: DatiAnagrafici
+): Promise<{ userId: string; privatoId: string; nuovoUser: boolean; passwordProvvisoria?: string }> {
+  const existing = await prisma.user.findUnique({ where: { email: dati.email }, include: { privato: true } });
   if (existing) {
-    return { userId: existing.id, nuovoUser: false };
+    if (!existing.privato) {
+      throw new Error(`L'utente ${dati.email} esiste ma non ha un profilo Privato: incoerenza dati.`);
+    }
+    return { userId: existing.id, privatoId: existing.privato.id, nuovoUser: false };
   }
 
   const passwordProvvisoria = dati.password ? undefined : randomBytes(9).toString("base64url");
@@ -35,11 +42,19 @@ export async function risolviUserPerProfiloPrivato(
     data: {
       email: dati.email,
       passwordHash,
-      role: ruoloPrimarioSeNuovo,
+      role: "PRIVATO",
       nome: dati.nome,
       cognome: dati.cognome,
       telefono: dati.telefono ?? null,
+      privato: {
+        create: {
+          tipoSoggetto: "PERSONA_FISICA",
+          codiceFiscale: dati.codiceFiscale,
+          indirizzo: dati.indirizzo ?? null,
+        },
+      },
     },
+    include: { privato: true },
   });
-  return { userId: user.id, nuovoUser: true, passwordProvvisoria };
+  return { userId: user.id, privatoId: user.privato!.id, nuovoUser: true, passwordProvvisoria };
 }

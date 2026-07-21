@@ -30,10 +30,20 @@ export const aggiornaAmministratoreSchema = z.object({
 export type AggiornaAmministratoreInput = z.infer<typeof aggiornaAmministratoreSchema>;
 export type AggiornaAmministratoreFormInput = z.input<typeof aggiornaAmministratoreSchema>;
 
-/** Solo indirizzo e IBAN: il codice fiscale resta di sola lettura (dato identificativo). */
-export const aggiornaProprietarioSchema = z.object({
-  indirizzo: z.string().min(1, "L'indirizzo è obbligatorio"),
-  ibanProprietario: optionalString,
+/**
+ * Modifica il profilo Privato: codice fiscale e tipoSoggetto restano di sola lettura (dati
+ * identificativi, non si cambia da persona fisica ad azienda dopo la registrazione). I campi
+ * azienda (ragioneSociale/piva/referente) sono opzionali qui perché il form li mostra solo se
+ * il profilo è già AZIENDA — la validazione "obbligatorio se azienda" resta in fase di
+ * registrazione, non va riapplicata rigidamente in modifica.
+ */
+export const aggiornaPrivatoSchema = z.object({
+  indirizzo: optionalString,
+  iban: optionalString,
+  ragioneSociale: optionalString,
+  piva: optionalString,
+  referenteNome: optionalString,
+  referenteRuolo: optionalString,
 });
-export type AggiornaProprietarioInput = z.infer<typeof aggiornaProprietarioSchema>;
-export type AggiornaProprietarioFormInput = z.input<typeof aggiornaProprietarioSchema>;
+export type AggiornaPrivatoInput = z.infer<typeof aggiornaPrivatoSchema>;
+export type AggiornaPrivatoFormInput = z.input<typeof aggiornaPrivatoSchema>;

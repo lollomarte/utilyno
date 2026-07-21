@@ -7,8 +7,9 @@ import {
   getComunicazioniPerProprietario,
   getImmobiliForProprietario,
   calcolaScadenzeProprietario,
-} from "@/lib/data/proprietario";
-import { getContrattoAttivoForInquilino, getComunicazioniPerInquilino } from "@/lib/data/inquilino";
+  getContrattoAttivoForInquilino,
+  getComunicazioniPerInquilino,
+} from "@/lib/data/privato";
 import { getPagamentiInRitardoPerAgenzia, getContrattiInScadenza, getRichiesteGestionePerAgenzia } from "@/lib/data/agenzia";
 
 /** Entro questa soglia una scadenza (contratto, registrazione AdE, assicurazione) diventa
@@ -51,8 +52,9 @@ const TTL_CACHE_MS = 20_000;
 const cache = new Map<string, { scadenza: number; notifiche: Notifica[] }>();
 
 /** Punto unico di aggregazione degli allarmi sparsi nelle dashboard: dato uno userId, verifica
- * quali profili possiede (un utente può averne più di uno, es. Proprietario e Inquilino
- * contemporaneamente) e aggrega le notifiche di ciascuno — mai duplicate qui. */
+ * quale profilo possiede e aggrega le notifiche di ciascun ruolo che ricopre (un Privato può
+ * essere proprietario di un immobile e inquilino di un altro contemporaneamente) — mai
+ * duplicate qui. */
 export async function raccogliNotifiche(userId: string): Promise<Notifica[]> {
   const voceCache = cache.get(userId);
   if (voceCache && voceCache.scadenza > Date.now()) {
@@ -72,17 +74,20 @@ async function calcolaNotifiche(userId: string): Promise<Notifica[]> {
   const utente = await prisma.user.findUnique({
     where: { id: userId },
     select: {
-      proprietario: { select: { id: true } },
-      inquilino: { select: { id: true } },
+      privato: { select: { id: true } },
       agenzia: { select: { id: true } },
       amministratore: { select: { id: true } },
     },
   });
   if (!utente) return [];
 
+  // Proprietario e inquilino non sono più due profili distinti da controllare: un solo Privato
+  // può ricoprire entrambi i ruoli (su immobili diversi), quindi si interrogano sempre entrambi
+  // i branch con lo stesso privato.id — ciascuno restituisce semplicemente un array vuoto se il
+  // privato non ha relazioni di quel ruolo.
   const gruppi = await Promise.all([
-    utente.proprietario ? raccogliNotifichePerProprietario(userId, utente.proprietario.id) : [],
-    utente.inquilino ? raccogliNotifichePerInquilino(userId, utente.inquilino.id) : [],
+    utente.privato ? raccogliNotifichePerProprietario(userId, utente.privato.id) : [],
+    utente.privato ? raccogliNotifichePerInquilino(userId, utente.privato.id) : [],
     utente.agenzia ? raccogliNotifichePerAgenzia(userId, utente.agenzia.id) : [],
     utente.amministratore ? raccogliNotifichePerAmministratore(userId) : [],
   ]);
@@ -90,19 +95,18 @@ async function calcolaNotifiche(userId: string): Promise<Notifica[]> {
   return ordinaPerUrgenza(gruppi.flat());
 }
 
-async function raccogliNotifichePerProprietario(userId: string, proprietarioId: string): Promise<Notifica[]> {
+async function raccogliNotifichePerProprietario(userId: string, privatoId: string): Promise<Notifica[]> {
   const [pagamentiInRitardo, immobili, comunicazioni, segnalazioniNonLetteTutte] = await Promise.all([
-    getPagamentiInRitardoPerProprietario(proprietarioId),
-    getImmobiliForProprietario(proprietarioId),
-    getComunicazioniPerProprietario(proprietarioId, userId),
+    getPagamentiInRitardoPerProprietario(privatoId),
+    getImmobiliForProprietario(privatoId),
+    getComunicazioniPerProprietario(privatoId, userId),
     getSegnalazioniNonLettePerUser(userId),
   ]);
-  // Un utente con anche il profilo Inquilino riceve la stessa lista grezza dall'altro branch:
-  // qui va filtrata solo agli immobili di cui è effettivamente proprietario, altrimenti una
-  // segnalazione su un immobile in cui è inquilino comparirebbe anche con link "/proprietario/...".
-  const segnalazioniNonLette = segnalazioniNonLetteTutte.filter(
-    (d) => d.segnalazione.immobile.proprietarioId === proprietarioId
-  );
+  // Un privato con anche il ruolo inquilino (su un altro immobile) riceve la stessa lista grezza
+  // dall'altro branch: qui va filtrata solo agli immobili di cui è effettivamente proprietario,
+  // altrimenti una segnalazione su un immobile in cui è inquilino comparirebbe due volte.
+  const immobiliDiProprieta = new Set(immobili.map((i) => i.id));
+  const segnalazioniNonLette = segnalazioniNonLetteTutte.filter((d) => immobiliDiProprieta.has(d.segnalazione.immobileId));
 
   const notifiche: Notifica[] = [];
 
@@ -112,7 +116,7 @@ async function raccogliNotifichePerProprietario(userId: string, proprietarioId: 
       tipo: p.stato === "INSOLUTO" ? "pagamento_insoluto" : "pagamento_in_ritardo",
       titolo: p.stato === "INSOLUTO" ? "Pagamento insoluto" : "Pagamento in ritardo",
       descrizione: `${p.contratto.immobile.indirizzo}, ${p.contratto.immobile.comune} — ${formatCurrency(p.importo)}`,
-      href: "/proprietario/pagamenti",
+      href: `/privato/${p.contratto.immobileId}/pagamenti`,
       data: p.dataScadenza,
     });
   }
@@ -131,7 +135,7 @@ async function raccogliNotifichePerProprietario(userId: string, proprietarioId: 
       tipo: TIPO_SCADENZA[s.tipo] ?? "scadenza_contratto",
       titolo: s.tipo,
       descrizione: s.immobile,
-      href: `/proprietario/immobili/${s.immobileId}`,
+      href: `/privato/${s.immobileId}`,
       data: s.data,
     });
   }
@@ -143,7 +147,7 @@ async function raccogliNotifichePerProprietario(userId: string, proprietarioId: 
       tipo: "comunicazione_non_letta",
       titolo: "Comunicazione condominiale",
       descrizione: c.titolo,
-      href: "/proprietario",
+      href: "/privato",
       data: c.createdAt,
       entitaId: c.id,
     });
@@ -155,7 +159,7 @@ async function raccogliNotifichePerProprietario(userId: string, proprietarioId: 
       tipo: "segnalazione_non_letta",
       titolo: "Segnalazione non letta",
       descrizione: `${d.segnalazione.titolo} — ${d.segnalazione.immobile.indirizzo}, ${d.segnalazione.immobile.comune}`,
-      href: `/proprietario/segnalazioni/${d.segnalazione.id}`,
+      href: `/privato/segnalazioni/${d.segnalazione.id}`,
       data: d.segnalazione.createdAt,
     });
   }
@@ -163,14 +167,14 @@ async function raccogliNotifichePerProprietario(userId: string, proprietarioId: 
   return ordinaPerUrgenza(notifiche);
 }
 
-async function raccogliNotifichePerInquilino(userId: string, inquilinoId: string): Promise<Notifica[]> {
+async function raccogliNotifichePerInquilino(userId: string, privatoId: string): Promise<Notifica[]> {
   const [contratto, contrattiAttivi, segnalazioniNonLetteTutte] = await Promise.all([
-    getContrattoAttivoForInquilino(inquilinoId),
-    prisma.contratto.findMany({ where: { inquilinoId, stato: "ATTIVO" }, select: { immobileId: true } }),
+    getContrattoAttivoForInquilino(privatoId),
+    prisma.contratto.findMany({ where: { inquilinoId: privatoId, stato: "ATTIVO" }, select: { immobileId: true } }),
     getSegnalazioniNonLettePerUser(userId),
   ]);
-  // Stesso filtro del branch Proprietario: un utente con anche quel profilo riceverebbe altrimenti
-  // le stesse segnalazioni due volte, la seconda con un link "/inquilino/..." non pertinente.
+  // Stesso filtro del branch proprietario: un privato con anche quel ruolo (su un altro
+  // immobile) riceverebbe altrimenti le stesse segnalazioni due volte.
   const immobiliInAffitto = new Set(contrattiAttivi.map((c) => c.immobileId));
   const segnalazioniNonLette = segnalazioniNonLetteTutte.filter((d) => immobiliInAffitto.has(d.segnalazione.immobileId));
 
@@ -184,7 +188,7 @@ async function raccogliNotifichePerInquilino(userId: string, inquilinoId: string
         tipo: p.stato === "INSOLUTO" ? "pagamento_insoluto" : "pagamento_in_ritardo",
         titolo: p.stato === "INSOLUTO" ? "Pagamento insoluto" : "Pagamento in ritardo",
         descrizione: formatCurrency(p.importo),
-        href: "/inquilino/pagamenti#storico-pagamenti",
+        href: `/privato/${contratto.immobileId}/pagamenti#storico-pagamenti`,
         data: p.dataScadenza,
       });
     }
@@ -197,7 +201,7 @@ async function raccogliNotifichePerInquilino(userId: string, inquilinoId: string
         tipo: "comunicazione_non_letta",
         titolo: "Comunicazione condominiale",
         descrizione: c.titolo,
-        href: "/inquilino",
+        href: `/privato/${contratto.immobileId}`,
         data: c.createdAt,
         entitaId: c.id,
       });
@@ -210,7 +214,7 @@ async function raccogliNotifichePerInquilino(userId: string, inquilinoId: string
       tipo: "segnalazione_non_letta",
       titolo: "Segnalazione non letta",
       descrizione: d.segnalazione.titolo,
-      href: `/inquilino/segnalazioni/${d.segnalazione.id}`,
+      href: `/privato/segnalazioni/${d.segnalazione.id}`,
       data: d.segnalazione.createdAt,
     });
   }

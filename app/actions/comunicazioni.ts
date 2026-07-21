@@ -5,24 +5,18 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 async function utenteHaAccessoAComunicazione(userId: string, condominioId: string): Promise<boolean> {
-  const [inquilino, proprietario] = await Promise.all([
-    prisma.inquilino.findUnique({ where: { userId } }),
-    prisma.proprietario.findUnique({ where: { userId } }),
-  ]);
+  const privato = await prisma.privato.findUnique({ where: { userId } });
+  if (!privato) return false;
 
-  if (inquilino) {
-    const contratto = await prisma.contratto.findFirst({
-      where: { inquilinoId: inquilino.id, stato: "ATTIVO", immobile: { condominioId } },
-    });
-    if (contratto) return true;
-  }
+  const contratto = await prisma.contratto.findFirst({
+    where: { inquilinoId: privato.id, stato: "ATTIVO", immobile: { condominioId } },
+  });
+  if (contratto) return true;
 
-  if (proprietario) {
-    const immobile = await prisma.immobile.findFirst({
-      where: { proprietarioId: proprietario.id, condominioId },
-    });
-    if (immobile) return true;
-  }
+  const relazione = await prisma.relazioneImmobilePrivato.findFirst({
+    where: { privatoId: privato.id, ruolo: "PROPRIETARIO", stato: "ATTIVA", immobile: { condominioId } },
+  });
+  if (relazione) return true;
 
   return false;
 }
@@ -51,8 +45,7 @@ export async function segnaComunicazioneLettaAction(
     update: {},
   });
 
-  revalidatePath("/inquilino");
-  revalidatePath("/proprietario");
+  revalidatePath("/privato");
 
   return { success: true };
 }

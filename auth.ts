@@ -2,29 +2,9 @@ import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import type { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/auth.config";
 import { isLoginBloccato, registraTentativoLogin } from "@/lib/auth/rateLimitLogin";
-
-/** Un User può avere più profili contemporaneamente (es. Proprietario di un immobile e
- * Inquilino di un altro): calcolato al login dai record 1:1 effettivamente presenti, non
- * dal solo campo `role` (che resta il profilo "primario"/di prima registrazione). */
-function calcolaProfili(user: {
-  role: Role;
-  agenzia: unknown;
-  amministratore: unknown;
-  proprietario: unknown;
-  inquilino: unknown;
-}): Role[] {
-  const profili: Role[] = [];
-  if (user.role === "ADMIN") profili.push("ADMIN");
-  if (user.agenzia) profili.push("AGENZIA");
-  if (user.amministratore) profili.push("AMMINISTRATORE");
-  if (user.proprietario) profili.push("PROPRIETARIO");
-  if (user.inquilino) profili.push("INQUILINO");
-  return profili;
-}
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -61,12 +41,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({
           where: { email },
           omit: { passwordHash: false },
-          include: {
-            agenzia: { select: { id: true } },
-            amministratore: { select: { id: true } },
-            proprietario: { select: { id: true } },
-            inquilino: { select: { id: true } },
-          },
         });
         // Email inesistente conta come tentativo fallito allo stesso modo di una password
         // sbagliata: altrimenti il comportamento del rate limit rivelerebbe se un'email esiste.
@@ -80,7 +54,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           name: `${user.nome} ${user.cognome}`,
           role: user.role,
-          profili: calcolaProfili(user),
           nome: user.nome,
           cognome: user.cognome,
         };

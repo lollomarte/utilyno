@@ -40,7 +40,7 @@ export function CompletaInvitoForm({ token, email }: { token: string; email: str
         return;
       }
 
-      router.push("/inquilino");
+      router.push("/privato");
       router.refresh();
     } catch {
       setServerError("Qualcosa è andato storto, riprova.");

@@ -34,20 +34,16 @@ export async function anonimizzaAccountAction(userId: string): Promise<{ success
       },
     });
 
-    const [proprietario, inquilino] = await Promise.all([
-      tx.proprietario.findUnique({ where: { userId } }),
-      tx.inquilino.findUnique({ where: { userId } }),
-    ]);
-    if (proprietario) {
-      await tx.proprietario.update({
+    const privato = await tx.privato.findUnique({ where: { userId } });
+    if (privato) {
+      await tx.privato.update({
         where: { userId },
-        data: { codiceFiscale: `ANON${proprietario.id}`.slice(0, 16).toUpperCase(), indirizzo: "-" },
-      });
-    }
-    if (inquilino) {
-      await tx.inquilino.update({
-        where: { userId },
-        data: { codiceFiscale: `ANON${inquilino.id}`.slice(0, 16).toUpperCase() },
+        data: {
+          codiceFiscale: privato.codiceFiscale ? `ANON${privato.id}`.slice(0, 16).toUpperCase() : null,
+          indirizzo: "-",
+          ragioneSociale: privato.ragioneSociale ? "Azienda anonimizzata" : null,
+          referenteNome: privato.referenteNome ? "Anonimizzato" : null,
+        },
       });
     }
   });

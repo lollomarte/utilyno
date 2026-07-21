@@ -3,9 +3,11 @@
 import { randomBytes } from "node:crypto";
 import { addDays } from "date-fns";
 import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireAgenzia } from "@/lib/auth-helpers";
-import { completaInvitoSchema, type CompletaInvitoInput } from "@/lib/validations/invito";
+import { requireAgenzia, requirePrivato } from "@/lib/auth-helpers";
+import { assicuraRelazioneAttiva } from "@/lib/immobili/relazioni";
+import { completaInvitoSchema, redimiInvitoSchema, type CompletaInvitoInput, type RedimiInvitoInput } from "@/lib/validations/invito";
 
 const DURATA_INVITO_GIORNI = 7;
 
@@ -67,4 +69,46 @@ export async function completaInvitoAction(
   ]);
 
   return { success: true, email: invito.inquilino.user.email };
+}
+
+/**
+ * Un Privato già autenticato collega il contratto dietro un codice di invito al proprio
+ * account, dal flusso "Aggiungi immobile" (percorso "come inquilino") — a differenza di
+ * completaInvitoAction, qui l'account esiste già e ha già effettuato l'accesso: serve solo ad
+ * assicurare la RelazioneImmobilePrivato, non a impostare una password.
+ */
+export async function redimiInvitoInquilinoAction(
+  input: RedimiInvitoInput
+): Promise<{ success: true; immobileId: string } | { success: false; error: string }> {
+  const { privato } = await requirePrivato();
+
+  const parsed = redimiInvitoSchema.safeParse(input);
+  if (!parsed.success) return { success: false, error: "Dati non validi" };
+
+  const invito = await prisma.invitoInquilino.findUnique({
+    where: { token: parsed.data.token },
+    include: { contratto: true },
+  });
+  if (!invito) return { success: false, error: "Codice di invito non valido" };
+  if (invito.scadenza < new Date()) {
+    return { success: false, error: "Questo invito è scaduto. Contatta l'agenzia per riceverne uno nuovo." };
+  }
+  if (invito.inquilinoId !== privato.id) {
+    return { success: false, error: "Questo invito è associato a un altro account. Contatta l'agenzia." };
+  }
+
+  await assicuraRelazioneAttiva({
+    privatoId: privato.id,
+    immobileId: invito.contratto.immobileId,
+    ruolo: "INQUILINO",
+    contrattoId: invito.contrattoId,
+  });
+
+  if (!invito.usatoAt) {
+    await prisma.invitoInquilino.update({ where: { id: invito.id }, data: { usatoAt: new Date() } });
+  }
+
+  revalidatePath("/privato");
+
+  return { success: true, immobileId: invito.contratto.immobileId };
 }

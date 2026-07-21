@@ -18,16 +18,15 @@ function calcolaCommissioneLoqo(premioAnnuale: number): number {
   return Math.round(premioAnnuale * COMMISSIONE_PERCENTUALE * 100) / 100;
 }
 
-async function verificaAccessoImmobile(
-  userId: string,
-  immobile: { agenziaId: string | null; proprietarioId: string }
-): Promise<boolean> {
-  const [agenzia, proprietario] = await Promise.all([
+async function verificaAccessoImmobile(userId: string, immobile: { id: string; agenziaId: string | null }): Promise<boolean> {
+  const [agenzia, relazione] = await Promise.all([
     immobile.agenziaId ? prisma.agenzia.findUnique({ where: { userId } }) : null,
-    prisma.proprietario.findUnique({ where: { userId } }),
+    prisma.relazioneImmobilePrivato.findFirst({
+      where: { immobileId: immobile.id, ruolo: "PROPRIETARIO", stato: "ATTIVA", privato: { userId } },
+    }),
   ]);
   if (agenzia && agenzia.id === immobile.agenziaId) return true;
-  if (proprietario && proprietario.id === immobile.proprietarioId) return true;
+  if (relazione) return true;
   return false;
 }
 
@@ -61,9 +60,8 @@ export async function attivaAssicurazioneAction(
     },
   });
 
-  revalidatePath(`/proprietario/immobili/${immobileId}`);
+  revalidatePath(`/privato/${immobileId}`);
   revalidatePath(`/agenzia/immobili/${immobileId}`);
-  revalidatePath("/proprietario");
 
   return { success: true };
 }
@@ -100,9 +98,8 @@ export async function rinnovaAssicurazioneAction(
     },
   });
 
-  revalidatePath(`/proprietario/immobili/${assicurazione.immobileId}`);
+  revalidatePath(`/privato/${assicurazione.immobileId}`);
   revalidatePath(`/agenzia/immobili/${assicurazione.immobileId}`);
-  revalidatePath("/proprietario");
 
   return { success: true };
 }

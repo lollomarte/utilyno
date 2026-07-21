@@ -6,27 +6,25 @@ const { auth } = NextAuth(authConfig);
 
 // Tipo letterale locale (non da @prisma/client): stesso motivo di auth.config.ts, questo file
 // va nel bundle Edge del middleware.
-type Role = "ADMIN" | "AGENZIA" | "AMMINISTRATORE" | "PROPRIETARIO" | "INQUILINO" | "PRIVATO";
+type Role = "ADMIN" | "AGENZIA" | "AMMINISTRATORE" | "PRIVATO";
 
-// Per ogni sezione, i profili che danno accesso (basta possederne uno): /casa è la lista
-// aggregata degli immobili, accessibile a chi è Proprietario e/o Inquilino di almeno uno.
-const PROFILI_RICHIESTI_PER_SEZIONE: Record<string, Role[]> = {
-  "/admin": ["ADMIN"],
-  "/agenzia": ["AGENZIA"],
-  "/amministratore": ["AMMINISTRATORE"],
-  "/proprietario": ["PROPRIETARIO"],
-  "/inquilino": ["INQUILINO"],
-  "/casa": ["PROPRIETARIO", "INQUILINO"],
+// Per ogni sezione, il ruolo richiesto. A differenza di prima, un solo ruolo per sezione:
+// PROPRIETARIO/INQUILINO non esistono più a livello di account, quindi non serve più
+// ammettere "uno tra più profili" — /privato è raggiungibile da chiunque abbia ruolo PRIVATO,
+// indipendentemente da quali RelazioneImmobilePrivato possieda (anche zero, vedi stato vuoto).
+const RUOLO_RICHIESTO_PER_SEZIONE: Record<string, Role> = {
+  "/admin": "ADMIN",
+  "/agenzia": "AGENZIA",
+  "/amministratore": "AMMINISTRATORE",
+  "/privato": "PRIVATO",
 };
 
 export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
-  // Un utente può avere più profili (es. Proprietario di un immobile e Inquilino di un altro):
-  // l'accesso a una sezione richiede solo di possedere UNO dei profili ammessi, non che sia l'unico.
-  const profili = req.auth?.user?.profili ?? [];
+  const ruolo = req.auth?.user?.role;
 
-  const matchedSection = Object.keys(PROFILI_RICHIESTI_PER_SEZIONE).find((section) =>
+  const matchedSection = Object.keys(RUOLO_RICHIESTO_PER_SEZIONE).find((section) =>
     nextUrl.pathname.startsWith(section)
   );
 
@@ -40,12 +38,7 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  // /casa ammette anche chi si è registrato come PRIVATO ma non ha ancora nessun profilo
-  // Proprietario/Inquilino attivo (mostra uno stato vuoto con l'invito ad attivarne uno).
-  const haRuoloPrivato = matchedSection === "/casa" && req.auth?.user?.role === "PRIVATO";
-
-  const profiliAmmessi = PROFILI_RICHIESTI_PER_SEZIONE[matchedSection];
-  if (!haRuoloPrivato && !profiliAmmessi.some((p) => profili.includes(p))) {
+  if (ruolo !== RUOLO_RICHIESTO_PER_SEZIONE[matchedSection]) {
     return NextResponse.redirect(new URL("/non-autorizzato", nextUrl));
   }
 
@@ -53,7 +46,7 @@ export default auth((req) => {
 });
 
 // Il middleware protegge SOLO le sezioni per ruolo (/admin, /agenzia,
-// /amministratore, /proprietario, /inquilino, /casa). /login, /register e tutti gli
+// /amministratore, /privato). /login, /register e tutti gli
 // asset statici sono esclusi esplicitamente: farli passare da qui, insieme a
 // un `auth()` che fallisce silenziosamente (es. AUTH_SECRET mancante),
 // causerebbe un loop di redirect tra "/" e "/login". Il redirect "sei già
@@ -61,12 +54,5 @@ export default auth((req) => {
 // gestito direttamente nella pagina (Server Component, Node runtime), non
 // qui in Edge Runtime.
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/agenzia/:path*",
-    "/amministratore/:path*",
-    "/proprietario/:path*",
-    "/inquilino/:path*",
-    "/casa/:path*",
-  ],
+  matcher: ["/admin/:path*", "/agenzia/:path*", "/amministratore/:path*", "/privato/:path*"],
 };

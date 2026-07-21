@@ -8,7 +8,7 @@ import {
   getAgenzieDisponibili,
   getRichiestePreventivoPerCondominio,
 } from "@/lib/data/amministratore";
-import { getProprietariDisponibili } from "@/lib/data/agenzia";
+import { getPrivatiDisponibili } from "@/lib/data/agenzia";
 import { NuovaComunicazioneForm } from "@/components/amministratore/nuova-comunicazione-form";
 import { CollegaImmobileButton } from "@/components/amministratore/collega-immobile-button";
 import { ModificaCondominioButton } from "@/components/amministratore/modifica-condominio-button";
@@ -33,7 +33,7 @@ export default async function CondominioDetailPage({ params }: { params: Promise
     getSegnalazioniPerCondominio(id),
     getImmobiliNonAssegnati(),
     getAgenzieDisponibili(),
-    getProprietariDisponibili(),
+    getPrivatiDisponibili(),
     getRichiestePreventivoPerCondominio(id),
   ]);
 
@@ -93,7 +93,9 @@ export default async function CondominioDetailPage({ params }: { params: Promise
                 <TableRow key={immobile.id}>
                   <TableCell>{immobile.indirizzo}</TableCell>
                   <TableCell>
-                    {immobile.proprietario.user.nome} {immobile.proprietario.user.cognome}
+                    {immobile.relazioni[0]
+                      ? `${immobile.relazioni[0].privato.user.nome} ${immobile.relazioni[0].privato.user.cognome}`
+                      : "-"}
                   </TableCell>
                   <TableCell>
                     {immobile.contratti[0]
