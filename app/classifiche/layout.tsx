@@ -10,7 +10,7 @@ const tabs = [
 export default function ClassificheLayout({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <h1 className="text-xl font-bold mb-4">Classifiche</h1>
+      <h1 className="font-display text-2xl font-bold mb-4">Classifiche</h1>
       <TabNav tabs={tabs} />
       {children}
     </div>

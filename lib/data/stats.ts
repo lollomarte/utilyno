@@ -65,6 +65,99 @@ export async function getAttendanceStanding(
   return { totalMatches, standing };
 }
 
+async function getMatchesAsc() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("matches")
+    .select("id, data")
+    .order("data", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+async function getAllParticipantsWithPlayers() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("match_participants")
+    .select("match_id, gol, players(id, nome, cognome, foto_url, attivo, data_nascita, created_at)");
+  if (error) throw error;
+  return (data ?? []) as unknown as { match_id: string; gol: number; players: Player }[];
+}
+
+function rankMap(entries: { id: string; value: number }[]): Map<string, number> {
+  const sorted = [...entries].sort((a, b) => b.value - a.value);
+  const map = new Map<string, number>();
+  sorted.forEach((e, i) => map.set(e.id, i + 1));
+  return map;
+}
+
+export interface WithRankDelta {
+  rankDelta: number | null;
+  isNew: boolean;
+}
+
+export async function getScorersStandingWithDelta(): Promise<(PlayerCareerStats & WithRankDelta)[]> {
+  const [current, matches, participants] = await Promise.all([
+    getScorersStanding(),
+    getMatchesAsc(),
+    getAllParticipantsWithPlayers(),
+  ]);
+
+  if (matches.length < 2) {
+    return current.map((c) => ({ ...c, rankDelta: null, isNew: false }));
+  }
+
+  const lastDate = matches[matches.length - 1].data;
+  const priorMatchIds = new Set(matches.filter((m) => m.data !== lastDate).map((m) => m.id));
+
+  const priorGoals = new Map<string, number>();
+  for (const row of participants) {
+    if (!priorMatchIds.has(row.match_id)) continue;
+    priorGoals.set(row.players.id, (priorGoals.get(row.players.id) ?? 0) + row.gol);
+  }
+
+  const priorRanks = rankMap(Array.from(priorGoals.entries()).map(([id, value]) => ({ id, value })));
+  const currentRanks = rankMap(current.map((c) => ({ id: c.player_id, value: c.gol_totali })));
+
+  return current.map((c) => {
+    const currentRank = currentRanks.get(c.player_id)!;
+    const priorRank = priorRanks.get(c.player_id);
+    if (priorRank === undefined) return { ...c, rankDelta: null, isNew: true };
+    return { ...c, rankDelta: priorRank - currentRank, isNew: false };
+  });
+}
+
+export async function getAttendanceStandingWithDelta(): Promise<(AttendanceRow & WithRankDelta)[]> {
+  const [{ standing: current }, matches, participants] = await Promise.all([
+    getAttendanceStanding(),
+    getMatchesAsc(),
+    getAllParticipantsWithPlayers(),
+  ]);
+
+  if (matches.length < 2) {
+    return current.map((c) => ({ ...c, rankDelta: null, isNew: false }));
+  }
+
+  const lastDate = matches[matches.length - 1].data;
+  const priorMatchIds = new Set(matches.filter((m) => m.data !== lastDate).map((m) => m.id));
+
+  const priorPresence = new Map<string, number>();
+  for (const row of participants) {
+    if (!priorMatchIds.has(row.match_id)) continue;
+    priorPresence.set(row.players.id, (priorPresence.get(row.players.id) ?? 0) + 1);
+  }
+
+  const priorRanks = rankMap(Array.from(priorPresence.entries()).map(([id, value]) => ({ id, value })));
+  const currentRanks = rankMap(current.map((c) => ({ id: c.player.id, value: c.presenze })));
+
+  return current.map((c) => {
+    const currentRank = currentRanks.get(c.player.id)!;
+    const priorRank = priorRanks.get(c.player.id);
+    if (priorRank === undefined) return { ...c, rankDelta: null, isNew: true };
+    return { ...c, rankDelta: priorRank - currentRank, isNew: false };
+  });
+}
+
 export async function getMvpStandings(): Promise<MvpStanding[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

@@ -49,7 +49,7 @@ export async function savePlayer(_prevState: unknown, formData: FormData) {
   revalidatePath("/admin/giocatori");
   revalidatePath("/classifiche");
   revalidatePath("/");
-  redirect("/admin/giocatori");
+  redirect("/admin/giocatori?toast=player-saved");
 }
 
 export async function toggleActiveAction(formData: FormData) {

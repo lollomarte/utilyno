@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMatchFull } from "@/lib/data/matches";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { CountUp } from "@/components/CountUp";
+import { MatchConfettiTrigger } from "@/components/MatchConfettiTrigger";
 import { formatDate, playerName } from "@/lib/format";
 
 export default async function MatchDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -12,9 +14,12 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   const { match, result, mvp, participants } = full;
   const bianca = participants.filter((p) => p.squadra === "bianca");
   const nera = participants.filter((p) => p.squadra === "nera");
+  const diff = Math.abs(result.gol_bianca - result.gol_nera);
 
   return (
     <div className="flex flex-col gap-6">
+      <MatchConfettiTrigger show={diff >= 5} />
+
       <div>
         <Link href="/risultati" className="text-sm text-muted hover:text-ink">
           ← Tutti i risultati
@@ -23,28 +28,44 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
         {match.note && <p className="text-sm mt-1">{match.note}</p>}
       </div>
 
-      <div className="flex items-center justify-center gap-4 text-3xl font-bold">
-        <span className="flex-1 text-right">Bianca</span>
-        <span className="tabular-nums">
-          {result.gol_bianca} – {result.gol_nera}
-        </span>
-        <span className="flex-1">Nera</span>
+      <div className="rounded-3xl border border-line-strong bg-surface p-6 relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.06] pointer-events-none"
+          style={{
+            background: "linear-gradient(90deg, #ffffff 0%, transparent 48%, transparent 52%, #000000 100%)",
+          }}
+        />
+        <div className="relative flex items-center justify-center gap-3 sm:gap-6">
+          <span className="flex-1 text-right font-display text-xs sm:text-sm tracking-wide text-muted">
+            BIANCA
+          </span>
+          <div className="font-display font-bold text-5xl sm:text-6xl tabular-nums flex items-center gap-2 sm:gap-3">
+            <CountUp value={result.gol_bianca} duration={0.8} />
+            <span className="text-muted text-3xl sm:text-4xl">–</span>
+            <CountUp value={result.gol_nera} duration={0.8} />
+          </div>
+          <span className="flex-1 font-display text-xs sm:text-sm tracking-wide text-muted">NERA</span>
+        </div>
+        {diff >= 5 && (
+          <p className="relative text-center text-xs font-semibold text-gold mt-3">🔥 Goleada!</p>
+        )}
       </div>
 
       {mvp && (
         <Link
           href={`/giocatori/${mvp.id}`}
-          className="flex items-center justify-center gap-2 text-sm rounded-full border border-line px-4 py-2 mx-auto hover:border-ink"
+          className="tap flex items-center justify-center gap-2 text-sm rounded-full border border-line bg-surface px-4 py-2 mx-auto hover:border-line-strong"
         >
+          <span className="text-gold">⭐</span>
           <span className="text-muted">MVP di giornata:</span>
           <PlayerAvatar player={mvp} size={24} />
           <span className="font-semibold">{playerName(mvp)}</span>
         </Link>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <TeamList title="Bianca" players={bianca} />
-        <TeamList title="Nera" players={nera} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <TeamList title="Bianca" accentClass="text-ink" players={bianca} />
+        <TeamList title="Nera" accentClass="text-muted" players={nera} />
       </div>
     </div>
   );
@@ -52,24 +73,35 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
 
 function TeamList({
   title,
+  accentClass,
   players,
 }: {
   title: string;
-  players: { id: string; gol: number; player: { id: string; nome: string; cognome: string; foto_url: string | null } }[];
+  accentClass: string;
+  players: {
+    id: string;
+    gol: number;
+    player: { id: string; nome: string; cognome: string; foto_url: string | null };
+  }[];
 }) {
   return (
-    <div>
-      <h2 className="font-semibold mb-2">{title}</h2>
-      <ul className="flex flex-col gap-1.5">
+    <div className="rounded-2xl border border-line bg-surface p-4">
+      <h2 className={`font-display font-semibold mb-3 ${accentClass}`}>{title}</h2>
+      <ul className="flex flex-col gap-1">
         {players.map((p) => (
           <li key={p.id}>
             <Link
               href={`/giocatori/${p.player.id}`}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-line/50"
+              className="tap flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-surface-2"
             >
               <PlayerAvatar player={p.player} size={28} />
-              <span className="flex-1 text-sm">{playerName(p.player)}</span>
-              {p.gol > 0 && <span className="text-sm font-semibold tabular-nums">{p.gol}</span>}
+              <span className="flex-1 text-sm truncate">{playerName(p.player)}</span>
+              {p.gol > 0 && (
+                <span className="text-xs tracking-tight shrink-0" title={`${p.gol} gol`}>
+                  {"⚽".repeat(Math.min(p.gol, 5))}
+                  {p.gol > 5 && <span className="text-muted"> +{p.gol - 5}</span>}
+                </span>
+              )}
             </Link>
           </li>
         ))}

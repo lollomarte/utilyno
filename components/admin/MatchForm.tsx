@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { Player, Squadra } from "@/lib/types";
 
 interface Row {
@@ -44,10 +45,7 @@ export function MatchForm({
   );
 
   function addRow() {
-    setRows((r) => [
-      ...r,
-      { key: crypto.randomUUID(), player_id: "", squadra: "bianca", gol: 0 },
-    ]);
+    setRows((r) => [...r, { key: crypto.randomUUID(), player_id: "", squadra: "bianca", gol: 0 }]);
   }
 
   function removeRow(key: string) {
@@ -82,6 +80,14 @@ export function MatchForm({
       {matchId && <input type="hidden" name="id" value={matchId} />}
       <input type="hidden" name="participants" value={participantsJson} />
 
+      <div className="sticky top-2 z-10 rounded-2xl border border-line-strong bg-surface/95 backdrop-blur p-4 flex items-center justify-center gap-4 shadow-lg">
+        <span className="font-display text-sm text-muted">BIANCA</span>
+        <span className="font-display text-2xl font-bold tabular-nums">
+          {golBianca} – {golNera}
+        </span>
+        <span className="font-display text-sm text-muted">NERA</span>
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-sm font-medium block mb-1" htmlFor="data">
@@ -94,7 +100,7 @@ export function MatchForm({
             required
             value={data}
             onChange={(e) => setData(e.target.value)}
-            className="w-full border border-line rounded-lg px-3 py-2 text-sm"
+            className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
           />
         </div>
         <div>
@@ -106,83 +112,110 @@ export function MatchForm({
             name="note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full border border-line rounded-lg px-3 py-2 text-sm"
+            className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
           />
         </div>
       </div>
 
-      <div className="rounded-2xl border border-line p-4 flex items-center justify-center gap-4 text-xl font-bold tabular-nums">
-        <span>Bianca {golBianca}</span>
-        <span className="text-muted text-base font-normal">–</span>
-        <span>{golNera} Nera</span>
-      </div>
-
       {countWarning && (
-        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          {countWarning}
+        <p className="text-sm text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+          ⚠️ {countWarning}
         </p>
       )}
 
       <div className="flex flex-col gap-2">
-        {rows.map((row) => (
-          <div key={row.key} className="flex items-center gap-2">
-            <select
-              value={row.player_id}
-              onChange={(e) => updateRow(row.key, { player_id: e.target.value })}
-              className="flex-1 border border-line rounded-lg px-2 py-2 text-sm min-w-0"
+        <AnimatePresence initial={false}>
+          {rows.map((row) => (
+            <motion.div
+              key={row.key}
+              layout
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className={`rounded-xl border p-2.5 flex items-center gap-2 ${
+                row.squadra === "bianca"
+                  ? "border-line-strong bg-bianca-dim"
+                  : "border-nera-line bg-nera"
+              }`}
             >
-              <option value="">Seleziona giocatore…</option>
-              {players
-                .filter((p) => p.id === row.player_id || !chosenIds.has(p.id))
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.cognome} {p.nome}
-                  </option>
-                ))}
-            </select>
-            <div className="flex border border-line rounded-lg overflow-hidden shrink-0">
+              <select
+                value={row.player_id}
+                onChange={(e) => updateRow(row.key, { player_id: e.target.value })}
+                className="flex-1 bg-transparent text-sm min-w-0 outline-none"
+              >
+                <option value="" className="bg-surface text-ink">
+                  Seleziona giocatore…
+                </option>
+                {players
+                  .filter((p) => p.id === row.player_id || !chosenIds.has(p.id))
+                  .map((p) => (
+                    <option key={p.id} value={p.id} className="bg-surface text-ink">
+                      {p.cognome} {p.nome}
+                    </option>
+                  ))}
+              </select>
+
+              <div className="flex border border-line-strong rounded-lg overflow-hidden shrink-0">
+                <button
+                  type="button"
+                  onClick={() => updateRow(row.key, { squadra: "bianca" })}
+                  className={`tap px-2.5 py-1.5 text-xs font-bold ${
+                    row.squadra === "bianca" ? "bg-bianca text-[#0a0a0b]" : "text-muted"
+                  }`}
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateRow(row.key, { squadra: "nera" })}
+                  className={`tap px-2.5 py-1.5 text-xs font-bold ${
+                    row.squadra === "nera" ? "bg-nera-line text-ink" : "text-muted"
+                  }`}
+                >
+                  N
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => updateRow(row.key, { gol: Math.max(0, row.gol - 1) })}
+                  className="tap w-7 h-7 rounded-full border border-line-strong flex items-center justify-center text-sm"
+                  aria-label="Meno un gol"
+                >
+                  −
+                </button>
+                <span className="w-5 text-center font-display font-bold tabular-nums text-sm">
+                  {row.gol}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => updateRow(row.key, { gol: row.gol + 1 })}
+                  className="tap w-7 h-7 rounded-full border border-line-strong flex items-center justify-center text-sm text-accent"
+                  aria-label="Più un gol"
+                >
+                  +
+                </button>
+              </div>
+
               <button
                 type="button"
-                onClick={() => updateRow(row.key, { squadra: "bianca" })}
-                className={`px-2.5 py-2 text-xs font-semibold ${
-                  row.squadra === "bianca" ? "bg-bianca" : "text-muted"
-                }`}
+                onClick={() => removeRow(row.key)}
+                className="tap text-muted hover:text-ink shrink-0 px-1 text-lg leading-none"
+                aria-label="Rimuovi giocatore"
               >
-                B
+                ×
               </button>
-              <button
-                type="button"
-                onClick={() => updateRow(row.key, { squadra: "nera" })}
-                className={`px-2.5 py-2 text-xs font-semibold ${
-                  row.squadra === "nera" ? "bg-nera text-paper" : "text-muted"
-                }`}
-              >
-                N
-              </button>
-            </div>
-            <input
-              type="number"
-              min={0}
-              value={row.gol}
-              onChange={(e) => updateRow(row.key, { gol: Number(e.target.value) })}
-              className="w-14 border border-line rounded-lg px-2 py-2 text-sm shrink-0"
-            />
-            <button
-              type="button"
-              onClick={() => removeRow(row.key)}
-              className="text-muted hover:text-ink shrink-0 px-1 text-lg leading-none"
-              aria-label="Rimuovi giocatore"
-            >
-              ×
-            </button>
-          </div>
-        ))}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       <button
         type="button"
         onClick={addRow}
-        className="text-sm font-medium border border-dashed border-line rounded-lg py-2 hover:border-ink"
+        className="tap text-sm font-medium border border-dashed border-line rounded-lg py-2.5 hover:border-line-strong"
       >
         + Aggiungi giocatore
       </button>
@@ -196,7 +229,7 @@ export function MatchForm({
           name="mvp_player_id"
           value={mvpValue}
           onChange={(e) => setMvp(e.target.value)}
-          className="w-full border border-line rounded-lg px-3 py-2 text-sm"
+          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         >
           <option value="">Nessuno</option>
           {validRows.map((r) => {
@@ -210,12 +243,12 @@ export function MatchForm({
         </select>
       </div>
 
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
 
       <button
         type="submit"
         disabled={pending}
-        className="bg-ink text-paper rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50"
+        className="tap bg-accent text-[#06210f] rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50"
       >
         {pending ? "Salvataggio…" : submitLabel}
       </button>

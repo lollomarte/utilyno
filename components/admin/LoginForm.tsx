@@ -19,7 +19,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
           type="email"
           required
           autoComplete="username"
-          className="w-full border border-line rounded-lg px-3 py-2 text-sm"
+          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
       <div>
@@ -32,14 +32,14 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
           type="password"
           required
           autoComplete="current-password"
-          className="w-full border border-line rounded-lg px-3 py-2 text-sm"
+          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 bg-ink text-paper rounded-lg py-2 text-sm font-semibold disabled:opacity-50"
+        className="tap mt-2 bg-accent text-[#06210f] rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50"
       >
         {pending ? "Accesso..." : "Accedi"}
       </button>

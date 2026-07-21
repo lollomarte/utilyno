@@ -54,7 +54,7 @@ export async function createMatchAction(_prevState: unknown, formData: FormData)
   revalidatePath("/");
   revalidatePath("/risultati");
   revalidatePath("/classifiche");
-  redirect("/admin/partite");
+  redirect("/admin/partite?toast=match-saved");
 }
 
 export async function updateMatchAction(_prevState: unknown, formData: FormData) {
@@ -86,7 +86,7 @@ export async function updateMatchAction(_prevState: unknown, formData: FormData)
   revalidatePath("/risultati");
   revalidatePath(`/risultati/${id}`);
   revalidatePath("/classifiche");
-  redirect("/admin/partite");
+  redirect("/admin/partite?toast=match-saved");
 }
 
 export async function deleteMatchAction(formData: FormData) {
@@ -100,5 +100,5 @@ export async function deleteMatchAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/risultati");
   revalidatePath("/classifiche");
-  redirect("/admin/partite");
+  redirect("/admin/partite?toast=match-deleted");
 }

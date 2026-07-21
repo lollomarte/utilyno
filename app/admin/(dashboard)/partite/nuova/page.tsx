@@ -8,7 +8,7 @@ export default async function NuovaPartitaPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold mb-4">Nuova partita</h1>
+      <h1 className="font-display text-xl font-bold mb-4">Nuova partita</h1>
       <MatchForm players={players} action={createMatchAction} initialData={nearestMonday()} />
     </div>
   );

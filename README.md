@@ -4,8 +4,9 @@ Sito per gestire le statistiche del gruppo di calciotto amatoriale: giocatori, p
 
 ## Stack
 
-- **Next.js** (App Router) + TypeScript + Tailwind CSS, deploy su **Vercel**
+- **Next.js** (App Router) + TypeScript + Tailwind CSS + Framer Motion, deploy su **Vercel**
 - **Supabase**: Postgres (players, matches, match_participants + viste statistiche), Auth (singolo utente admin), Storage (foto giocatori)
+- PWA installabile (manifest + icone), tema scuro nativo, animazioni rispettose di `prefers-reduced-motion`
 
 ## Sviluppo locale
 

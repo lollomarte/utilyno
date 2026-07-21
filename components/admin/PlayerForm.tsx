@@ -26,13 +26,7 @@ export function PlayerForm({ player }: { player?: Player }) {
           <label className="text-sm font-medium block mb-1" htmlFor="foto">
             Foto
           </label>
-          <input
-            id="foto"
-            name="foto"
-            type="file"
-            accept="image/*"
-            className="w-full text-sm"
-          />
+          <input id="foto" name="foto" type="file" accept="image/*" className="w-full text-sm" />
         </div>
       </div>
 
@@ -45,7 +39,7 @@ export function PlayerForm({ player }: { player?: Player }) {
           name="nome"
           required
           defaultValue={player?.nome}
-          className="w-full border border-line rounded-lg px-3 py-2 text-sm"
+          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
 
@@ -58,7 +52,7 @@ export function PlayerForm({ player }: { player?: Player }) {
           name="cognome"
           required
           defaultValue={player?.cognome}
-          className="w-full border border-line rounded-lg px-3 py-2 text-sm"
+          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
 
@@ -71,7 +65,7 @@ export function PlayerForm({ player }: { player?: Player }) {
           name="data_nascita"
           type="date"
           defaultValue={player?.data_nascita ?? ""}
-          className="w-full border border-line rounded-lg px-3 py-2 text-sm"
+          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
 
@@ -80,17 +74,17 @@ export function PlayerForm({ player }: { player?: Player }) {
           type="checkbox"
           name="attivo"
           defaultChecked={player?.attivo ?? true}
-          className="w-4 h-4"
+          className="w-4 h-4 accent-[var(--color-accent)]"
         />
         Attivo
       </label>
 
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
 
       <button
         type="submit"
         disabled={pending}
-        className="bg-ink text-paper rounded-lg py-2 text-sm font-semibold disabled:opacity-50"
+        className="tap bg-accent text-[#06210f] rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50"
       >
         {pending ? "Salvataggio…" : "Salva"}
       </button>

@@ -22,7 +22,7 @@ export default async function ModificaPartitaPage({
 
   return (
     <div>
-      <h1 className="text-xl font-bold mb-4">Modifica partita</h1>
+      <h1 className="font-display text-xl font-bold mb-4">Modifica partita</h1>
       <MatchForm
         players={players}
         action={updateMatchAction}

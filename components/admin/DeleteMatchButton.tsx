@@ -13,7 +13,7 @@ export function DeleteMatchButton({ matchId }: { matchId: string }) {
       }}
     >
       <input type="hidden" name="id" value={matchId} />
-      <button type="submit" className="text-sm text-red-600 hover:underline">
+      <button type="submit" className="tap text-sm text-red-400 hover:underline">
         Elimina
       </button>
     </form>

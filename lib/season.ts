@@ -24,3 +24,14 @@ export function nearestMonday(from = new Date()): string {
   d.setDate(d.getDate() + diff);
   return d.toISOString().slice(0, 10);
 }
+
+export function nextMondayNight(from = new Date()): Date {
+  const d = new Date(from);
+  const day = d.getDay();
+  let diff = day === 1 ? 0 : day === 0 ? 1 : 8 - day;
+  const target = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff, 21, 0, 0, 0);
+  if (diff === 0 && target.getTime() <= from.getTime()) {
+    target.setDate(target.getDate() + 7);
+  }
+  return target;
+}

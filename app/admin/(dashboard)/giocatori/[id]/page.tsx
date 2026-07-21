@@ -13,7 +13,7 @@ export default async function ModificaGiocatorePage({
 
   return (
     <div>
-      <h1 className="text-xl font-bold mb-4">Modifica giocatore</h1>
+      <h1 className="font-display text-xl font-bold mb-4">Modifica giocatore</h1>
       <PlayerForm player={player} />
     </div>
   );
