@@ -1,12 +1,35 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState, type ChangeEvent } from "react";
 import { savePlayer } from "@/lib/actions/players";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import type { Player } from "@/lib/types";
 
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
 export function PlayerForm({ player }: { player?: Player }) {
   const [state, formAction, pending] = useActionState(savePlayer, undefined);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  function handlePhotoChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setPhotoError(null);
+      return;
+    }
+    if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+      setPhotoError("Formato immagine non supportato. Usa JPEG, PNG, WEBP o GIF.");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > MAX_PHOTO_SIZE) {
+      setPhotoError("La foto supera i 5MB consentiti. Scegli un file più leggero.");
+      e.target.value = "";
+      return;
+    }
+    setPhotoError(null);
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-4 max-w-md">
@@ -26,7 +49,15 @@ export function PlayerForm({ player }: { player?: Player }) {
           <label className="text-sm font-medium block mb-1" htmlFor="foto">
             Foto
           </label>
-          <input id="foto" name="foto" type="file" accept="image/*" className="w-full text-sm" />
+          <input
+            id="foto"
+            name="foto"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={handlePhotoChange}
+            className="w-full text-sm"
+          />
+          {photoError && <p className="text-sm text-red-400 mt-1">{photoError}</p>}
         </div>
       </div>
 

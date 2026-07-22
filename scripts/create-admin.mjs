@@ -7,11 +7,17 @@ import { config } from "dotenv";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 config({ path: path.join(__dirname, "..", ".env.local") });
 
-const email = process.argv[2];
-if (!email) {
-  console.error("Uso: node scripts/create-admin.mjs <email>");
+// Deve restare in sync con ADMIN_EMAIL_DOMAIN in lib/actions/auth.ts:
+// il login usa uno username che viene mappato su questa email tecnica interna.
+const ADMIN_EMAIL_DOMAIN = "admin.calciotto.local";
+
+const username = process.argv[2];
+if (!username) {
+  console.error("Uso: node scripts/create-admin.mjs <username>");
   process.exit(1);
 }
+
+const email = `${username.trim().toLowerCase()}@${ADMIN_EMAIL_DOMAIN}`;
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
@@ -39,7 +45,7 @@ if (error) {
 }
 
 console.log("Utente admin creato:");
-console.log("  email:   ", email);
+console.log("  username:", username);
 console.log("  password:", password);
 console.log("  user id: ", data.user.id);
 console.log("\nCambia la password dopo il primo accesso (dashboard Supabase > Authentication).");

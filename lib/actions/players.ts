@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient, requireAdmin } from "@/lib/supabase/server";
 
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
 export async function savePlayer(_prevState: unknown, formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -22,6 +25,14 @@ export async function savePlayer(_prevState: unknown, formData: FormData) {
   let foto_url = String(formData.get("foto_url_existing") ?? "") || null;
 
   if (photo && photo.size > 0) {
+    if (!ALLOWED_PHOTO_TYPES.includes(photo.type)) {
+      return { error: "Formato immagine non supportato. Usa JPEG, PNG, WEBP o GIF." };
+    }
+
+    if (photo.size > MAX_PHOTO_SIZE) {
+      return { error: "La foto supera i 5MB consentiti. Scegli un file più leggero." };
+    }
+
     const ext = photo.name.split(".").pop() || "jpg";
     const path = `${crypto.randomUUID()}.${ext}`;
     const { error: uploadError } = await supabase.storage
