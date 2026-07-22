@@ -2,6 +2,7 @@ import { TabNav } from "@/components/TabNav";
 
 const tabs = [
   { href: "/classifiche/marcatori", label: "Marcatori" },
+  { href: "/classifiche/vittorie", label: "Vittorie" },
   { href: "/classifiche/presenze", label: "Presenze" },
   { href: "/classifiche/mvp", label: "MVP" },
   { href: "/classifiche/record", label: "Record" },
