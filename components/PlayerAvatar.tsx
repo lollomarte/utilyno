@@ -27,7 +27,6 @@ export function PlayerAvatar({
         height={size}
         className={`rounded-full object-cover border border-line shrink-0 ${ringClass}`}
         style={{ width: size, height: size }}
-        unoptimized
       />
     );
   }

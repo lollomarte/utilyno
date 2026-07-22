@@ -33,6 +33,14 @@ html {
   color-scheme: dark;
 }
 
+/* Rete di sicurezza: la causa reale di eventuale scroll orizzontale va
+   comunque trovata e corretta alla fonte (vedi i singoli componenti). */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-ink);

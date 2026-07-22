@@ -62,7 +62,7 @@ export function PlayerSearchSelect({
         <span className="text-muted text-xs shrink-0">▾</span>
       </button>
       {open && (
-        <div className="absolute z-20 left-0 mt-1 w-56 max-h-64 overflow-y-auto rounded-lg border border-line-strong bg-surface shadow-lg">
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-1 w-56 max-w-[calc(100vw-2rem)] max-h-64 overflow-y-auto rounded-lg border border-line-strong bg-surface shadow-lg">
           <input
             autoFocus
             value={query}
