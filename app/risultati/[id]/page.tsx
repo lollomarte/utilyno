@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMatchFull } from "@/lib/data/matches";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
-import { CountUp } from "@/components/CountUp";
+import { TeamScore } from "@/components/TeamScore";
+import { GoleadaChip } from "@/components/GoleadaChip";
+import { ShareMatchButton } from "@/components/ShareMatchButton";
 import { MatchConfettiTrigger } from "@/components/MatchConfettiTrigger";
 import { formatDate, playerName } from "@/lib/format";
 
@@ -20,12 +22,22 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
     <div className="flex flex-col gap-6">
       <MatchConfettiTrigger show={diff >= 5} />
 
-      <div>
-        <Link href="/risultati" className="text-sm text-muted hover:text-ink">
-          ← Tutti i risultati
-        </Link>
-        <p className="text-sm text-muted mt-2 capitalize">{formatDate(match.data)}</p>
-        {match.note && <p className="text-sm mt-1">{match.note}</p>}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <Link href="/risultati" className="text-sm text-muted hover:text-ink">
+            ← Tutti i risultati
+          </Link>
+          <p className="text-sm text-muted mt-2 capitalize">{formatDate(match.data)}</p>
+          {match.note && <p className="text-sm mt-1">{match.note}</p>}
+        </div>
+        <ShareMatchButton
+          match={{
+            data: match.data,
+            gol_bianca: result.gol_bianca,
+            gol_nera: result.gol_nera,
+            participants,
+          }}
+        />
       </div>
 
       <div className="rounded-3xl border border-line-strong bg-surface p-6 relative overflow-hidden">
@@ -35,19 +47,13 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
             background: "linear-gradient(90deg, #ffffff 0%, transparent 48%, transparent 52%, #000000 100%)",
           }}
         />
-        <div className="relative flex items-center justify-center gap-3 sm:gap-6">
-          <span className="flex-1 text-right font-display text-xs sm:text-sm tracking-wide text-muted">
-            BIANCA
-          </span>
-          <div className="font-display font-bold text-5xl sm:text-6xl tabular-nums flex items-center gap-2 sm:gap-3">
-            <CountUp value={result.gol_bianca} duration={0.8} />
-            <span className="text-muted text-3xl sm:text-4xl">–</span>
-            <CountUp value={result.gol_nera} duration={0.8} />
-          </div>
-          <span className="flex-1 font-display text-xs sm:text-sm tracking-wide text-muted">NERA</span>
+        <div className="relative">
+          <TeamScore golBianca={result.gol_bianca} golNera={result.gol_nera} size="lg" />
         </div>
         {diff >= 5 && (
-          <p className="relative text-center text-xs font-semibold text-gold mt-3">🔥 Goleada!</p>
+          <div className="relative flex justify-center mt-3">
+            <GoleadaChip />
+          </div>
         )}
       </div>
 
@@ -64,8 +70,8 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <TeamList title="Bianca" accentClass="text-ink" players={bianca} />
-        <TeamList title="Nera" accentClass="text-muted" players={nera} />
+        <TeamList title="Bianchi" accentClass="text-ink" players={bianca} />
+        <TeamList title="Neri" accentClass="text-muted" players={nera} />
       </div>
     </div>
   );

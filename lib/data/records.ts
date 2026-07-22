@@ -76,3 +76,61 @@ export async function getStrisciaPresenzeRecord(): Promise<StrisciaRecord | null
 
   return best;
 }
+
+export interface GoleadaStanding {
+  player: Pick<Player, "id" | "nome" | "cognome" | "foto_url">;
+  count: number;
+}
+
+export interface GoleadeStats {
+  totalGoleade: number;
+  topWinners: GoleadaStanding[];
+  topLosers: GoleadaStanding[];
+}
+
+const GOLEADA_THRESHOLD = 5;
+
+export async function getGoleadeStats(): Promise<GoleadeStats> {
+  const supabase = await createClient();
+  const [{ data: results, error: resultsError }, { data: participants, error: partError }] =
+    await Promise.all([
+      supabase.from("match_results").select("match_id, gol_bianca, gol_nera"),
+      supabase.from("match_participants").select("match_id, squadra, players(id, nome, cognome, foto_url)"),
+    ]);
+  if (resultsError) throw resultsError;
+  if (partError) throw partError;
+
+  const goleadaWinnerByMatch = new Map<string, "bianca" | "nera">();
+  for (const r of results ?? []) {
+    const diff = Math.abs(r.gol_bianca - r.gol_nera);
+    if (diff >= GOLEADA_THRESHOLD) {
+      goleadaWinnerByMatch.set(r.match_id, r.gol_bianca > r.gol_nera ? "bianca" : "nera");
+    }
+  }
+
+  const winCounts = new Map<string, GoleadaStanding>();
+  const loseCounts = new Map<string, GoleadaStanding>();
+
+  for (const row of (participants ?? []) as unknown as {
+    match_id: string;
+    squadra: "bianca" | "nera";
+    players: Pick<Player, "id" | "nome" | "cognome" | "foto_url">;
+  }[]) {
+    const winningSquadra = goleadaWinnerByMatch.get(row.match_id);
+    if (!winningSquadra) continue;
+    const map = row.squadra === winningSquadra ? winCounts : loseCounts;
+    const entry = map.get(row.players.id) ?? { player: row.players, count: 0 };
+    entry.count += 1;
+    map.set(row.players.id, entry);
+  }
+
+  return {
+    totalGoleade: goleadaWinnerByMatch.size,
+    topWinners: Array.from(winCounts.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3),
+    topLosers: Array.from(loseCounts.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3),
+  };
+}

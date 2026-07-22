@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPlayer, getPlayerCareerStats, getPlayerMatchHistory } from "@/lib/data/players";
+import { getAllPlayers, getPlayer, getPlayerCareerStats, getPlayerMatchHistory } from "@/lib/data/players";
 import { getPlayerBadges } from "@/lib/data/badges";
+import { getHeadToHead } from "@/lib/data/matches";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { CountUp } from "@/components/CountUp";
 import { Sparkline } from "@/components/Sparkline";
 import { PlayerBadgeList } from "@/components/PlayerBadges";
+import { HeadToHeadWidget } from "@/components/HeadToHeadWidget";
 import { EmptyState } from "@/components/EmptyState";
 import { age, formatDateShort, playerName } from "@/lib/format";
 import type { Esito } from "@/lib/types";
@@ -22,19 +24,31 @@ const esitoStyle: Record<Esito, string> = {
   sconfitta: "border border-line text-muted",
 };
 
-export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PlayerPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ vs?: string }>;
+}) {
   const { id } = await params;
+  const { vs } = await searchParams;
   const player = await getPlayer(id);
   if (!player) notFound();
 
-  const [stats, fullHistory] = await Promise.all([
+  const [stats, fullHistory, allPlayers, vsPlayer] = await Promise.all([
     getPlayerCareerStats(id),
     getPlayerMatchHistory(id),
+    getAllPlayers(),
+    vs && vs !== id ? getPlayer(vs) : Promise.resolve(null),
   ]);
+
+  const h2h = vsPlayer ? await getHeadToHead(id, vsPlayer.id) : null;
 
   const badges = await getPlayerBadges(player, fullHistory);
   const last5 = fullHistory.slice(0, 5);
   const sparklineValues = fullHistory.slice(0, 10).reverse().map((h) => h.gol);
+  const otherPlayers = allPlayers.filter((p) => p.id !== id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -107,6 +121,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         </>
       ) : (
         <EmptyState>Nessuna partita disputata ancora.</EmptyState>
+      )}
+
+      {otherPlayers.length > 0 && (
+        <HeadToHeadWidget player={player} players={otherPlayers} vsPlayer={vsPlayer} h2h={h2h} />
       )}
     </div>
   );

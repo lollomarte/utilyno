@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { getLatestMatchFull, topScorersOf } from "@/lib/data/matches";
+import { getLatestMatchFull, getMediaGolPerPartita } from "@/lib/data/matches";
+import { topScorersOf } from "@/lib/data/matchHelpers";
 import { getScorersStanding, getAttendanceStanding } from "@/lib/data/stats";
+import { getGoleadeStats } from "@/lib/data/records";
 import { formatDate, playerName } from "@/lib/format";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { RankBadge } from "@/components/RankBadge";
@@ -9,12 +11,16 @@ import { CountdownTimer } from "@/components/CountdownTimer";
 import { Podium } from "@/components/Podium";
 import { EmptyState } from "@/components/EmptyState";
 import { StaggerList, StaggerItem } from "@/components/StaggerList";
+import { TeamScore } from "@/components/TeamScore";
+import { GoleadaChip } from "@/components/GoleadaChip";
 
 export default async function HomePage() {
-  const [latest, scorers, attendance] = await Promise.all([
+  const [latest, scorers, attendance, mediaGolPartita, goleadeStats] = await Promise.all([
     getLatestMatchFull(),
     getScorersStanding(),
     getAttendanceStanding(),
+    getMediaGolPerPartita(),
+    getGoleadeStats(),
   ]);
 
   const topScorers = scorers.slice(0, 3);
@@ -36,23 +42,18 @@ export default async function HomePage() {
                   "linear-gradient(90deg, #ffffff 0%, transparent 48%, transparent 52%, #000000 100%)",
               }}
             />
-            <p className="relative text-xs uppercase tracking-widest text-accent font-semibold mb-1">
-              Ultima partita
-            </p>
-            <p className="relative text-sm text-muted mb-4 capitalize">{formatDate(latest.match.data)}</p>
+            <div className="relative flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-accent font-semibold mb-1">
+                  Ultima partita
+                </p>
+                <p className="text-sm text-muted capitalize">{formatDate(latest.match.data)}</p>
+              </div>
+              {Math.abs(latest.result.gol_bianca - latest.result.gol_nera) >= 5 && <GoleadaChip />}
+            </div>
 
-            <div className="relative flex items-center justify-center gap-3 sm:gap-6">
-              <div className="flex-1 text-right">
-                <span className="font-display text-xs sm:text-sm tracking-wide text-muted">BIANCA</span>
-              </div>
-              <div className="font-display font-bold text-5xl sm:text-6xl tabular-nums flex items-center gap-2 sm:gap-3">
-                <CountUp value={latest.result.gol_bianca} duration={0.8} />
-                <span className="text-muted text-3xl sm:text-4xl">–</span>
-                <CountUp value={latest.result.gol_nera} duration={0.8} />
-              </div>
-              <div className="flex-1">
-                <span className="font-display text-xs sm:text-sm tracking-wide text-muted">NERA</span>
-              </div>
+            <div className="relative mt-4">
+              <TeamScore golBianca={latest.result.gol_bianca} golNera={latest.result.gol_nera} size="lg" />
             </div>
 
             {capocannonieri.length > 0 && (
@@ -120,6 +121,27 @@ export default async function HomePage() {
           <EmptyState>Ancora nessuna presenza registrata.</EmptyState>
         )}
       </section>
+
+      {latest && (
+        <section>
+          <h2 className="font-display text-lg font-bold mb-3">Numeri del gruppo</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <StatTile label="Media gol/partita" value={mediaGolPartita} decimals={2} />
+            <StatTile label="Goleade (scarto ≥5)" value={goleadeStats.totalGoleade} />
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function StatTile({ label, value, decimals = 0 }: { label: string; value: number; decimals?: number }) {
+  return (
+    <div className="rounded-xl border border-line bg-surface p-4 text-center">
+      <p className="font-display text-2xl font-bold tabular-nums">
+        <CountUp value={value} decimals={decimals} />
+      </p>
+      <p className="text-xs text-muted mt-1">{label}</p>
     </div>
   );
 }
