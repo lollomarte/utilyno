@@ -7,6 +7,7 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/classifiche/marcatori", label: "Classifiche" },
   { href: "/risultati", label: "Risultati" },
+  { href: "/mercato", label: "Mercato" },
 ];
 
 export function NavBar() {

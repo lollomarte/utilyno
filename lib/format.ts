@@ -10,6 +10,28 @@ export const ruoloLabel: Record<Ruolo, string> = {
   attaccante: "Attaccante",
 };
 
+export function formatMarketValue(valore: number): string {
+  return `€${valore.toFixed(1)}M`;
+}
+
+export interface MarketTier {
+  label: string;
+  className: string;
+}
+
+export function marketTier(valore: number): MarketTier {
+  if (valore < 1) return { label: "Riserva", className: "text-muted bg-surface-2 border-line-strong" };
+  if (valore < 3) return { label: "Solido", className: "text-sky-300 bg-sky-500/10 border-sky-500/30" };
+  if (valore < 6)
+    return {
+      label: "Panchinaro di lusso",
+      className: "text-violet-300 bg-violet-500/10 border-violet-500/30",
+    };
+  if (valore <= 10)
+    return { label: "Titolarissimo", className: "text-accent bg-accent-dim border-accent-strong/40" };
+  return { label: "Fenomeno", className: "text-gold bg-gold/10 border-gold/40" };
+}
+
 export function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("it-IT", {
     weekday: "long",

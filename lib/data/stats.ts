@@ -65,7 +65,7 @@ export async function getAttendanceStanding(
   return { totalMatches, standing };
 }
 
-async function getMatchesAsc() {
+export async function getMatchesAsc() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("matches")
@@ -75,12 +75,12 @@ async function getMatchesAsc() {
   return data ?? [];
 }
 
-async function getAllParticipantsWithPlayers() {
+export async function getAllParticipantsWithPlayers() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("match_participants")
     .select(
-      "match_id, gol, squadra, players(id, nome, cognome, foto_url, attivo, data_nascita, created_at)"
+      "match_id, gol, squadra, players(id, nome, cognome, foto_url, attivo, ruolo, data_nascita, created_at)"
     );
   if (error) throw error;
   return (data ?? []) as unknown as {
@@ -91,7 +91,7 @@ async function getAllParticipantsWithPlayers() {
   }[];
 }
 
-async function getMatchResultsById(): Promise<Map<string, { gol_bianca: number; gol_nera: number }>> {
+export async function getMatchResultsById(): Promise<Map<string, { gol_bianca: number; gol_nera: number }>> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("match_results").select("match_id, gol_bianca, gol_nera");
   if (error) throw error;
@@ -100,7 +100,7 @@ async function getMatchResultsById(): Promise<Map<string, { gol_bianca: number; 
   return map;
 }
 
-function participantWon(
+export function participantWon(
   row: { match_id: string; squadra: Squadra },
   resultsById: Map<string, { gol_bianca: number; gol_nera: number }>
 ): boolean {

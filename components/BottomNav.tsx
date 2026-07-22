@@ -46,6 +46,20 @@ const items = [
       />
     ),
   },
+  {
+    href: "/mercato",
+    label: "Mercato",
+    icon: (active: boolean) => (
+      <path
+        d="M4 17 9.5 11.5 13.5 15 20 8M20 8h-4.5M20 8v4.5"
+        stroke="currentColor"
+        strokeWidth={active ? 2.4 : 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    ),
+  },
 ];
 
 export function BottomNav() {

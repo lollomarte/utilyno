@@ -6,10 +6,14 @@ export function Sparkline({
   values,
   width = 280,
   height = 56,
+  color = "var(--color-accent)",
+  gradientId = "sparkline-fill",
 }: {
   values: number[];
   width?: number;
   height?: number;
+  color?: string;
+  gradientId?: string;
 }) {
   if (values.length < 2) return null;
 
@@ -29,14 +33,14 @@ export function Sparkline({
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
       <defs>
-        <linearGradient id="sparkline-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
       <motion.path
         d={area}
-        fill="url(#sparkline-fill)"
+        fill={`url(#${gradientId})`}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
@@ -45,7 +49,7 @@ export function Sparkline({
       <motion.path
         d={path}
         fill="none"
-        stroke="var(--color-accent)"
+        stroke={color}
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -55,7 +59,7 @@ export function Sparkline({
         transition={{ duration: 0.9, ease: "easeOut" }}
       />
       {points.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r={values[i] > 0 ? 2.5 : 1.5} fill="var(--color-accent)" />
+        <circle key={i} cx={x} cy={y} r={values[i] > 0 ? 2.5 : 1.5} fill={color} />
       ))}
     </svg>
   );
