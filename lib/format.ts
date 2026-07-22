@@ -1,6 +1,14 @@
+import type { Ruolo } from "@/lib/types";
+
 export function playerName(p: { nome: string; cognome: string }): string {
   return `${p.nome} ${p.cognome}`;
 }
+
+export const ruoloLabel: Record<Ruolo, string> = {
+  difensore: "Difensore",
+  centrocampista: "Centrocampista",
+  attaccante: "Attaccante",
+};
 
 export function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("it-IT", {

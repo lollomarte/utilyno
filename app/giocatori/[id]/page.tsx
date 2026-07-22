@@ -9,7 +9,7 @@ import { Sparkline } from "@/components/Sparkline";
 import { PlayerBadgeList } from "@/components/PlayerBadges";
 import { HeadToHeadWidget } from "@/components/HeadToHeadWidget";
 import { EmptyState } from "@/components/EmptyState";
-import { age, formatDateShort, playerName } from "@/lib/format";
+import { age, formatDateShort, playerName, ruoloLabel } from "@/lib/format";
 import type { Esito } from "@/lib/types";
 
 const esitoLabel: Record<Esito, string> = {
@@ -60,6 +60,7 @@ export default async function PlayerPage({
             <h1 className="font-display text-2xl font-bold">{playerName(player)}</h1>
             <p className="text-sm text-muted">
               {player.data_nascita ? `${age(player.data_nascita)} anni` : "Età non indicata"}
+              {player.ruolo && ` · ${ruoloLabel[player.ruolo]}`}
               {!player.attivo && " · non attivo"}
             </p>
           </div>

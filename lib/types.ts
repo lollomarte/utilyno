@@ -1,5 +1,6 @@
 export type Squadra = "bianca" | "nera";
 export type Esito = "vittoria" | "pareggio" | "sconfitta";
+export type Ruolo = "difensore" | "centrocampista" | "attaccante";
 
 export interface Player {
   id: string;
@@ -8,6 +9,7 @@ export interface Player {
   data_nascita: string | null;
   foto_url: string | null;
   attivo: boolean;
+  ruolo: Ruolo | null;
   created_at: string;
 }
 
@@ -50,6 +52,7 @@ export interface PlayerCareerStats {
   pareggi: number;
   sconfitte: number;
   record_gol_partita: number;
+  ruolo: Ruolo | null;
 }
 
 export interface MvpStanding {

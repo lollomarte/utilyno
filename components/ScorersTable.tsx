@@ -8,6 +8,7 @@ import { RankBadge } from "@/components/RankBadge";
 import { RankArrow } from "@/components/RankArrow";
 import { CountUp } from "@/components/CountUp";
 import { ProgressBar } from "@/components/ProgressBar";
+import { RuoloFilter, type RuoloFilterValue } from "@/components/RuoloFilter";
 import { playerName } from "@/lib/format";
 import type { PlayerCareerStats } from "@/lib/types";
 import type { WithRankDelta } from "@/lib/data/stats";
@@ -23,10 +24,12 @@ const columns: { key: SortKey; label: string; short: string }[] = [
 export function ScorersTable({ data }: { data: (PlayerCareerStats & WithRankDelta)[] }) {
   const [sortKey, setSortKey] = useState<SortKey>("gol_totali");
   const [asc, setAsc] = useState(false);
+  const [ruolo, setRuolo] = useState<RuoloFilterValue>("");
 
-  const sorted = [...data].sort((a, b) => (asc ? a[sortKey] - b[sortKey] : b[sortKey] - a[sortKey]));
-  const showRankInfo = sortKey === "gol_totali" && !asc;
-  const maxGol = Math.max(1, ...data.map((d) => d.gol_totali));
+  const filtered = ruolo ? data.filter((d) => d.ruolo === ruolo) : data;
+  const sorted = [...filtered].sort((a, b) => (asc ? a[sortKey] - b[sortKey] : b[sortKey] - a[sortKey]));
+  const showRankInfo = sortKey === "gol_totali" && !asc && !ruolo;
+  const maxGol = Math.max(1, ...filtered.map((d) => d.gol_totali));
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
@@ -38,7 +41,9 @@ export function ScorersTable({ data }: { data: (PlayerCareerStats & WithRankDelt
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="flex flex-col gap-3">
+      <RuoloFilter value={ruolo} onChange={setRuolo} />
+      <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="text-muted text-left border-b border-line">
@@ -105,6 +110,7 @@ export function ScorersTable({ data }: { data: (PlayerCareerStats & WithRankDelt
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

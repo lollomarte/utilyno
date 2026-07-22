@@ -3,7 +3,10 @@
 import { useActionState, useState, type ChangeEvent } from "react";
 import { savePlayer } from "@/lib/actions/players";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
-import type { Player } from "@/lib/types";
+import { ruoloLabel } from "@/lib/format";
+import type { Player, Ruolo } from "@/lib/types";
+
+const ruoloOptions: Ruolo[] = ["difensore", "centrocampista", "attaccante"];
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -98,6 +101,25 @@ export function PlayerForm({ player }: { player?: Player }) {
           defaultValue={player?.data_nascita ?? ""}
           className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
+      </div>
+
+      <div>
+        <label className="text-sm font-medium block mb-1" htmlFor="ruolo">
+          Ruolo (opzionale)
+        </label>
+        <select
+          id="ruolo"
+          name="ruolo"
+          defaultValue={player?.ruolo ?? ""}
+          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+        >
+          <option value="">Non impostato</option>
+          {ruoloOptions.map((r) => (
+            <option key={r} value={r}>
+              {ruoloLabel[r]}
+            </option>
+          ))}
+        </select>
       </div>
 
       <label className="flex items-center gap-2 text-sm">

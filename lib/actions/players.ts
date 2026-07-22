@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient, requireAdmin } from "@/lib/supabase/server";
+import type { Ruolo } from "@/lib/types";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const RUOLO_VALUES: Ruolo[] = ["difensore", "centrocampista", "attaccante"];
 
 export async function savePlayer(_prevState: unknown, formData: FormData) {
   await requireAdmin();
@@ -17,6 +19,9 @@ export async function savePlayer(_prevState: unknown, formData: FormData) {
   const data_nascita = String(formData.get("data_nascita") ?? "") || null;
   const attivo = formData.get("attivo") === "on";
   const photo = formData.get("foto") as File | null;
+
+  const ruoloRaw = String(formData.get("ruolo") ?? "");
+  const ruolo: Ruolo | null = RUOLO_VALUES.includes(ruoloRaw as Ruolo) ? (ruoloRaw as Ruolo) : null;
 
   if (!nome || !cognome) {
     return { error: "Nome e cognome sono obbligatori." };
@@ -47,7 +52,7 @@ export async function savePlayer(_prevState: unknown, formData: FormData) {
     foto_url = pub.publicUrl;
   }
 
-  const payload = { nome, cognome, data_nascita, attivo, foto_url };
+  const payload = { nome, cognome, data_nascita, attivo, foto_url, ruolo };
 
   const { error } = id
     ? await supabase.from("players").update(payload).eq("id", id)

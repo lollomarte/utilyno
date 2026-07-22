@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { seasonOf, seasonsFromDates } from "@/lib/season";
-import type { MvpStanding, Player, PlayerCareerStats, Squadra } from "@/lib/types";
+import type { MvpStanding, Player, PlayerCareerStats, Ruolo, Squadra } from "@/lib/types";
 
 export async function getScorersStanding(): Promise<PlayerCareerStats[]> {
   const supabase = await createClient();
@@ -40,7 +40,7 @@ export async function getAttendanceStanding(
 
   const { data: participants, error: partError } = await supabase
     .from("match_participants")
-    .select("match_id, players(id, nome, cognome, foto_url, attivo, data_nascita, created_at)");
+    .select("match_id, players(id, nome, cognome, foto_url, attivo, ruolo, data_nascita, created_at)");
   if (partError) throw partError;
 
   const counts = new Map<string, { player: Player; presenze: number }>();
@@ -192,6 +192,7 @@ export interface WinsRow {
   cognome: string;
   foto_url: string | null;
   attivo: boolean;
+  ruolo: Ruolo | null;
   presenze: number;
   vittorie: number;
   media_vittorie: number;
@@ -201,7 +202,7 @@ export async function getWinsStanding(): Promise<WinsRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("player_career_stats")
-    .select("player_id, nome, cognome, foto_url, attivo, presenze, vittorie")
+    .select("player_id, nome, cognome, foto_url, attivo, ruolo, presenze, vittorie")
     .order("vittorie", { ascending: false });
   if (error) throw error;
   return (data ?? []).map((r) => ({
