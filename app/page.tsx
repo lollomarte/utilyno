@@ -55,6 +55,16 @@ export default async function HomePage() {
             <div className="relative mt-4">
               <TeamScore golBianca={latest.result.gol_bianca} golNera={latest.result.gol_nera} size="lg" />
             </div>
+            {latest.match.risultato_modificato_manualmente && (
+              <div className="relative flex justify-center mt-2">
+                <span
+                  className="inline-flex items-center gap-1.5 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-2.5 py-1"
+                  title="Risultato corretto manualmente"
+                >
+                  ✏️ Risultato modificato manualmente
+                </span>
+              </div>
+            )}
 
             {capocannonieri.length > 0 && (
               <div className="relative flex items-center gap-3 justify-center mt-5 pt-4 border-t border-line">

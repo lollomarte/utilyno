@@ -140,12 +140,19 @@ export async function getMatchFull(matchId: string): Promise<MatchFull | null> {
   if (!match) return null;
 
   const rows = (participants ?? []) as unknown as ParticipantWithPlayer[];
-  const gol_bianca = rows.filter((p) => p.squadra === "bianca").reduce((s, p) => s + p.gol, 0);
-  const gol_nera = rows.filter((p) => p.squadra === "nera").reduce((s, p) => s + p.gol, 0);
+  const sommaBianca = rows.filter((p) => p.squadra === "bianca").reduce((s, p) => s + p.gol, 0);
+  const sommaNera = rows.filter((p) => p.squadra === "nera").reduce((s, p) => s + p.gol, 0);
 
   const { mvp, ...matchFields } = match as Match & {
     mvp: MatchFull["mvp"];
   };
+
+  const gol_bianca = matchFields.risultato_modificato_manualmente
+    ? matchFields.gol_bianca_finale ?? sommaBianca
+    : sommaBianca;
+  const gol_nera = matchFields.risultato_modificato_manualmente
+    ? matchFields.gol_nera_finale ?? sommaNera
+    : sommaNera;
 
   return {
     match: matchFields,

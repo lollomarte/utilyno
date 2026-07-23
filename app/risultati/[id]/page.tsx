@@ -50,6 +50,16 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
         <div className="relative">
           <TeamScore golBianca={result.gol_bianca} golNera={result.gol_nera} size="lg" />
         </div>
+        {match.risultato_modificato_manualmente && (
+          <div className="relative flex justify-center mt-3">
+            <span
+              className="inline-flex items-center gap-1.5 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-2.5 py-1"
+              title="Il risultato finale è stato corretto a mano e può non coincidere con la somma dei gol dei marcatori elencati"
+            >
+              ✏️ Risultato modificato manualmente
+            </span>
+          </div>
+        )}
         {diff >= 5 && (
           <div className="relative flex justify-center mt-3">
             <GoleadaChip />

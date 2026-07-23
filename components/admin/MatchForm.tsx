@@ -28,6 +28,9 @@ interface MatchFormProps {
   initialNote?: string;
   initialMvp?: string | null;
   initialRows?: Row[];
+  initialRisultatoManuale?: boolean;
+  initialGolBiancaFinale?: number | null;
+  initialGolNeraFinale?: number | null;
   submitLabel?: string;
 }
 
@@ -48,6 +51,9 @@ export function MatchForm({
   initialNote,
   initialMvp,
   initialRows,
+  initialRisultatoManuale,
+  initialGolBiancaFinale,
+  initialGolNeraFinale,
   submitLabel = "Salva partita",
 }: MatchFormProps) {
   const [state, formAction, pending] = useActionState(action, undefined);
@@ -56,6 +62,9 @@ export function MatchForm({
   const [mvp, setMvp] = useState(initialMvp ?? "");
   const [biancaSlots, setBiancaSlots] = useState<Slot[]>(() => buildSlots(initialRows, "bianca"));
   const [neraSlots, setNeraSlots] = useState<Slot[]>(() => buildSlots(initialRows, "nera"));
+  const [risultatoManuale, setRisultatoManuale] = useState(initialRisultatoManuale ?? false);
+  const [golBiancaManuale, setGolBiancaManuale] = useState(initialGolBiancaFinale ?? 0);
+  const [golNeraManuale, setGolNeraManuale] = useState(initialGolNeraFinale ?? 0);
 
   function updateSlot(squadra: Squadra, index: number, patch: Partial<Slot>) {
     const setter = squadra === "bianca" ? setBiancaSlots : setNeraSlots;
@@ -96,13 +105,68 @@ export function MatchForm({
     <form action={formAction} className="flex flex-col gap-5">
       {matchId && <input type="hidden" name="id" value={matchId} />}
       <input type="hidden" name="participants" value={participantsJson} />
+      <input
+        type="hidden"
+        name="risultato_modificato_manualmente"
+        value={risultatoManuale ? "true" : "false"}
+      />
+      <input type="hidden" name="gol_bianca_finale" value={risultatoManuale ? golBiancaManuale : ""} />
+      <input type="hidden" name="gol_nera_finale" value={risultatoManuale ? golNeraManuale : ""} />
 
-      <div className="sticky top-2 z-10 rounded-2xl border border-line-strong bg-surface/95 backdrop-blur p-4 flex items-center justify-center gap-4 shadow-lg">
-        <span className="font-display text-sm text-muted">BIANCA</span>
-        <span className="font-display text-2xl font-bold tabular-nums">
-          {golBianca} – {golNera}
-        </span>
-        <span className="font-display text-sm text-muted">NERA</span>
+      <div className="sticky top-2 z-10 rounded-2xl border border-line-strong bg-surface/95 backdrop-blur p-4 flex flex-col gap-3 shadow-lg">
+        <div className="flex items-center justify-center gap-4">
+          <span className="font-display text-sm text-muted">BIANCA</span>
+          {risultatoManuale ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                value={golBiancaManuale}
+                onChange={(e) => setGolBiancaManuale(Math.max(0, Number(e.target.value) || 0))}
+                className="w-14 text-center font-display text-2xl font-bold bg-surface-2 border border-line rounded-lg py-1 focus:outline-none focus:border-accent"
+              />
+              <span className="font-display text-2xl font-bold text-muted">–</span>
+              <input
+                type="number"
+                min={0}
+                value={golNeraManuale}
+                onChange={(e) => setGolNeraManuale(Math.max(0, Number(e.target.value) || 0))}
+                className="w-14 text-center font-display text-2xl font-bold bg-surface-2 border border-line rounded-lg py-1 focus:outline-none focus:border-accent"
+              />
+            </div>
+          ) : (
+            <span className="font-display text-2xl font-bold tabular-nums">
+              {golBianca} – {golNera}
+            </span>
+          )}
+          <span className="font-display text-sm text-muted">NERA</span>
+        </div>
+
+        <label className="flex items-center justify-center gap-2 text-xs text-muted cursor-pointer">
+          <input
+            type="checkbox"
+            checked={risultatoManuale}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setRisultatoManuale(checked);
+              if (checked) {
+                setGolBiancaManuale(golBianca);
+                setGolNeraManuale(golNera);
+              }
+            }}
+            className="accent-accent"
+          />
+          Modifica manualmente il risultato finale
+        </label>
+
+        {risultatoManuale && (
+          <p className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 py-1 mx-auto flex items-center gap-1.5">
+            <span>✏️ Risultato modificato manualmente</span>
+            {(golBiancaManuale !== golBianca || golNeraManuale !== golNera) && (
+              <span className="text-muted">· somma marcatori: {golBianca}–{golNera}</span>
+            )}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">

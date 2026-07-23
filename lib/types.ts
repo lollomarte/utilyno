@@ -19,6 +19,9 @@ export interface Match {
   note: string | null;
   mvp_player_id: string | null;
   created_at: string;
+  gol_bianca_finale: number | null;
+  gol_nera_finale: number | null;
+  risultato_modificato_manualmente: boolean;
 }
 
 export interface MatchParticipant {
@@ -37,6 +40,7 @@ export interface MatchResult {
   gol_bianca: number;
   gol_nera: number;
   num_partecipanti: number;
+  risultato_modificato_manualmente: boolean;
 }
 
 export interface PlayerCareerStats {

@@ -37,6 +37,11 @@ export default async function AdminPartitePage() {
                 <p className="text-sm font-medium">{formatDateShort(m.data)}</p>
                 <p className="text-xs text-muted">
                   {m.gol_bianca} – {m.gol_nera} · {m.num_partecipanti} partecipanti
+                  {m.risultato_modificato_manualmente && (
+                    <span className="ml-2 text-amber-300" title="Risultato modificato manualmente">
+                      ✏️ manuale
+                    </span>
+                  )}
                 </p>
               </div>
               <Link

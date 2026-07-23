@@ -28,7 +28,14 @@ export function MatchCard({ match }: { match: MatchResultWithParticipants }) {
 
         <div className="relative flex items-start justify-between gap-3 pointer-events-none">
           <div className="min-w-0">
-            <p className="text-sm font-medium">{formatDateShort(match.data)}</p>
+            <p className="text-sm font-medium flex items-center gap-1.5">
+              {formatDateShort(match.data)}
+              {match.risultato_modificato_manualmente && (
+                <span title="Risultato modificato manualmente" className="text-amber-300 text-xs">
+                  ✏️
+                </span>
+              )}
+            </p>
             {match.note && <p className="text-xs text-muted mt-0.5 truncate">{match.note}</p>}
           </div>
           {diff >= GOLEADA_THRESHOLD && <GoleadaChip className="shrink-0" />}
