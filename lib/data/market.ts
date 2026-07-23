@@ -17,10 +17,9 @@ const MEDIA_GOL_WEIGHT = 2;
 const VITTORIE_WEIGHT = 0.2;
 const MEDIA_VITTORIE_WEIGHT = 3;
 const MVP_WEIGHT = 1.5;
-const COSTANZA_BONUS = 1;
-const COSTANZA_THRESHOLD = 0.8; // >80% presenza
-const ASSENZE_PENALTY = 0.5;
-const ASSENZE_THRESHOLD = 0.3; // <30% presenza
+const PRESENZE_WEIGHT = 0.15;
+const PRESENZA_PCT_WEIGHT = 0.02;
+const PRESENZA_PCT_BASELINE = 50; // % presenza sopra cui il contributo è positivo
 const FORMA_MULTIPLIER = 1.2;
 const RECENT_WINDOW = 5;
 const MIN_VALUE = 0.1;
@@ -86,8 +85,7 @@ export async function computeMarketValues(): Promise<MarketValue[]> {
         ? FORMA_MULTIPLIER
         : 1;
 
-    const bonusCostanza = percentualePresenza > COSTANZA_THRESHOLD ? COSTANZA_BONUS : 0;
-    const penalitaAssenze = percentualePresenza < ASSENZE_THRESHOLD ? ASSENZE_PENALTY : 0;
+    const curvaPresenza = (percentualePresenza * 100 - PRESENZA_PCT_BASELINE) * PRESENZA_PCT_WEIGHT;
 
     const raw =
       BASE_VALUE +
@@ -96,8 +94,8 @@ export async function computeMarketValues(): Promise<MarketValue[]> {
       vittorie * VITTORIE_WEIGHT +
       mediaVittorie * MEDIA_VITTORIE_WEIGHT +
       mvpTotali * MVP_WEIGHT +
-      bonusCostanza -
-      penalitaAssenze;
+      presenze * PRESENZE_WEIGHT +
+      curvaPresenza;
 
     const valore = Math.max(MIN_VALUE, round1(raw * formaMultiplier));
 
