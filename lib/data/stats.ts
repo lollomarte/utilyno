@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { seasonOf, seasonsFromDates } from "@/lib/season";
+import { seasonOf, seasonsFromDates, yearOf, yearsFromDates } from "@/lib/season";
 import type { MvpStanding, Player, PlayerCareerStats, Ruolo, Squadra } from "@/lib/types";
+import type { YearTaggedParticipant } from "@/lib/yearStats";
 
 export async function getScorersStanding(): Promise<PlayerCareerStats[]> {
   const supabase = await createClient();
@@ -17,6 +18,38 @@ export async function getSeasonsList(): Promise<string[]> {
   const { data, error } = await supabase.from("matches").select("data");
   if (error) throw error;
   return seasonsFromDates((data ?? []).map((m) => m.data));
+}
+
+export async function getYearsList(): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("matches").select("data");
+  if (error) throw error;
+  return yearsFromDates((data ?? []).map((m) => m.data));
+}
+
+export async function getYearMatchCounts(): Promise<Record<string, number>> {
+  const matches = await getMatchesAsc();
+  const counts: Record<string, number> = {};
+  for (const m of matches) {
+    const y = yearOf(m.data);
+    counts[y] = (counts[y] ?? 0) + 1;
+  }
+  return counts;
+}
+
+export async function getYearTaggedParticipants(): Promise<YearTaggedParticipant[]> {
+  const [matches, participants, resultsById] = await Promise.all([
+    getMatchesAsc(),
+    getAllParticipantsWithPlayers(),
+    getMatchResultsById(),
+  ]);
+  const yearByMatch = new Map(matches.map((m) => [m.id, yearOf(m.data)]));
+  return participants.map((row) => ({
+    player: row.players,
+    year: yearByMatch.get(row.match_id) ?? "",
+    gol: row.gol,
+    won: participantWon(row, resultsById),
+  }));
 }
 
 export interface AttendanceRow {

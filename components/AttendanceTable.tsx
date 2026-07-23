@@ -9,24 +9,45 @@ import { RankArrow } from "@/components/RankArrow";
 import { CountUp } from "@/components/CountUp";
 import { ProgressBar } from "@/components/ProgressBar";
 import { RuoloFilter, type RuoloFilterValue } from "@/components/RuoloFilter";
+import { YearFilter, type YearFilterValue } from "@/components/YearFilter";
 import { playerName } from "@/lib/format";
 import type { AttendanceRow } from "@/lib/data/stats";
+import { computeAttendanceByYear, type AttendanceDisplayRow, type YearTaggedParticipant } from "@/lib/yearStats";
 
 interface Row extends AttendanceRow {
   rankDelta: number | null;
   isNew: boolean;
 }
 
-export function AttendanceTable({ standing, showRankInfo }: { standing: Row[]; showRankInfo: boolean }) {
+export function AttendanceTable({
+  standing,
+  showRankInfo,
+  yearRows,
+  years,
+  yearMatchCounts,
+}: {
+  standing: Row[];
+  showRankInfo: boolean;
+  yearRows: YearTaggedParticipant[];
+  years: string[];
+  yearMatchCounts: Record<string, number>;
+}) {
   const [ruolo, setRuolo] = useState<RuoloFilterValue>("");
+  const [anno, setAnno] = useState<YearFilterValue>("");
 
-  const filtered = ruolo ? standing.filter((r) => r.player.ruolo === ruolo) : standing;
+  const baseData: (Row | AttendanceDisplayRow)[] = anno
+    ? computeAttendanceByYear(yearRows, anno, yearMatchCounts[anno] ?? 0)
+    : standing;
+  const filtered = ruolo ? baseData.filter((r) => r.player.ruolo === ruolo) : baseData;
   const maxPresenze = Math.max(1, ...filtered.map((r) => r.presenze));
-  const showRank = showRankInfo && !ruolo;
+  const showRank = showRankInfo && !ruolo && !anno;
 
   return (
     <div className="flex flex-col gap-3">
-      <RuoloFilter value={ruolo} onChange={setRuolo} />
+      <div className="flex flex-wrap items-center gap-2">
+        <RuoloFilter value={ruolo} onChange={setRuolo} />
+        <YearFilter years={years} value={anno} onChange={setAnno} />
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm border-collapse">
           <thead>

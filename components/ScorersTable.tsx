@@ -9,9 +9,11 @@ import { RankArrow } from "@/components/RankArrow";
 import { CountUp } from "@/components/CountUp";
 import { ProgressBar } from "@/components/ProgressBar";
 import { RuoloFilter, type RuoloFilterValue } from "@/components/RuoloFilter";
+import { YearFilter, type YearFilterValue } from "@/components/YearFilter";
 import { playerName } from "@/lib/format";
 import type { PlayerCareerStats } from "@/lib/types";
 import type { WithRankDelta } from "@/lib/data/stats";
+import { computeScorersByYear, type ScorerDisplayRow, type YearTaggedParticipant } from "@/lib/yearStats";
 
 type SortKey = "gol_totali" | "presenze" | "media_gol";
 
@@ -21,14 +23,24 @@ const columns: { key: SortKey; label: string; short: string }[] = [
   { key: "media_gol", label: "Media gol/partita", short: "Media" },
 ];
 
-export function ScorersTable({ data }: { data: (PlayerCareerStats & WithRankDelta)[] }) {
+export function ScorersTable({
+  data,
+  yearRows,
+  years,
+}: {
+  data: (PlayerCareerStats & WithRankDelta)[];
+  yearRows: YearTaggedParticipant[];
+  years: string[];
+}) {
   const [sortKey, setSortKey] = useState<SortKey>("gol_totali");
   const [asc, setAsc] = useState(false);
   const [ruolo, setRuolo] = useState<RuoloFilterValue>("");
+  const [anno, setAnno] = useState<YearFilterValue>("");
 
-  const filtered = ruolo ? data.filter((d) => d.ruolo === ruolo) : data;
+  const baseData: ScorerDisplayRow[] = anno ? computeScorersByYear(yearRows, anno) : data;
+  const filtered = ruolo ? baseData.filter((d) => d.ruolo === ruolo) : baseData;
   const sorted = [...filtered].sort((a, b) => (asc ? a[sortKey] - b[sortKey] : b[sortKey] - a[sortKey]));
-  const showRankInfo = sortKey === "gol_totali" && !asc && !ruolo;
+  const showRankInfo = sortKey === "gol_totali" && !asc && !ruolo && !anno;
   const maxGol = Math.max(1, ...filtered.map((d) => d.gol_totali));
 
   function toggleSort(key: SortKey) {
@@ -42,7 +54,10 @@ export function ScorersTable({ data }: { data: (PlayerCareerStats & WithRankDelt
 
   return (
     <div className="flex flex-col gap-3">
-      <RuoloFilter value={ruolo} onChange={setRuolo} />
+      <div className="flex flex-wrap items-center gap-2">
+        <RuoloFilter value={ruolo} onChange={setRuolo} />
+        <YearFilter years={years} value={anno} onChange={setAnno} />
+      </div>
       <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>

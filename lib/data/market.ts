@@ -8,7 +8,7 @@ import {
   participantWon,
 } from "@/lib/data/stats";
 import { getAllPlayers } from "@/lib/data/players";
-import type { Player } from "@/lib/types";
+import type { Player, Ruolo } from "@/lib/types";
 
 // --- Formula di calcolo (vedi specifica prodotto) ---------------------------
 const BASE_VALUE = 1.0;
@@ -217,5 +217,38 @@ export async function getMarketPageData(): Promise<MarketPageData> {
     topFallers,
     groupTrend,
     hasHistory: previousDate !== null,
+  };
+}
+
+export interface Top7Formation {
+  difensori: MarketValue[];
+  centrocampisti: MarketValue[];
+  attaccanti: MarketValue[];
+}
+
+const TOP7_SLOTS: Record<Ruolo, number> = {
+  difensore: 3,
+  centrocampista: 2,
+  attaccante: 2,
+};
+
+/**
+ * Top 7 per ruolo, calcolato dal vivo sulle stesse quotazioni della pagina
+ * Mercato (nessuna tabella dedicata): si aggiorna da solo ogni volta che
+ * cambiano le statistiche del gruppo.
+ */
+export async function getTop7Formation(): Promise<Top7Formation> {
+  const values = await computeMarketValues();
+
+  const byRuolo = (ruolo: Ruolo) =>
+    values
+      .filter((v) => v.player.ruolo === ruolo)
+      .sort((a, b) => b.valore - a.valore)
+      .slice(0, TOP7_SLOTS[ruolo]);
+
+  return {
+    difensori: byRuolo("difensore"),
+    centrocampisti: byRuolo("centrocampista"),
+    attaccanti: byRuolo("attaccante"),
   };
 }

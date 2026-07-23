@@ -17,6 +17,15 @@ export function seasonsFromDates(dates: string[]): string[] {
   return Array.from(set).sort().reverse();
 }
 
+export function yearOf(dateStr: string): string {
+  return String(new Date(dateStr).getUTCFullYear());
+}
+
+export function yearsFromDates(dates: string[]): string[] {
+  const set = new Set(dates.map(yearOf));
+  return Array.from(set).sort().reverse();
+}
+
 export function nearestMonday(from = new Date()): string {
   const d = new Date(from);
   const day = d.getDay(); // 0 = domenica, 1 = lunedì

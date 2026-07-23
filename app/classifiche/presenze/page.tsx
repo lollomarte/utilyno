@@ -1,4 +1,11 @@
-import { getAttendanceStanding, getAttendanceStandingWithDelta, getSeasonsList } from "@/lib/data/stats";
+import {
+  getAttendanceStanding,
+  getAttendanceStandingWithDelta,
+  getSeasonsList,
+  getYearMatchCounts,
+  getYearTaggedParticipants,
+  getYearsList,
+} from "@/lib/data/stats";
 import { SeasonFilter } from "@/components/SeasonFilter";
 import { EmptyState } from "@/components/EmptyState";
 import { AttendanceTable } from "@/components/AttendanceTable";
@@ -10,11 +17,15 @@ export default async function PresenzePage({
 }) {
   const { stagione } = await searchParams;
 
-  const [{ totalMatches, standing: filteredStanding }, withDelta, seasons] = await Promise.all([
-    getAttendanceStanding(stagione),
-    getAttendanceStandingWithDelta(),
-    getSeasonsList(),
-  ]);
+  const [{ totalMatches, standing: filteredStanding }, withDelta, seasons, yearRows, years, yearMatchCounts] =
+    await Promise.all([
+      getAttendanceStanding(stagione),
+      getAttendanceStandingWithDelta(),
+      getSeasonsList(),
+      getYearTaggedParticipants(),
+      getYearsList(),
+      getYearMatchCounts(),
+    ]);
 
   const deltaByPlayer = new Map(withDelta.map((w) => [w.player.id, w]));
   const standing = filteredStanding.map((row) => ({
@@ -35,7 +46,13 @@ export default async function PresenzePage({
       {standing.length === 0 ? (
         <EmptyState>Nessuna presenza registrata.</EmptyState>
       ) : (
-        <AttendanceTable standing={standing} showRankInfo={!stagione} />
+        <AttendanceTable
+          standing={standing}
+          showRankInfo={!stagione}
+          yearRows={yearRows}
+          years={years}
+          yearMatchCounts={yearMatchCounts}
+        />
       )}
     </div>
   );
