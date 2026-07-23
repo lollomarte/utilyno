@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAllPlayers, getPlayer, getPlayerCareerStats, getPlayerMatchHistory } from "@/lib/data/players";
+import {
+  getAllPlayers,
+  getPlayer,
+  getPlayerCareerStats,
+  getPlayerMatchHistory,
+  getPlayerMvpCount,
+} from "@/lib/data/players";
 import { getPlayerBadges } from "@/lib/data/badges";
 import { getHeadToHead } from "@/lib/data/matches";
+import { getAttendanceStanding, getMatchesAsc, getScorersStanding, getWinsStanding } from "@/lib/data/stats";
+import { computeAttackStats, computeContinuitaStats, computeRendimentoStats, findRank } from "@/lib/playerProfileStats";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { CountUp } from "@/components/CountUp";
 import { Sparkline } from "@/components/Sparkline";
 import { PlayerBadgeList } from "@/components/PlayerBadges";
+import { PlayerStatsTabs } from "@/components/PlayerStatsTabs";
 import { HeadToHeadWidget } from "@/components/HeadToHeadWidget";
 import { EmptyState } from "@/components/EmptyState";
 import { age, formatDateShort, playerName, ruoloLabel } from "@/lib/format";
@@ -36,12 +45,18 @@ export default async function PlayerPage({
   const player = await getPlayer(id);
   if (!player) notFound();
 
-  const [stats, fullHistory, allPlayers, vsPlayer] = await Promise.all([
-    getPlayerCareerStats(id),
-    getPlayerMatchHistory(id),
-    getAllPlayers(),
-    vs && vs !== id ? getPlayer(vs) : Promise.resolve(null),
-  ]);
+  const [stats, fullHistory, allPlayers, vsPlayer, mvpTotali, scorers, attendance, wins, allMatches] =
+    await Promise.all([
+      getPlayerCareerStats(id),
+      getPlayerMatchHistory(id),
+      getAllPlayers(),
+      vs && vs !== id ? getPlayer(vs) : Promise.resolve(null),
+      getPlayerMvpCount(id),
+      getScorersStanding(),
+      getAttendanceStanding(),
+      getWinsStanding(),
+      getMatchesAsc(),
+    ]);
 
   const h2h = vsPlayer ? await getHeadToHead(id, vsPlayer.id) : null;
 
@@ -49,6 +64,20 @@ export default async function PlayerPage({
   const last5 = fullHistory.slice(0, 5);
   const sparklineValues = fullHistory.slice(0, 10).reverse().map((h) => h.gol);
   const otherPlayers = allPlayers.filter((p) => p.id !== id);
+
+  const rankMarcatori = findRank(
+    scorers.filter((p) => p.presenze > 0),
+    (p) => p.player_id === id
+  );
+  const rankPresenze = findRank(attendance.standing, (p) => p.player.id === id);
+  const rankVittorie = findRank(
+    wins.filter((p) => p.presenze > 0),
+    (p) => p.player_id === id
+  );
+
+  const attacco = computeAttackStats(fullHistory);
+  const squadra = computeRendimentoStats(fullHistory, mvpTotali);
+  const continuita = computeContinuitaStats(fullHistory, allMatches, attendance.totalMatches);
 
   return (
     <div className="flex flex-col gap-6">
@@ -65,6 +94,14 @@ export default async function PlayerPage({
             </p>
           </div>
           <PlayerBadgeList badges={badges} />
+
+          {(rankMarcatori || rankPresenze || rankVittorie) && (
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {rankMarcatori && <RankChip label="Marcatori" rank={rankMarcatori} href="/classifiche/marcatori" />}
+              {rankPresenze && <RankChip label="Presenze" rank={rankPresenze} href="/classifiche/presenze" />}
+              {rankVittorie && <RankChip label="Vittorie" rank={rankVittorie} href="/classifiche/vittorie" />}
+            </div>
+          )}
 
           {stats && stats.presenze > 0 && (
             <div className="grid grid-cols-3 gap-4 w-full mt-3 pt-4 border-t border-line">
@@ -87,11 +124,7 @@ export default async function PlayerPage({
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-3">
-            <StatBox label="Vittorie" value={stats.vittorie} />
-            <StatBox label="Pareggi" value={stats.pareggi} />
-            <StatBox label="Sconfitte" value={stats.sconfitte} />
-          </div>
+          <PlayerStatsTabs attacco={attacco} squadra={squadra} continuita={continuita} />
 
           <div>
             <h2 className="font-display font-semibold mb-2">Ultime 5 partite</h2>
@@ -142,13 +175,14 @@ function BigStat({ label, value, decimals = 0 }: { label: string; value: number;
   );
 }
 
-function StatBox({ label, value }: { label: string; value: number }) {
+function RankChip({ label, rank, href }: { label: string; rank: number; href: string }) {
   return (
-    <div className="rounded-xl border border-line bg-surface p-3 text-center">
-      <p className="font-display text-lg font-bold tabular-nums">
-        <CountUp value={value} />
-      </p>
-      <p className="text-xs text-muted">{label}</p>
-    </div>
+    <Link
+      href={href}
+      className="tap inline-flex items-center gap-1.5 text-xs rounded-full border border-line bg-surface-2 px-3 py-1 hover:border-line-strong"
+    >
+      <span className="font-display font-bold text-accent">{rank}°</span>
+      <span className="text-muted">{label}</span>
+    </Link>
   );
 }
