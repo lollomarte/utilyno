@@ -61,8 +61,8 @@ const items = [
     ),
   },
   {
-    href: "/top7",
-    label: "Top 7",
+    href: "/top8",
+    label: "Top 8",
     icon: (active: boolean) => (
       <path
         d="M12 3.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.8l-4.8 2.6.9-5.4-3.9-3.8 5.4-.8L12 3.5Z"

@@ -8,7 +8,7 @@ const links = [
   { href: "/classifiche/marcatori", label: "Classifiche" },
   { href: "/risultati", label: "Risultati" },
   { href: "/mercato", label: "Mercato" },
-  { href: "/top7", label: "Top 7" },
+  { href: "/top8", label: "Top 8" },
 ];
 
 export function NavBar() {

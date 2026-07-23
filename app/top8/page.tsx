@@ -1,9 +1,9 @@
-import { getTop7Formation } from "@/lib/data/market";
+import { getTop8Formation } from "@/lib/data/market";
 import { EmptyState } from "@/components/EmptyState";
 import { FormationRow } from "@/components/FormationRow";
 
-export default async function Top7Page() {
-  const { attaccanti, centrocampisti, difensori } = await getTop7Formation();
+export default async function Top8Page() {
+  const { attaccanti, centrocampisti, difensori } = await getTop8Formation();
   const hasAnyPlayer = attaccanti.length + centrocampisti.length + difensori.length > 0;
 
   if (!hasAnyPlayer) {
@@ -13,7 +13,7 @@ export default async function Top7Page() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl font-bold mb-1">Top 7</h1>
+        <h1 className="font-display text-2xl font-bold mb-1">Top 8</h1>
         <p className="text-sm text-muted">
           La formazione dei fenomeni: i giocatori più quotati del mercato, per ruolo.
         </p>
@@ -28,7 +28,7 @@ export default async function Top7Page() {
 
         <div className="relative flex flex-col gap-8 sm:gap-10">
           <FormationRow label="Attaccanti" players={attaccanti} slots={2} />
-          <FormationRow label="Centrocampisti" players={centrocampisti} slots={2} />
+          <FormationRow label="Centrocampisti" players={centrocampisti} slots={3} />
           <FormationRow label="Difensori" players={difensori} slots={3} />
         </div>
       </div>
