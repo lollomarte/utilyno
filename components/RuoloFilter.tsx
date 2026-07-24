@@ -9,7 +9,6 @@ const options: { value: RuoloFilterValue; label: string }[] = [
   { value: "difensore", label: "Difensori" },
   { value: "centrocampista", label: "Centrocampisti" },
   { value: "attaccante", label: "Attaccanti" },
-  { value: "esterno", label: "Esterni" },
 ];
 
 export function RuoloFilter({

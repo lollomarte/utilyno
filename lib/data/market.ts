@@ -14,12 +14,11 @@ import type { Player, Ruolo } from "@/lib/types";
 const BASE_VALUE = 1.0;
 // Moltiplicatore gol_totali differenziato per ruolo: gli attaccanti fanno gol
 // "di mestiere" quindi pesano meno il singolo gol, i difensori pesano di più
-// perché segnare è più raro per loro. Centrocampista/Esterno stanno in mezzo
-// e fungono anche da default neutro per chi non ha un ruolo assegnato.
+// perché segnare è più raro per loro. Centrocampista funge anche da default
+// neutro per chi non ha un ruolo assegnato.
 const GOL_WEIGHT_BY_RUOLO: Record<Ruolo, number> = {
   attaccante: 0.3,
   centrocampista: 0.6,
-  esterno: 0.6,
   difensore: 0.9,
 };
 const DEFAULT_GOL_WEIGHT = GOL_WEIGHT_BY_RUOLO.centrocampista;
@@ -235,7 +234,7 @@ export interface Top8Formation {
   attaccanti: MarketValue[];
 }
 
-const TOP8_SLOTS: Record<"difensore" | "centrocampista" | "attaccante", number> = {
+const TOP8_SLOTS: Record<Ruolo, number> = {
   difensore: 3,
   centrocampista: 3,
   attaccante: 2,
@@ -244,13 +243,12 @@ const TOP8_SLOTS: Record<"difensore" | "centrocampista" | "attaccante", number> 
 /**
  * Top 8 per ruolo, calcolato dal vivo sulle stesse quotazioni della pagina
  * Mercato (nessuna tabella dedicata): si aggiorna da solo ogni volta che
- * cambiano le statistiche del gruppo. Il ruolo "esterno" non ha uno slot in
- * formazione, come da specifica prodotto.
+ * cambiano le statistiche del gruppo.
  */
 export async function getTop8Formation(): Promise<Top8Formation> {
   const values = await computeMarketValues();
 
-  const byRuolo = (ruolo: keyof typeof TOP8_SLOTS) =>
+  const byRuolo = (ruolo: Ruolo) =>
     values
       .filter((v) => v.player.ruolo === ruolo)
       .sort((a, b) => b.valore - a.valore)

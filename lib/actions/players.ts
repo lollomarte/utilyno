@@ -7,7 +7,7 @@ import type { Ruolo } from "@/lib/types";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const RUOLO_VALUES: Ruolo[] = ["difensore", "centrocampista", "attaccante", "esterno"];
+const RUOLO_VALUES: Ruolo[] = ["difensore", "centrocampista", "attaccante"];
 
 export async function savePlayer(_prevState: unknown, formData: FormData) {
   await requireAdmin();

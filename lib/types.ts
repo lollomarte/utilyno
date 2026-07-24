@@ -1,6 +1,6 @@
 export type Squadra = "bianca" | "nera";
 export type Esito = "vittoria" | "pareggio" | "sconfitta";
-export type Ruolo = "difensore" | "centrocampista" | "attaccante" | "esterno";
+export type Ruolo = "difensore" | "centrocampista" | "attaccante";
 
 export interface Player {
   id: string;

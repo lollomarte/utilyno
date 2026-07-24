@@ -8,7 +8,6 @@ export const ruoloLabel: Record<Ruolo, string> = {
   difensore: "Difensore",
   centrocampista: "Centrocampista",
   attaccante: "Attaccante",
-  esterno: "Esterno",
 };
 
 export function formatMarketValue(valore: number): string {
