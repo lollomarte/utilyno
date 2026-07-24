@@ -6,7 +6,7 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { ruoloLabel } from "@/lib/format";
 import type { Player, Ruolo } from "@/lib/types";
 
-const ruoloOptions: Ruolo[] = ["difensore", "centrocampista", "attaccante"];
+const ruoloOptions: Ruolo[] = ["difensore", "centrocampista", "attaccante", "esterno"];
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];

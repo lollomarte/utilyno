@@ -276,6 +276,57 @@ export async function getWinsStandingWithDelta(): Promise<(WinsRow & WithRankDel
   });
 }
 
+export interface TeamGoalsRow {
+  player_id: string;
+  nome: string;
+  cognome: string;
+  foto_url: string | null;
+  attivo: boolean;
+  ruolo: Ruolo | null;
+  presenze: number;
+  gol_fatti: number;
+  gol_subiti: number;
+  differenza_reti: number;
+}
+
+// Stessa logica di teamGoals() in lib/playerProfileStats.ts (gol fatti/subiti
+// dalla squadra del giocatore in ogni partita), aggregata su tutti i giocatori
+// invece che su un singolo profilo.
+export async function getTeamGoalsStanding(): Promise<TeamGoalsRow[]> {
+  const [participants, resultsById] = await Promise.all([
+    getAllParticipantsWithPlayers(),
+    getMatchResultsById(),
+  ]);
+
+  const byPlayer = new Map<string, TeamGoalsRow>();
+  for (const row of participants) {
+    const result = resultsById.get(row.match_id);
+    if (!result) continue;
+    const fatti = row.squadra === "bianca" ? result.gol_bianca : result.gol_nera;
+    const subiti = row.squadra === "bianca" ? result.gol_nera : result.gol_bianca;
+
+    const entry = byPlayer.get(row.players.id) ?? {
+      player_id: row.players.id,
+      nome: row.players.nome,
+      cognome: row.players.cognome,
+      foto_url: row.players.foto_url,
+      attivo: row.players.attivo,
+      ruolo: row.players.ruolo,
+      presenze: 0,
+      gol_fatti: 0,
+      gol_subiti: 0,
+      differenza_reti: 0,
+    };
+    entry.presenze += 1;
+    entry.gol_fatti += fatti;
+    entry.gol_subiti += subiti;
+    entry.differenza_reti = entry.gol_fatti - entry.gol_subiti;
+    byPlayer.set(row.players.id, entry);
+  }
+
+  return Array.from(byPlayer.values()).sort((a, b) => b.differenza_reti - a.differenza_reti);
+}
+
 export async function getMvpStandings(): Promise<MvpStanding[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

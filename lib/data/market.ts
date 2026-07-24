@@ -12,12 +12,22 @@ import type { Player, Ruolo } from "@/lib/types";
 
 // --- Formula di calcolo (vedi specifica prodotto) ---------------------------
 const BASE_VALUE = 1.0;
-const GOL_WEIGHT = 0.3;
+// Moltiplicatore gol_totali differenziato per ruolo: gli attaccanti fanno gol
+// "di mestiere" quindi pesano meno il singolo gol, i difensori pesano di più
+// perché segnare è più raro per loro. Centrocampista/Esterno stanno in mezzo
+// e fungono anche da default neutro per chi non ha un ruolo assegnato.
+const GOL_WEIGHT_BY_RUOLO: Record<Ruolo, number> = {
+  attaccante: 0.3,
+  centrocampista: 0.6,
+  esterno: 0.6,
+  difensore: 0.9,
+};
+const DEFAULT_GOL_WEIGHT = GOL_WEIGHT_BY_RUOLO.centrocampista;
 const MEDIA_GOL_WEIGHT = 2;
 const VITTORIE_WEIGHT = 0.2;
 const MEDIA_VITTORIE_WEIGHT = 3;
 const MVP_WEIGHT = 1.5;
-const PRESENZE_WEIGHT = 0.15;
+const PRESENZE_WEIGHT = 0.3;
 const PRESENZA_PCT_WEIGHT = 0.02;
 const PRESENZA_PCT_BASELINE = 50; // % presenza sopra cui il contributo è positivo
 const FORMA_MULTIPLIER = 1.2;
@@ -86,10 +96,11 @@ export async function computeMarketValues(): Promise<MarketValue[]> {
         : 1;
 
     const curvaPresenza = (percentualePresenza * 100 - PRESENZA_PCT_BASELINE) * PRESENZA_PCT_WEIGHT;
+    const golWeight = player.ruolo ? GOL_WEIGHT_BY_RUOLO[player.ruolo] : DEFAULT_GOL_WEIGHT;
 
     const raw =
       BASE_VALUE +
-      golTotali * GOL_WEIGHT +
+      golTotali * golWeight +
       mediaGol * MEDIA_GOL_WEIGHT +
       vittorie * VITTORIE_WEIGHT +
       mediaVittorie * MEDIA_VITTORIE_WEIGHT +
@@ -224,7 +235,7 @@ export interface Top8Formation {
   attaccanti: MarketValue[];
 }
 
-const TOP8_SLOTS: Record<Ruolo, number> = {
+const TOP8_SLOTS: Record<"difensore" | "centrocampista" | "attaccante", number> = {
   difensore: 3,
   centrocampista: 3,
   attaccante: 2,
@@ -233,12 +244,13 @@ const TOP8_SLOTS: Record<Ruolo, number> = {
 /**
  * Top 8 per ruolo, calcolato dal vivo sulle stesse quotazioni della pagina
  * Mercato (nessuna tabella dedicata): si aggiorna da solo ogni volta che
- * cambiano le statistiche del gruppo.
+ * cambiano le statistiche del gruppo. Il ruolo "esterno" non ha uno slot in
+ * formazione, come da specifica prodotto.
  */
 export async function getTop8Formation(): Promise<Top8Formation> {
   const values = await computeMarketValues();
 
-  const byRuolo = (ruolo: Ruolo) =>
+  const byRuolo = (ruolo: keyof typeof TOP8_SLOTS) =>
     values
       .filter((v) => v.player.ruolo === ruolo)
       .sort((a, b) => b.valore - a.valore)
