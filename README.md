@@ -1,6 +1,6 @@
 # Calciotto di Pippi
 
-Sito per gestire le statistiche del gruppo di calciotto amatoriale: giocatori, partite, classifiche marcatori/presenze, MVP e record.
+Sito per gestire le statistiche del gruppo di calciotto amatoriale: giocatori, partite, classifiche marcatori/presenze e record.
 
 ## Stack
 
@@ -34,7 +34,7 @@ node scripts/create-admin.mjs email@esempio.it
 ## Modello dati
 
 - `players`: id, nome, cognome, data_nascita, foto_url, attivo, created_at
-- `matches`: id, data, note, mvp_player_id, created_at
+- `matches`: id, data, note, mvp_player_id (non più in uso: funzionalità MVP rimossa, colonna mantenuta solo per non perdere lo storico), created_at
 - `match_participants`: id, match_id, player_id, squadra (`bianca`|`nera`), gol
 - `next_match_info`: riga singola con data/orario/campo della prossima partita in programma (non è una partita giocata, resta fuori dallo storico)
 
@@ -43,7 +43,8 @@ Il risultato di ogni partita è sempre calcolato come somma di `match_participan
 ## Pagine
 
 - `/` — home con ultima partita, top marcatori, top presenze
-- `/classifiche/{marcatori,presenze,mvp,record}` — classifiche pubbliche
+- `/classifiche/{marcatori,presenze,vittorie,gol-squadra}` — classifiche pubbliche
+- `/record` — record e curiosità del gruppo
 - `/risultati` e `/risultati/[id]` — storico partite e dettaglio formazioni
 - `/giocatori/[id]` — scheda giocatore
 - `/admin` — area riservata (login Supabase Auth) per gestire giocatori e partite

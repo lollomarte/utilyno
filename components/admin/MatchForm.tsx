@@ -27,7 +27,6 @@ interface MatchFormProps {
   matchId?: string;
   initialData?: string;
   initialNote?: string;
-  initialMvp?: string | null;
   initialRows?: Row[];
   initialRisultatoManuale?: boolean;
   initialGolBiancaFinale?: number | null;
@@ -50,7 +49,6 @@ export function MatchForm({
   matchId,
   initialData,
   initialNote,
-  initialMvp,
   initialRows,
   initialRisultatoManuale,
   initialGolBiancaFinale,
@@ -60,7 +58,6 @@ export function MatchForm({
   const [state, formAction, pending] = useActionState(action, undefined);
   const [data, setData] = useState(initialData ?? "");
   const [note, setNote] = useState(initialNote ?? "");
-  const [mvp, setMvp] = useState(initialMvp ?? "");
   const [biancaSlots, setBiancaSlots] = useState<Slot[]>(() => buildSlots(initialRows, "bianca"));
   const [neraSlots, setNeraSlots] = useState<Slot[]>(() => buildSlots(initialRows, "nera"));
   const [risultatoManuale, setRisultatoManuale] = useState(initialRisultatoManuale ?? false);
@@ -89,7 +86,6 @@ export function MatchForm({
   ];
   const chosenIds = new Set(validParticipants.map((p) => p.player_id));
   const participantsJson = JSON.stringify(validParticipants);
-  const mvpValue = validParticipants.some((p) => p.player_id === mvp) ? mvp : "";
 
   const countWarning =
     validParticipants.length > 0 && (validParticipants.length < 10 || validParticipants.length > 20)
@@ -245,29 +241,6 @@ export function MatchForm({
             />
           ))}
         </div>
-      </div>
-
-      <div>
-        <label className="text-sm font-medium block mb-1" htmlFor="mvp">
-          MVP di giornata (opzionale)
-        </label>
-        <select
-          id="mvp"
-          name="mvp_player_id"
-          value={mvpValue}
-          onChange={(e) => setMvp(e.target.value)}
-          className="w-full border border-line bg-surface rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
-        >
-          <option value="">Nessuno</option>
-          {validParticipants.map((p) => {
-            const pl = players.find((pp) => pp.id === p.player_id);
-            return pl ? (
-              <option key={pl.id} value={pl.id}>
-                {pl.nome} {pl.cognome}
-              </option>
-            ) : null;
-          })}
-        </select>
       </div>
 
       {state?.error && <p className="text-sm text-red-400">{state.error}</p>}

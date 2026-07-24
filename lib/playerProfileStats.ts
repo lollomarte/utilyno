@@ -100,11 +100,9 @@ export interface RendimentoStats {
   strisciaVittorieRecord: number;
   strisciaImbattibilitaAttuale: number;
   strisciaImbattibilitaRecord: number;
-  mvpTotali: number;
-  percentualeMvp: number;
 }
 
-export function computeRendimentoStats(history: PlayerMatchResult[], mvpTotali: number): RendimentoStats {
+export function computeRendimentoStats(history: PlayerMatchResult[]): RendimentoStats {
   const presenze = history.length;
   const asc = ascByData(history);
   const vittorie = history.filter((r) => r.esito === "vittoria").length;
@@ -120,8 +118,6 @@ export function computeRendimentoStats(history: PlayerMatchResult[], mvpTotali: 
     strisciaVittorieRecord: longestStreak(asc, (r) => r.esito === "vittoria"),
     strisciaImbattibilitaAttuale: currentStreak(asc, (r) => r.esito !== "sconfitta"),
     strisciaImbattibilitaRecord: longestStreak(asc, (r) => r.esito !== "sconfitta"),
-    mvpTotali,
-    percentualeMvp: presenze > 0 ? round1((mvpTotali / presenze) * 100) : 0,
   };
 }
 

@@ -91,10 +91,6 @@ function ComparisonContent({
       ],
     },
     {
-      title: "MVP",
-      stats: [{ label: "MVP totali", valueA: playerA.mvpTotali, valueB: playerB.mvpTotali }],
-    },
-    {
       title: "Squadra",
       stats: [
         { label: "Gol fatti (squadra)", valueA: playerA.golFattiSquadra, valueB: playerB.golFattiSquadra },

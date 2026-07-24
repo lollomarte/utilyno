@@ -66,7 +66,6 @@ export async function createMatchAction(_prevState: unknown, formData: FormData)
 
   const data = String(formData.get("data") ?? "");
   const note = String(formData.get("note") ?? "");
-  const mvp_player_id = String(formData.get("mvp_player_id") ?? "") || null;
   const participants = parseParticipants(String(formData.get("participants") ?? "[]"));
 
   if (!data) return { error: "La data è obbligatoria." };
@@ -78,7 +77,9 @@ export async function createMatchAction(_prevState: unknown, formData: FormData)
   const { error } = await supabase.rpc("create_match", {
     p_data: data,
     p_note: note,
-    p_mvp_player_id: mvp_player_id,
+    // Funzionalità MVP rimossa dal prodotto: la RPC richiede ancora il parametro,
+    // ma non è più impostabile da form. Sempre null per le nuove partite.
+    p_mvp_player_id: null,
     p_participants: participants,
     p_risultato_modificato_manualmente: manualResult.risultato_modificato_manualmente,
     p_gol_bianca_finale: manualResult.gol_bianca_finale,
@@ -100,7 +101,6 @@ export async function updateMatchAction(_prevState: unknown, formData: FormData)
   const id = String(formData.get("id") ?? "");
   const data = String(formData.get("data") ?? "");
   const note = String(formData.get("note") ?? "");
-  const mvp_player_id = String(formData.get("mvp_player_id") ?? "") || null;
   const participants = parseParticipants(String(formData.get("participants") ?? "[]"));
 
   if (!id) return { error: "Partita non valida." };
@@ -110,11 +110,21 @@ export async function updateMatchAction(_prevState: unknown, formData: FormData)
   const manualResult = parseManualResult(formData);
   if ("error" in manualResult) return { error: manualResult.error };
 
+  // Funzionalità MVP rimossa dal prodotto: la RPC richiede ancora il parametro,
+  // ma non è più impostabile da form. Manteniamo invariato l'eventuale valore
+  // storico già salvato invece di sovrascriverlo con null ad ogni modifica.
+  const { data: existingMatch, error: existingError } = await supabase
+    .from("matches")
+    .select("mvp_player_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (existingError) return { error: existingError.message };
+
   const { error } = await supabase.rpc("update_match", {
     p_match_id: id,
     p_data: data,
     p_note: note,
-    p_mvp_player_id: mvp_player_id,
+    p_mvp_player_id: existingMatch?.mvp_player_id ?? null,
     p_participants: participants,
     p_risultato_modificato_manualmente: manualResult.risultato_modificato_manualmente,
     p_gol_bianca_finale: manualResult.gol_bianca_finale,

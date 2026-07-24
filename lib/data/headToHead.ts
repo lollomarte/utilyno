@@ -1,4 +1,4 @@
-import { getAllPlayers, getPlayer, getPlayerCareerStats, getPlayerMatchHistory, getPlayerMvpCount } from "@/lib/data/players";
+import { getAllPlayers, getPlayer, getPlayerCareerStats, getPlayerMatchHistory } from "@/lib/data/players";
 import { getAttendanceStanding, getMatchesAsc, getTeamGoalsStanding } from "@/lib/data/stats";
 import { computeMarketValues } from "@/lib/data/market";
 import { computeContinuitaStats, computeRendimentoStats } from "@/lib/playerProfileStats";
@@ -15,7 +15,6 @@ export interface PlayerComparisonStats {
   pareggi: number;
   sconfitte: number;
   percentualeVittorie: number;
-  mvpTotali: number;
   golFattiSquadra: number;
   golSubitiSquadra: number;
   differenzaReti: number;
@@ -46,15 +45,14 @@ export async function getHeadToHeadPageData(idA?: string, idB?: string): Promise
 
   async function buildStats(id?: string): Promise<PlayerComparisonStats | null> {
     if (!id) return null;
-    const [player, careerStats, history, mvpTotali] = await Promise.all([
+    const [player, careerStats, history] = await Promise.all([
       getPlayer(id),
       getPlayerCareerStats(id),
       getPlayerMatchHistory(id),
-      getPlayerMvpCount(id),
     ]);
     if (!player || !careerStats) return null;
 
-    const rendimento = computeRendimentoStats(history, mvpTotali);
+    const rendimento = computeRendimentoStats(history);
     const continuita = computeContinuitaStats(history, allMatches, attendance.totalMatches);
     const team = teamGoalsByPlayer.get(id);
 
@@ -68,7 +66,6 @@ export async function getHeadToHeadPageData(idA?: string, idB?: string): Promise
       pareggi: rendimento.pareggi,
       sconfitte: rendimento.sconfitte,
       percentualeVittorie: rendimento.percentualeVittorie,
-      mvpTotali,
       golFattiSquadra: team?.gol_fatti ?? 0,
       golSubitiSquadra: team?.gol_subiti ?? 0,
       differenzaReti: team?.differenza_reti ?? 0,

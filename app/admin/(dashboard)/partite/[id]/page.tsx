@@ -29,7 +29,6 @@ export default async function ModificaPartitaPage({
         matchId={full.match.id}
         initialData={full.match.data}
         initialNote={full.match.note ?? ""}
-        initialMvp={full.mvp?.id ?? ""}
         initialRows={initialRows}
         initialRisultatoManuale={full.match.risultato_modificato_manualmente}
         initialGolBiancaFinale={full.match.gol_bianca_finale}

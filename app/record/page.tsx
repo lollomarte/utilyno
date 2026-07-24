@@ -20,7 +20,6 @@ export default async function RecordPage() {
     groupTotals,
     currentYearVsRecord,
     recordGoliPartita,
-    mvpStreak,
     winStreak,
     unbeatenStreak,
     attendanceStreak,
@@ -53,14 +52,6 @@ export default async function RecordPage() {
               href: `/risultati/${e.matchId}`,
               label: formatDateShort(e.data),
             }))}
-          />
-        )}
-        {mvpStreak && (
-          <RecordCard
-            icon="⭐"
-            title="Striscia di MVP consecutivi più lunga"
-            value={mvpStreak.value}
-            rows={[{ holders: mvpStreak.holders }]}
           />
         )}
       </Section>

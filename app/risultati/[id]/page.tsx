@@ -13,7 +13,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   const full = await getMatchFull(id);
   if (!full) notFound();
 
-  const { match, result, mvp, participants } = full;
+  const { match, result, participants } = full;
   const bianca = participants.filter((p) => p.squadra === "bianca");
   const nera = participants.filter((p) => p.squadra === "nera");
   const diff = Math.abs(result.gol_bianca - result.gol_nera);
@@ -66,18 +66,6 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           </div>
         )}
       </div>
-
-      {mvp && (
-        <Link
-          href={`/giocatori/${mvp.id}`}
-          className="tap flex items-center justify-center gap-2 text-sm rounded-full border border-line bg-surface px-4 py-2 mx-auto hover:border-line-strong"
-        >
-          <span className="text-gold">⭐</span>
-          <span className="text-muted">MVP di giornata:</span>
-          <PlayerAvatar player={mvp} size={24} />
-          <span className="font-semibold">{playerName(mvp)}</span>
-        </Link>
-      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <TeamList title="Bianchi" accentClass="text-ink" players={bianca} />

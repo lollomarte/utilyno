@@ -97,20 +97,6 @@ export default async function HomePage() {
                 </div>
               </div>
             )}
-
-            {latest.mvp && (
-              <div
-                className={`relative flex items-center gap-3 justify-center mt-3 ${capocannonieri.length === 0 ? "pt-4 border-t border-line" : ""}`}
-              >
-                <PlayerAvatar player={latest.mvp} size={40} />
-                <div className="text-left">
-                  <p className="text-xs uppercase tracking-wide text-muted flex items-center gap-1">
-                    <span className="text-gold">⭐</span> MVP di giornata
-                  </p>
-                  <p className="font-semibold text-sm">{playerName(latest.mvp)}</p>
-                </div>
-              </div>
-            )}
           </Link>
         ) : (
           <EmptyState>Nessun calciotto ancora giocato: si comincia lunedì prossimo 📅⚽</EmptyState>

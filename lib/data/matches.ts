@@ -11,7 +11,6 @@ export interface ParticipantWithPlayer {
 export interface MatchFull {
   match: Match;
   result: Pick<MatchResult, "gol_bianca" | "gol_nera" | "num_partecipanti">;
-  mvp: Pick<Player, "id" | "nome" | "cognome" | "foto_url"> | null;
   participants: ParticipantWithPlayer[];
 }
 
@@ -155,11 +154,7 @@ export async function getMatchFull(matchId: string): Promise<MatchFull | null> {
 
   const [{ data: match, error: matchError }, { data: participants, error: partError }] =
     await Promise.all([
-      supabase
-        .from("matches")
-        .select("*, mvp:players!mvp_player_id(id, nome, cognome, foto_url)")
-        .eq("id", matchId)
-        .maybeSingle(),
+      supabase.from("matches").select("*").eq("id", matchId).maybeSingle(),
       supabase
         .from("match_participants")
         .select("id, squadra, gol, player:players(id, nome, cognome, foto_url, attivo)")
@@ -174,9 +169,7 @@ export async function getMatchFull(matchId: string): Promise<MatchFull | null> {
   const sommaBianca = rows.filter((p) => p.squadra === "bianca").reduce((s, p) => s + p.gol, 0);
   const sommaNera = rows.filter((p) => p.squadra === "nera").reduce((s, p) => s + p.gol, 0);
 
-  const { mvp, ...matchFields } = match as Match & {
-    mvp: MatchFull["mvp"];
-  };
+  const matchFields = match as Match;
 
   const gol_bianca = matchFields.risultato_modificato_manualmente
     ? matchFields.gol_bianca_finale ?? sommaBianca
@@ -188,7 +181,6 @@ export async function getMatchFull(matchId: string): Promise<MatchFull | null> {
   return {
     match: matchFields,
     result: { gol_bianca, gol_nera, num_partecipanti: rows.length },
-    mvp: mvp ?? null,
     participants: rows.sort((a, b) => b.gol - a.gol),
   };
 }

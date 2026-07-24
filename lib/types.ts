@@ -17,6 +17,7 @@ export interface Match {
   id: string;
   data: string;
   note: string | null;
+  /** Non più in uso: la funzionalità MVP è stata rimossa (valutazione soggettiva). Colonna mantenuta solo per non perdere lo storico. */
   mvp_player_id: string | null;
   created_at: string;
   gol_bianca_finale: number | null;
@@ -36,6 +37,7 @@ export interface MatchResult {
   match_id: string;
   data: string;
   note: string | null;
+  /** Non più in uso: la funzionalità MVP è stata rimossa (valutazione soggettiva). Colonna mantenuta solo per non perdere lo storico. */
   mvp_player_id: string | null;
   gol_bianca: number;
   gol_nera: number;
@@ -57,14 +59,6 @@ export interface PlayerCareerStats {
   sconfitte: number;
   record_gol_partita: number;
   ruolo: Ruolo | null;
-}
-
-export interface MvpStanding {
-  player_id: string;
-  nome: string;
-  cognome: string;
-  foto_url: string | null;
-  mvp_count: number;
 }
 
 export interface PlayerMatchResult {

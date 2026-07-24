@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { seasonOf, seasonsFromDates, yearOf, yearsFromDates } from "@/lib/season";
-import type { MvpStanding, Player, PlayerCareerStats, Ruolo, Squadra } from "@/lib/types";
+import type { Player, PlayerCareerStats, Ruolo, Squadra } from "@/lib/types";
 import type { YearTaggedParticipant } from "@/lib/yearStats";
 
 export async function getScorersStanding(): Promise<PlayerCareerStats[]> {
@@ -325,14 +325,4 @@ export async function getTeamGoalsStanding(): Promise<TeamGoalsRow[]> {
   }
 
   return Array.from(byPlayer.values()).sort((a, b) => b.differenza_reti - a.differenza_reti);
-}
-
-export async function getMvpStandings(): Promise<MvpStanding[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("mvp_standings")
-    .select("*")
-    .order("mvp_count", { ascending: false });
-  if (error) throw error;
-  return data ?? [];
 }

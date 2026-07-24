@@ -4,7 +4,6 @@ import {
   getAllParticipantsWithPlayers,
   getMatchesAsc,
   getMatchResultsById,
-  getMvpStandings,
   participantWon,
 } from "@/lib/data/stats";
 import { getAllPlayers } from "@/lib/data/players";
@@ -25,7 +24,6 @@ const DEFAULT_GOL_WEIGHT = GOL_WEIGHT_BY_RUOLO.centrocampista;
 const MEDIA_GOL_WEIGHT = 2;
 const VITTORIE_WEIGHT = 0.2;
 const MEDIA_VITTORIE_WEIGHT = 3;
-const MVP_WEIGHT = 1.5;
 const PRESENZE_WEIGHT = 0.3;
 const PRESENZA_PCT_WEIGHT = 0.02;
 const PRESENZA_PCT_BASELINE = 50; // % presenza sopra cui il contributo è positivo
@@ -52,17 +50,15 @@ function round1(n: number): number {
  * stessa base tra la finestra recente e l'intera carriera del giocatore.
  */
 export async function computeMarketValues(): Promise<MarketValue[]> {
-  const [matches, resultsById, participants, mvpStandings, allPlayers] = await Promise.all([
+  const [matches, resultsById, participants, allPlayers] = await Promise.all([
     getMatchesAsc(),
     getMatchResultsById(),
     getAllParticipantsWithPlayers(),
-    getMvpStandings(),
     getAllPlayers(),
   ]);
 
   const totalMatches = matches.length;
   const matchIndex = new Map(matches.map((m, i) => [m.id, i]));
-  const mvpByPlayer = new Map(mvpStandings.map((m) => [m.player_id, m.mvp_count]));
 
   const byPlayer = new Map<string, { gol: number; won: boolean; index: number }[]>();
   for (const row of participants) {
@@ -81,7 +77,6 @@ export async function computeMarketValues(): Promise<MarketValue[]> {
     const mediaGol = presenze > 0 ? golTotali / presenze : 0;
     const mediaVittorie = presenze > 0 ? vittorie / presenze : 0;
     const percentualePresenza = totalMatches > 0 ? presenze / totalMatches : 0;
-    const mvpTotali = mvpByPlayer.get(player.id) ?? 0;
 
     const recentRows = rows.slice(-RECENT_WINDOW);
     const recentCount = recentRows.length;
@@ -103,7 +98,6 @@ export async function computeMarketValues(): Promise<MarketValue[]> {
       mediaGol * MEDIA_GOL_WEIGHT +
       vittorie * VITTORIE_WEIGHT +
       mediaVittorie * MEDIA_VITTORIE_WEIGHT +
-      mvpTotali * MVP_WEIGHT +
       presenze * PRESENZE_WEIGHT +
       curvaPresenza;
 

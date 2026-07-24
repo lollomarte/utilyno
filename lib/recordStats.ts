@@ -127,46 +127,6 @@ export function computeRecordGoliPartita(
   return { gol: max, entries };
 }
 
-export interface MatchWithMvp {
-  id: string;
-  data: string;
-  mvp_player_id: string | null;
-  mvp: PlayerLite | null;
-}
-
-export function computeMvpStreak(matches: MatchWithMvp[]): PlayerHolderRecord | null {
-  let bestLen = 0;
-  let bestHolders = new Map<string, PlayerLite>();
-  let curId: string | null = null;
-  let curPlayer: PlayerLite | null = null;
-  let curLen = 0;
-
-  for (const m of matches) {
-    if (m.mvp_player_id && m.mvp) {
-      if (m.mvp_player_id === curId) {
-        curLen++;
-      } else {
-        curId = m.mvp_player_id;
-        curPlayer = m.mvp;
-        curLen = 1;
-      }
-      if (curLen > bestLen) {
-        bestLen = curLen;
-        bestHolders = new Map([[curId, curPlayer!]]);
-      } else if (curLen === bestLen && curPlayer) {
-        bestHolders.set(curId, curPlayer);
-      }
-    } else {
-      curId = null;
-      curPlayer = null;
-      curLen = 0;
-    }
-  }
-
-  if (bestLen === 0) return null;
-  return { value: bestLen, holders: Array.from(bestHolders.values()) };
-}
-
 // --- Record individuali: strisce e continuità ---------------------------------
 
 interface ParticipantRow {

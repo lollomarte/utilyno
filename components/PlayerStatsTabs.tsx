@@ -80,10 +80,7 @@ export function PlayerStatsTabs({
             <MiniStat label="Pareggi" value={squadra.pareggi} />
             <MiniStat label="Sconfitte" value={squadra.sconfitte} />
           </div>
-          <div className="grid grid-cols-2 gap-2.5">
-            <MiniStat label="% vittorie" value={squadra.percentualeVittorie} suffix="%" />
-            <MiniStat label="% partite MVP" value={squadra.percentualeMvp} suffix="%" />
-          </div>
+          <MiniStat label="% vittorie" value={squadra.percentualeVittorie} suffix="%" />
           <div className="grid grid-cols-2 gap-2.5">
             <StreakStat
               label="Striscia vittorie"
@@ -96,7 +93,6 @@ export function PlayerStatsTabs({
               record={squadra.strisciaImbattibilitaRecord}
             />
           </div>
-          <MiniStat label="MVP totali" value={squadra.mvpTotali} />
         </div>
       )}
 

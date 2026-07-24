@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAllMatchResults } from "@/lib/data/matches";
-import { getAllParticipantsWithPlayers, getMatchResultsById, getYearTaggedParticipants } from "@/lib/data/stats";
+import {
+  getAllParticipantsWithPlayers,
+  getMatchesAsc,
+  getMatchResultsById,
+  getYearTaggedParticipants,
+} from "@/lib/data/stats";
 import { yearOf } from "@/lib/season";
 import type { Player } from "@/lib/types";
 import {
@@ -15,7 +20,6 @@ import {
   computeGroupTotals,
   computeMostFrequentOpponents,
   computeMostFrequentPair,
-  computeMvpStreak,
   computeRecordGoliPartita,
   computeUnbeatenStreakRecord,
   computeWinStreakRecord,
@@ -23,7 +27,6 @@ import {
   type CurrentYearVsRecord,
   type GroupTotals,
   type MatchRecord,
-  type MatchWithMvp,
   type MonthGoalsRecord,
   type PairRecord,
   type PlayerHolderRecord,
@@ -81,21 +84,10 @@ export async function getGoleadeStats(): Promise<GoleadeStats> {
   };
 }
 
-async function getMatchesWithMvpAsc(): Promise<MatchWithMvp[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("matches")
-    .select("id, data, mvp_player_id, mvp:players!mvp_player_id(id, nome, cognome, foto_url)")
-    .order("data", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as unknown as MatchWithMvp[];
-}
-
 export interface RecordsPageData {
   groupTotals: GroupTotals;
   currentYearVsRecord: CurrentYearVsRecord;
   recordGoliPartita: { gol: number; entries: SingleMatchGoalEntry[] } | null;
-  mvpStreak: PlayerHolderRecord | null;
   winStreak: PlayerHolderRecord | null;
   unbeatenStreak: PlayerHolderRecord | null;
   attendanceStreak: PlayerHolderRecord | null;
@@ -111,17 +103,17 @@ export interface RecordsPageData {
 }
 
 export async function getRecordsPageData(): Promise<RecordsPageData> {
-  const [matchesWithMvp, participants, matchResults, resultsById, yearTagged] = await Promise.all([
-    getMatchesWithMvpAsc(),
+  const [matches, participants, matchResults, resultsById, yearTagged] = await Promise.all([
+    getMatchesAsc(),
     getAllParticipantsWithPlayers(),
     getAllMatchResults(),
     getMatchResultsById(),
     getYearTaggedParticipants(),
   ]);
 
-  const matchOrder = matchesWithMvp.map((m) => m.id);
+  const matchOrder = matches.map((m) => m.id);
   const matchIndexById = new Map(matchOrder.map((id, i) => [id, i]));
-  const matchDateById = new Map(matchesWithMvp.map((m) => [m.id, m.data]));
+  const matchDateById = new Map(matches.map((m) => [m.id, m.data]));
   const winnerByMatch = goleadaWinnerByMatch(matchResults);
   const goleadaLeaders = computeGoleadaLeaders(participants, winnerByMatch);
 
@@ -129,7 +121,6 @@ export async function getRecordsPageData(): Promise<RecordsPageData> {
     groupTotals: computeGroupTotals(matchOrder.length, matchResults),
     currentYearVsRecord: computeCurrentYearVsRecordYear(yearTagged, yearOf(new Date().toISOString())),
     recordGoliPartita: computeRecordGoliPartita(participants, matchDateById),
-    mvpStreak: computeMvpStreak(matchesWithMvp),
     winStreak: computeWinStreakRecord(participants, resultsById, matchIndexById),
     unbeatenStreak: computeUnbeatenStreakRecord(participants, resultsById, matchIndexById),
     attendanceStreak: computeAttendanceStreakRecord(matchOrder, participants),

@@ -5,7 +5,6 @@ const tabs = [
   { href: "/classifiche/gol-squadra", label: "Gol Squadra" },
   { href: "/classifiche/vittorie", label: "Vittorie" },
   { href: "/classifiche/presenze", label: "Presenze" },
-  { href: "/classifiche/mvp", label: "MVP" },
 ];
 
 export default function ClassificheLayout({ children }: { children: React.ReactNode }) {

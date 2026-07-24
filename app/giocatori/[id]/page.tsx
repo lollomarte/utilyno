@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPlayer, getPlayerCareerStats, getPlayerMatchHistory, getPlayerMvpCount } from "@/lib/data/players";
+import { getPlayer, getPlayerCareerStats, getPlayerMatchHistory } from "@/lib/data/players";
 import { getPlayerBadges } from "@/lib/data/badges";
 import { getAttendanceStanding, getMatchesAsc, getScorersStanding, getWinsStanding } from "@/lib/data/stats";
 import { computeAttackStats, computeContinuitaStats, computeRendimentoStats, findRank } from "@/lib/playerProfileStats";
@@ -31,10 +31,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const player = await getPlayer(id);
   if (!player) notFound();
 
-  const [stats, fullHistory, mvpTotali, scorers, attendance, wins, allMatches] = await Promise.all([
+  const [stats, fullHistory, scorers, attendance, wins, allMatches] = await Promise.all([
     getPlayerCareerStats(id),
     getPlayerMatchHistory(id),
-    getPlayerMvpCount(id),
     getScorersStanding(),
     getAttendanceStanding(),
     getWinsStanding(),
@@ -56,7 +55,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   );
 
   const attacco = computeAttackStats(fullHistory);
-  const squadra = computeRendimentoStats(fullHistory, mvpTotali);
+  const squadra = computeRendimentoStats(fullHistory);
   const continuita = computeContinuitaStats(fullHistory, allMatches, attendance.totalMatches);
 
   return (
