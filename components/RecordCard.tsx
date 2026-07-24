@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { CountUp } from "@/components/CountUp";
@@ -11,7 +14,7 @@ interface HolderLite {
 }
 
 export interface RecordRow {
-  /** Uno per un record individuale, due per un record "in coppia". */
+  /** Uno per un record individuale, due per un record "in coppia", di più per un ex-aequo a più giocatori. */
   holders?: HolderLite[];
   href?: string;
   label?: string;
@@ -52,38 +55,60 @@ export function RecordCard({
       </div>
 
       {rows && rows.length > 0 && (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           {rows.map((row, i) => (
-            <div key={i} className="flex items-center gap-2 min-w-0">
-              {row.holders?.map((h, j) => (
-                <span key={h.id} className="flex items-center gap-1.5 min-w-0">
-                  {j > 0 && <span className="text-muted text-xs shrink-0">e</span>}
-                  <Link
-                    href={`/giocatori/${h.id}`}
-                    className="tap flex items-center gap-1.5 hover:underline min-w-0"
-                  >
-                    <PlayerAvatar player={h} size={24} />
-                    <span className="text-sm font-medium truncate">{playerName(h)}</span>
-                  </Link>
-                </span>
-              ))}
-              {row.label &&
-                (row.href ? (
-                  <Link
-                    href={row.href}
-                    className="tap text-xs text-muted hover:text-ink ml-auto shrink-0 whitespace-nowrap"
-                  >
-                    {row.label} →
-                  </Link>
-                ) : (
-                  <span className="text-xs text-muted ml-auto shrink-0 whitespace-nowrap">{row.label}</span>
-                ))}
-            </div>
+            <RecordRowLine key={i} row={row} />
           ))}
         </div>
       )}
 
       {note && <p className="text-xs text-muted mt-auto pt-1">{note}</p>}
+    </div>
+  );
+}
+
+function RecordRowLine({ row }: { row: RecordRow }) {
+  const [expanded, setExpanded] = useState(false);
+  const holders = row.holders ?? [];
+  const overflowing = holders.length > 2;
+  const visible = expanded || !overflowing ? holders : holders.slice(0, 2);
+  const extra = holders.length - visible.length;
+
+  return (
+    <div className="flex flex-col gap-1.5 min-w-0">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
+        {visible.map((h, j) => (
+          <span key={h.id} className="flex items-center gap-1.5">
+            {j > 0 && <span className="text-muted text-xs shrink-0">e</span>}
+            <Link href={`/giocatori/${h.id}`} className="tap flex items-center gap-1.5 hover:underline">
+              <PlayerAvatar player={h} size={24} />
+              <span className="text-sm font-medium">{playerName(h)}</span>
+            </Link>
+          </span>
+        ))}
+
+        {extra > 0 && (
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="tap text-xs font-semibold text-accent bg-accent-dim rounded-full px-2 py-1"
+          >
+            +{extra} altri
+          </button>
+        )}
+
+        {row.label &&
+          (row.href ? (
+            <Link
+              href={row.href}
+              className="tap text-xs text-muted hover:text-ink ml-auto shrink-0 whitespace-nowrap"
+            >
+              {row.label} →
+            </Link>
+          ) : (
+            <span className="text-xs text-muted ml-auto shrink-0 whitespace-nowrap">{row.label}</span>
+          ))}
+      </div>
     </div>
   );
 }

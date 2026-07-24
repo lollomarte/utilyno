@@ -1,13 +1,14 @@
-"use client";
+export interface NavItem {
+  href: string;
+  label: string;
+  icon: (active: boolean) => React.ReactNode;
+}
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-const items = [
+export const NAV_ITEMS: NavItem[] = [
   {
     href: "/",
     label: "Home",
-    icon: (active: boolean) => (
+    icon: (active) => (
       <path
         d="M4 11.5 12 5l8 6.5M6 10v9h5v-5h2v5h5v-9"
         stroke="currentColor"
@@ -21,7 +22,7 @@ const items = [
   {
     href: "/classifiche/marcatori",
     label: "Classifiche",
-    icon: (active: boolean) => (
+    icon: (active) => (
       <path
         d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4ZM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"
         stroke="currentColor"
@@ -35,7 +36,7 @@ const items = [
   {
     href: "/risultati",
     label: "Risultati",
-    icon: (active: boolean) => (
+    icon: (active) => (
       <path
         d="M4 5h16v15H4zM4 9h16M8 3v4M16 3v4"
         stroke="currentColor"
@@ -49,7 +50,7 @@ const items = [
   {
     href: "/mercato",
     label: "Mercato",
-    icon: (active: boolean) => (
+    icon: (active) => (
       <path
         d="M4 17 9.5 11.5 13.5 15 20 8M20 8h-4.5M20 8v4.5"
         stroke="currentColor"
@@ -63,7 +64,7 @@ const items = [
   {
     href: "/top8",
     label: "Top 8",
-    icon: (active: boolean) => (
+    icon: (active) => (
       <path
         d="M12 3.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.8l-4.8 2.6.9-5.4-3.9-3.8 5.4-.8L12 3.5Z"
         stroke="currentColor"
@@ -77,7 +78,7 @@ const items = [
   {
     href: "/record",
     label: "Record",
-    icon: (active: boolean) => (
+    icon: (active) => (
       <path
         d="M7 4h10v2a5 5 0 0 1-10 0V4ZM5 6H3v1a4 4 0 0 0 4 4M19 6h2v1a4 4 0 0 1-4 4M12 15v3M8 21h8"
         stroke="currentColor"
@@ -91,7 +92,7 @@ const items = [
   {
     href: "/head-to-head",
     label: "H2H",
-    icon: (active: boolean) => (
+    icon: (active) => (
       <path
         d="M9 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8ZM15 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 20c0-3 2.4-5 5-5s5 2 5 5M10 20c0-3 2.4-5 5-5s5 2 5 5"
         stroke="currentColor"
@@ -104,41 +105,8 @@ const items = [
   },
 ];
 
-export function BottomNav() {
-  const pathname = usePathname();
-
-  if (pathname.startsWith("/admin")) return null;
-
-  return (
-    <nav
-      className="fixed bottom-0 inset-x-0 z-20 sm:hidden bg-surface/95 backdrop-blur border-t border-line"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-    >
-      <div className="flex items-stretch justify-around">
-        {items.map((item) => {
-          const section = "/" + item.href.split("/")[1];
-          const active = item.href === "/" ? pathname === "/" : pathname.startsWith(section);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="tap flex flex-col items-center justify-center gap-1 py-2.5 flex-1 min-h-11"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                className={active ? "text-accent" : "text-muted"}
-              >
-                {item.icon(active)}
-              </svg>
-              <span className={`text-[11px] font-medium ${active ? "text-accent" : "text-muted"}`}>
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
-  );
+export function isNavItemActive(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+  const section = "/" + href.split("/")[1];
+  return pathname.startsWith(section);
 }

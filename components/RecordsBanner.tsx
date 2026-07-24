@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { CountUp } from "@/components/CountUp";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
@@ -75,24 +78,45 @@ function YearBlock({
   value: number;
   gold?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
   if (leaders.length === 0) return null;
+
+  const overflowing = leaders.length > 2;
+  const visible = expanded || !overflowing ? leaders : leaders.slice(0, 2);
+  const extra = leaders.length - visible.length;
+
   return (
     <div
       className={`rounded-2xl p-3 border ${gold ? "bg-gold/10 border-gold/30" : "bg-surface-2 border-line"}`}
     >
-      <p className="text-[11px] uppercase tracking-widest text-muted mb-2">{label}</p>
-      <div className="flex items-center gap-3">
-        <div className="flex -space-x-2 shrink-0">
-          {leaders.slice(0, 3).map((l) => (
-            <Link key={l.player.id} href={`/giocatori/${l.player.id}`} className="tap">
-              <PlayerAvatar player={l.player} size={32} />
-            </Link>
-          ))}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase tracking-widest text-muted mb-2">{label}</p>
+          <div className="flex flex-col gap-1.5">
+            {visible.map((l) => (
+              <Link
+                key={l.player.id}
+                href={`/giocatori/${l.player.id}`}
+                className="tap flex items-center gap-2 hover:underline"
+              >
+                <PlayerAvatar player={l.player} size={28} />
+                <span className="text-sm font-medium">{playerName(l.player)}</span>
+              </Link>
+            ))}
+            {extra > 0 && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="tap self-start text-xs font-semibold text-accent bg-accent-dim rounded-full px-2 py-1"
+              >
+                +{extra} altri
+              </button>
+            )}
+          </div>
         </div>
-        <p className="flex-1 min-w-0 text-sm font-medium truncate">
-          {leaders.map((l) => playerName(l.player)).join(", ")}
-        </p>
-        <span className={`font-display text-2xl font-bold tabular-nums shrink-0 ${gold ? "text-gold" : ""}`}>
+        <span
+          className={`font-display text-2xl font-bold tabular-nums shrink-0 ${gold ? "text-gold" : ""}`}
+        >
           {value}
         </span>
       </div>
