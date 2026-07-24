@@ -77,6 +77,8 @@ export interface HeadToHead {
   together: number;
   against: number;
   totalMatches: number;
+  /** Bilancio vero e proprio nelle partite giocate da avversari. */
+  headToHead: { winsA: number; winsB: number; draws: number };
 }
 
 export async function getHeadToHead(playerAId: string, playerBId: string): Promise<HeadToHead> {
@@ -96,14 +98,43 @@ export async function getHeadToHead(playerAId: string, playerBId: string): Promi
   }
 
   let together = 0;
-  let against = 0;
-  for (const { a, b } of byMatch.values()) {
+  const againstMatchIds: string[] = [];
+  for (const [matchId, { a, b }] of byMatch) {
     if (!a || !b) continue;
     if (a === b) together += 1;
-    else against += 1;
+    else againstMatchIds.push(matchId);
   }
 
-  return { together, against, totalMatches: together + against };
+  let winsA = 0;
+  let winsB = 0;
+  let draws = 0;
+  if (againstMatchIds.length > 0) {
+    const { data: results, error: resultsError } = await supabase
+      .from("match_results")
+      .select("match_id, gol_bianca, gol_nera")
+      .in("match_id", againstMatchIds);
+    if (resultsError) throw resultsError;
+
+    const resultsById = new Map((results ?? []).map((r) => [r.match_id, r]));
+    for (const matchId of againstMatchIds) {
+      const r = resultsById.get(matchId);
+      if (!r || r.gol_bianca === r.gol_nera) {
+        draws += 1;
+        continue;
+      }
+      const winningSquadra = r.gol_bianca > r.gol_nera ? "bianca" : "nera";
+      const a = byMatch.get(matchId)!.a;
+      if (a === winningSquadra) winsA += 1;
+      else winsB += 1;
+    }
+  }
+
+  return {
+    together,
+    against: againstMatchIds.length,
+    totalMatches: together + againstMatchIds.length,
+    headToHead: { winsA, winsB, draws },
+  };
 }
 
 export async function getLatestMatchResult(): Promise<MatchResult | null> {

@@ -9,7 +9,7 @@ export default async function MercatoPage() {
   const { players, topRisers, topFallers, groupTrend, hasHistory } = await getMarketPageData();
 
   if (players.length === 0) {
-    return <EmptyState>Nessun giocatore registrato ancora.</EmptyState>;
+    return <EmptyState>Il mercato apre le trattative appena ci sarà un giocatore registrato 💼⚽</EmptyState>;
   }
 
   const marketCap = players.reduce((sum, p) => sum + p.valore, 0);

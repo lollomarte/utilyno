@@ -21,7 +21,7 @@ function teamGoals(row: PlayerMatchResult): { fatti: number; subiti: number } {
     : { fatti: row.gol_nera, subiti: row.gol_bianca };
 }
 
-function currentStreak<T>(ascRows: T[], predicate: (row: T) => boolean): number {
+export function currentStreak<T>(ascRows: T[], predicate: (row: T) => boolean): number {
   let count = 0;
   for (let i = ascRows.length - 1; i >= 0; i--) {
     if (!predicate(ascRows[i])) break;
@@ -30,7 +30,7 @@ function currentStreak<T>(ascRows: T[], predicate: (row: T) => boolean): number 
   return count;
 }
 
-function longestStreak<T>(ascRows: T[], predicate: (row: T) => boolean): number {
+export function longestStreak<T>(ascRows: T[], predicate: (row: T) => boolean): number {
   let max = 0;
   let running = 0;
   for (const row of ascRows) {

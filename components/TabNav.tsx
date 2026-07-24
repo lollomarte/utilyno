@@ -15,7 +15,7 @@ export function TabNav({ tabs }: { tabs: { href: string; label: string }[] }) {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`relative px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`relative min-h-11 inline-flex items-center px-3 text-sm font-medium whitespace-nowrap transition-colors ${
               active ? "text-ink" : "text-muted hover:text-ink"
             }`}
           >

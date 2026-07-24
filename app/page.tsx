@@ -80,7 +80,7 @@ export default async function HomePage() {
             )}
           </Link>
         ) : (
-          <EmptyState>Nessuna partita registrata ancora.</EmptyState>
+          <EmptyState>Nessun calciotto ancora giocato: si comincia lunedì prossimo 📅⚽</EmptyState>
         )}
 
         <div className="mt-4 flex justify-center">
@@ -98,7 +98,7 @@ export default async function HomePage() {
         {topScorers.length > 0 ? (
           <Podium entries={topScorers} />
         ) : (
-          <EmptyState>Ancora nessun gol segnato.</EmptyState>
+          <EmptyState>Ancora 0 a 0: il primo gol aspetta il suo eroe ⚽</EmptyState>
         )}
       </section>
 
@@ -128,7 +128,7 @@ export default async function HomePage() {
             ))}
           </StaggerList>
         ) : (
-          <EmptyState>Ancora nessuna presenza registrata.</EmptyState>
+          <EmptyState>Nessuno ha ancora timbrato il cartellino: si parte dal primo lunedì ✍️⚽</EmptyState>
         )}
       </section>
 

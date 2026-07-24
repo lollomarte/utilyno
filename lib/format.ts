@@ -55,6 +55,15 @@ export function initials(p: { nome: string; cognome: string }): string {
   return `${p.nome[0] ?? ""}${p.cognome[0] ?? ""}`.toUpperCase();
 }
 
+export function monthLabel(meseKey: string): string {
+  const [y, m] = meseKey.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("it-IT", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export function age(dataNascita: string): number {
   const birth = new Date(dataNascita);
   const today = new Date();

@@ -74,6 +74,34 @@ const items = [
       />
     ),
   },
+  {
+    href: "/record",
+    label: "Record",
+    icon: (active: boolean) => (
+      <path
+        d="M7 4h10v2a5 5 0 0 1-10 0V4ZM5 6H3v1a4 4 0 0 0 4 4M19 6h2v1a4 4 0 0 1-4 4M12 15v3M8 21h8"
+        stroke="currentColor"
+        strokeWidth={active ? 2.4 : 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    ),
+  },
+  {
+    href: "/head-to-head",
+    label: "H2H",
+    icon: (active: boolean) => (
+      <path
+        d="M9 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8ZM15 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 20c0-3 2.4-5 5-5s5 2 5 5M10 20c0-3 2.4-5 5-5s5 2 5 5"
+        stroke="currentColor"
+        strokeWidth={active ? 2.4 : 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    ),
+  },
 ];
 
 export function BottomNav() {

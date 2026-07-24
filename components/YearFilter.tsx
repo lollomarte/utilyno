@@ -23,7 +23,7 @@ export function YearFilter({
           key={o.value || "tutte"}
           type="button"
           onClick={() => onChange(o.value)}
-          className={`tap px-3 py-1.5 text-sm rounded-full border transition-colors ${
+          className={`tap min-h-11 inline-flex items-center px-3 text-sm rounded-full border transition-colors ${
             value === o.value
               ? "bg-accent text-[#06210f] border-accent"
               : "border-line text-muted hover:text-ink hover:border-line-strong"

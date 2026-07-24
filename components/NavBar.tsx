@@ -9,6 +9,8 @@ const links = [
   { href: "/risultati", label: "Risultati" },
   { href: "/mercato", label: "Mercato" },
   { href: "/top8", label: "Top 8" },
+  { href: "/record", label: "Record" },
+  { href: "/head-to-head", label: "H2H" },
 ];
 
 export function NavBar() {

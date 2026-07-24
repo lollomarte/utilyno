@@ -1,14 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getAllPlayers,
-  getPlayer,
-  getPlayerCareerStats,
-  getPlayerMatchHistory,
-  getPlayerMvpCount,
-} from "@/lib/data/players";
+import { getPlayer, getPlayerCareerStats, getPlayerMatchHistory, getPlayerMvpCount } from "@/lib/data/players";
 import { getPlayerBadges } from "@/lib/data/badges";
-import { getHeadToHead } from "@/lib/data/matches";
 import { getAttendanceStanding, getMatchesAsc, getScorersStanding, getWinsStanding } from "@/lib/data/stats";
 import { computeAttackStats, computeContinuitaStats, computeRendimentoStats, findRank } from "@/lib/playerProfileStats";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
@@ -16,7 +9,6 @@ import { CountUp } from "@/components/CountUp";
 import { Sparkline } from "@/components/Sparkline";
 import { PlayerBadgeList } from "@/components/PlayerBadges";
 import { PlayerStatsTabs } from "@/components/PlayerStatsTabs";
-import { HeadToHeadWidget } from "@/components/HeadToHeadWidget";
 import { EmptyState } from "@/components/EmptyState";
 import { age, formatDateShort, playerName, ruoloLabel } from "@/lib/format";
 import type { Esito } from "@/lib/types";
@@ -33,37 +25,24 @@ const esitoStyle: Record<Esito, string> = {
   sconfitta: "border border-line text-muted",
 };
 
-export default async function PlayerPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ vs?: string }>;
-}) {
+export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { vs } = await searchParams;
   const player = await getPlayer(id);
   if (!player) notFound();
 
-  const [stats, fullHistory, allPlayers, vsPlayer, mvpTotali, scorers, attendance, wins, allMatches] =
-    await Promise.all([
-      getPlayerCareerStats(id),
-      getPlayerMatchHistory(id),
-      getAllPlayers(),
-      vs && vs !== id ? getPlayer(vs) : Promise.resolve(null),
-      getPlayerMvpCount(id),
-      getScorersStanding(),
-      getAttendanceStanding(),
-      getWinsStanding(),
-      getMatchesAsc(),
-    ]);
-
-  const h2h = vsPlayer ? await getHeadToHead(id, vsPlayer.id) : null;
+  const [stats, fullHistory, mvpTotali, scorers, attendance, wins, allMatches] = await Promise.all([
+    getPlayerCareerStats(id),
+    getPlayerMatchHistory(id),
+    getPlayerMvpCount(id),
+    getScorersStanding(),
+    getAttendanceStanding(),
+    getWinsStanding(),
+    getMatchesAsc(),
+  ]);
 
   const badges = await getPlayerBadges(player, fullHistory);
   const last5 = fullHistory.slice(0, 5);
   const sparklineValues = fullHistory.slice(0, 10).reverse().map((h) => h.gol);
-  const otherPlayers = allPlayers.filter((p) => p.id !== id);
 
   const rankMarcatori = findRank(
     scorers.filter((p) => p.presenze > 0),
@@ -154,11 +133,7 @@ export default async function PlayerPage({
           </div>
         </>
       ) : (
-        <EmptyState>Nessuna partita disputata ancora.</EmptyState>
-      )}
-
-      {otherPlayers.length > 0 && (
-        <HeadToHeadWidget player={player} players={otherPlayers} vsPlayer={vsPlayer} h2h={h2h} />
+        <EmptyState>Ancora nessuna presenza in campo: il debutto è vicino ⚽</EmptyState>
       )}
     </div>
   );

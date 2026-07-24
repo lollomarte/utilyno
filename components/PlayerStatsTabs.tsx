@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { formatDateShort } from "@/lib/format";
+import { formatDateShort, monthLabel } from "@/lib/format";
 import type { AttackStats, RendimentoStats, ContinuitaStats } from "@/lib/playerProfileStats";
 
 type TabKey = "attacco" | "squadra" | "continuita";
@@ -12,15 +12,6 @@ const tabs: { key: TabKey; label: string }[] = [
   { key: "squadra", label: "Squadra" },
   { key: "continuita", label: "Continuità" },
 ];
-
-function monthLabel(meseKey: string): string {
-  const [y, m] = meseKey.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("it-IT", {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
 
 export function PlayerStatsTabs({
   attacco,
@@ -41,7 +32,7 @@ export function PlayerStatsTabs({
             key={t.key}
             type="button"
             onClick={() => setTab(t.key)}
-            className={`tap px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+            className={`tap min-h-11 inline-flex items-center px-3 text-xs font-medium rounded-full transition-colors ${
               tab === t.key ? "bg-accent text-[#06210f]" : "text-muted hover:text-ink"
             }`}
           >

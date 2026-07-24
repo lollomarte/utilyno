@@ -11,7 +11,7 @@ export default async function MvpPage() {
   const data = await getMvpStandings();
 
   if (data.length === 0) {
-    return <EmptyState>Nessun MVP assegnato ancora.</EmptyState>;
+    return <EmptyState>Nessuna stella della serata ancora incoronata ⭐</EmptyState>;
   }
 
   return (

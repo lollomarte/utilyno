@@ -11,7 +11,7 @@ export default async function VittoriePage() {
   const data = withDelta.filter((p) => p.presenze > 0);
 
   if (data.length === 0) {
-    return <EmptyState>Nessuna statistica disponibile ancora.</EmptyState>;
+    return <EmptyState>Nessuna vittoria in bacheca ancora: si parte 0-0 per tutti 🏆</EmptyState>;
   }
 
   return <VictoriesTable data={data} yearRows={yearRows} years={years} />;

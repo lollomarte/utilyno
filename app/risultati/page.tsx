@@ -10,7 +10,7 @@ export default async function RisultatiPage() {
     <div>
       <h1 className="font-display text-2xl font-bold mb-4">Risultati</h1>
       {matches.length === 0 ? (
-        <EmptyState>Nessuna partita registrata ancora.</EmptyState>
+        <EmptyState>Ancora nessun risultato in archivio: si comincia lunedì prossimo ⚽</EmptyState>
       ) : (
         <RisultatiList matches={matches} players={players} />
       )}

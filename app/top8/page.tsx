@@ -7,7 +7,7 @@ export default async function Top8Page() {
   const hasAnyPlayer = attaccanti.length + centrocampisti.length + difensori.length > 0;
 
   if (!hasAnyPlayer) {
-    return <EmptyState>Nessun giocatore con quotazione di mercato ancora.</EmptyState>;
+    return <EmptyState>Il mercato è ancora fermo: gioca qualche partita e la Top 8 prende forma ⚽</EmptyState>;
   }
 
   return (

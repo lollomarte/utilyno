@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { playerName } from "@/lib/format";
 import type { Player } from "@/lib/types";
 
@@ -10,6 +11,8 @@ interface PlayerSearchSelectProps {
   onChange: (playerId: string) => void;
   placeholder?: string;
   allLabel?: string;
+  /** Mostra la foto del giocatore nel bottone e in ogni opzione della lista. */
+  showAvatar?: boolean;
 }
 
 export function PlayerSearchSelect({
@@ -18,6 +21,7 @@ export function PlayerSearchSelect({
   onChange,
   placeholder = "Cerca giocatore…",
   allLabel,
+  showAvatar = false,
 }: PlayerSearchSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -56,6 +60,7 @@ export function PlayerSearchSelect({
         onClick={() => setOpen((o) => !o)}
         className="tap flex items-center gap-2 border border-line rounded-full px-3 py-1.5 text-sm bg-surface text-ink hover:border-line-strong min-w-[9rem] max-w-[12rem]"
       >
+        {showAvatar && selected && <PlayerAvatar player={selected} size={22} />}
         <span className={`flex-1 text-left truncate ${selected ? "" : "text-muted"}`}>
           {selected ? playerName(selected) : (allLabel ?? placeholder)}
         </span>
@@ -87,8 +92,9 @@ export function PlayerSearchSelect({
                 key={p.id}
                 type="button"
                 onClick={() => select(p.id)}
-                className="tap w-full text-left px-3 py-2 text-sm hover:bg-surface-2"
+                className="tap w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-surface-2"
               >
+                {showAvatar && <PlayerAvatar player={p} size={22} />}
                 {playerName(p)}
               </button>
             ))

@@ -6,7 +6,6 @@ const tabs = [
   { href: "/classifiche/vittorie", label: "Vittorie" },
   { href: "/classifiche/presenze", label: "Presenze" },
   { href: "/classifiche/mvp", label: "MVP" },
-  { href: "/classifiche/record", label: "Record" },
 ];
 
 export default function ClassificheLayout({ children }: { children: React.ReactNode }) {

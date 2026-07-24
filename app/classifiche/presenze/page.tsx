@@ -44,7 +44,7 @@ export default async function PresenzePage({
       </div>
 
       {standing.length === 0 ? (
-        <EmptyState>Nessuna presenza registrata.</EmptyState>
+        <EmptyState>Nessuna presenza da contare: il primo appello è ancora da fare 📋</EmptyState>
       ) : (
         <AttendanceTable
           standing={standing}
