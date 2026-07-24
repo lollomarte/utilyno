@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { NAV_ITEMS, isNavItemActive } from "@/components/navItems";
@@ -14,6 +15,13 @@ export function NavDrawer({
   onClose: () => void;
   pathname: string;
 }) {
+  // Montato in un portal su document.body: se restasse annidato nell'header
+  // (che ha position: sticky + backdrop-blur), l'header diventerebbe il
+  // containing block dei figli position: fixed e il drawer verrebbe
+  // "intrappolato" nella sua altezza di 56px invece di coprire il viewport.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     if (!open) return;
 
@@ -29,7 +37,9 @@ export function NavDrawer({
     };
   }, [open, onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -104,6 +114,7 @@ export function NavDrawer({
           </motion.aside>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
