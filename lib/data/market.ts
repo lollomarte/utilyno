@@ -22,8 +22,8 @@ const GOL_WEIGHT_BY_RUOLO: Record<Ruolo, number> = {
 };
 const DEFAULT_GOL_WEIGHT = GOL_WEIGHT_BY_RUOLO.centrocampista;
 const MEDIA_GOL_WEIGHT = 2;
-const VITTORIE_WEIGHT = 0.2;
-const MEDIA_VITTORIE_WEIGHT = 3;
+const VITTORIE_WEIGHT = 0.35;
+const MEDIA_VITTORIE_WEIGHT = 5;
 const PRESENZE_WEIGHT = 0.3;
 const PRESENZA_PCT_WEIGHT = 0.02;
 const PRESENZA_PCT_BASELINE = 50; // % presenza sopra cui il contributo è positivo
