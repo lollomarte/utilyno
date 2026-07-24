@@ -16,7 +16,7 @@ interface PodiumEntry {
 
 const order = [2, 1, 3];
 const heights: Record<number, string> = { 1: "h-28", 2: "h-20", 3: "h-16" };
-const avatarSize: Record<number, number> = { 1: 68, 2: 52, 3: 52 };
+const avatarSize: Record<number, number> = { 1: 64, 2: 40, 3: 40 };
 const medal: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
 export function Podium({ entries }: { entries: PodiumEntry[] }) {
@@ -47,7 +47,7 @@ export function Podium({ entries }: { entries: PodiumEntry[] }) {
               </span>
             </Link>
             <div
-              className={`mt-2 w-full rounded-t-lg border border-b-0 border-line-strong bg-surface-2 ${heights[rank]}`}
+              className={`mt-2 w-full rounded-t-md border border-b-0 border-line-strong bg-surface-2 ${heights[rank]}`}
             />
           </motion.div>
         );

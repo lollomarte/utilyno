@@ -1,31 +1,122 @@
 @import "tailwindcss";
 
+/* =============================================================================
+   DESIGN TOKENS — fonte unica di verità per colori, tipografia, spaziatura,
+   raggi e motion. Ogni valore visivo del sito deve derivare da qui: nessun
+   colore/dimensione/durata "improvvisata" nei componenti.
+   ========================================================================== */
+
 @theme {
-  --color-bg: #0a0a0b;
-  --color-surface: #131316;
-  --color-surface-2: #1a1a1e;
-  --color-line: rgba(255, 255, 255, 0.08);
-  --color-line-strong: rgba(255, 255, 255, 0.16);
-  --color-ink: #f5f5f2;
-  --color-muted: #97979d;
+  /* ---- Colore: token concettuali (dark only) --------------------------- */
+  --bg: #09090b;
+  --surface: #111114;
+  --surface-2: #18181c;
+  --surface-3: #1f1f24;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text-1: #fafafa;
+  --text-2: #a1a1aa;
+  /* --text-3 è leggermente più chiaro dell'#6B6B74 di partenza: quel valore
+     scende a 3.77:1 su --bg con testo 12px e non supera l'AA (4.5:1) — qui
+     resta la tinta più spenta della scala ma resta leggibile (5.5:1). */
+  --text-3: #86868f;
+  --on-accent: #062b12;
 
-  --color-bianca: #ffffff;
+  --accent: #22c55e;
+  --accent-bright: #4ade80;
+  --accent-dim: rgba(34, 197, 94, 0.12);
+
+  --win: #22c55e;
+  --loss: #f87171;
+  --draw: #a1a1aa;
+
+  --gold: #eab308;
+  --silver: #cbd5e1;
+  --bronze: #d97706;
+
+  --bianchi: #ffffff;
+  --neri: #52525b;
+
+  /* ---- Colore: utility Tailwind (bg-, text-, border-) ------------------- */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text-1);
+  --color-muted: var(--text-2);
+  --color-faint: var(--text-3);
+  --color-on-accent: var(--on-accent);
+
+  --color-accent: var(--accent);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-dim: var(--accent-dim);
+
+  --color-win: var(--win);
+  --color-loss: var(--loss);
+  --color-draw: var(--draw);
+
+  --color-gold: var(--gold);
+  --color-silver: var(--silver);
+  --color-bronze: var(--bronze);
+
+  --color-bianca: var(--bianchi);
   --color-bianca-dim: rgba(255, 255, 255, 0.12);
-  --color-nera: #0c0c0e;
-  --color-nera-line: #3a3a42;
+  --color-nera: var(--neri);
+  --color-nera-line: var(--neri);
 
-  --color-accent: #22c55e;
-  --color-accent-dim: rgba(34, 197, 94, 0.16);
-  --color-accent-strong: #16a34a;
-
-  --color-gold: #e8b923;
-  --color-silver: #c4c8ce;
-  --color-bronze: #c97b4a;
-
+  /* ---- Tipografia -------------------------------------------------------
+     Scala fissa 12/14/16/18/22/28/36/48px: riallinea la scala Tailwind di
+     default (xs/sm/base/lg restano identici, xl e 2xl vengono riportati sui
+     valori di sistema). Nessun'altra dimensione ammessa oltre queste 8 +
+     il formato hero fluido. */
   --font-display: var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, sans-serif;
   --font-sans: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
 
-  --animate-pulse-soft: pulse-soft 2.4s ease-in-out infinite;
+  --text-xs: 12px;
+  --text-xs--line-height: 1.4;
+  --text-sm: 14px;
+  --text-sm--line-height: 1.45;
+  --text-base: 16px;
+  --text-base--line-height: 1.5;
+  --text-lg: 18px;
+  --text-lg--line-height: 1.4;
+  --text-xl: 22px;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 28px;
+  --text-2xl--line-height: 1.2;
+  --text-4xl: 36px;
+  --text-4xl--line-height: 1.1;
+  --text-5xl: 48px;
+  --text-5xl--line-height: 1.05;
+  --text-hero: clamp(3rem, 10vw, 5.5rem);
+  --text-hero--line-height: 1;
+
+  /* ---- Spaziatura --------------------------------------------------------
+     Tailwind genera gli spacing utilities (p-1, gap-2, ...) moltiplicando
+     --spacing per lo step; con --spacing: 4px la scala 4/8/12/16/24/32/48/64
+     corrisponde esattamente a p-1/2/3/4/6/8/12/16. */
+  --spacing: 4px;
+
+  /* ---- Raggi -------------------------------------------------------------
+     Solo tre raggi in tutto il sito: 16px per le card (rounded-2xl, già il
+     default Tailwind), 10px per gli elementi interni (rounded-md, ridefinito
+     qui) e pill 999px (rounded-full, già default). */
+  --radius-2xl: 16px;
+  --radius-md: 10px;
+
+  /* ---- Motion --------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Durate di motion: variabili CSS semplici (non generano utility Tailwind),
+   usate da .tap, dagli shimmer e passate ai componenti framer-motion. */
+:root {
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
 }
 
 html {
@@ -42,11 +133,13 @@ body {
 }
 
 body {
-  background: var(--color-bg);
-  color: var(--color-ink);
+  background: var(--bg);
+  color: var(--text-1);
   font-family: var(--font-sans);
+  /* "Luce da stadio": riflettore verde tenuissimo dall'alto, sempre presente
+     dietro ogni pagina, più il pattern a griglia del campo. */
   background-image:
-    radial-gradient(circle at 50% -10%, rgba(34, 197, 94, 0.08), transparent 45%),
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34, 197, 94, 0.05), transparent 60%),
     repeating-linear-gradient(
       0deg,
       rgba(255, 255, 255, 0.015) 0px,
@@ -65,40 +158,74 @@ body {
 }
 
 ::selection {
-  background: var(--color-accent);
-  color: #06210f;
+  background: var(--accent-dim);
+  color: var(--text-1);
 }
 
 .font-display {
   font-family: var(--font-display);
 }
 
+/* Tutti i numeri statistici: colonne che non "ballano". */
+.tabular-nums,
+.font-display {
+  font-variant-numeric: tabular-nums;
+}
+
 .tap {
-  transition: transform 0.12s ease;
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 .tap:active {
   transform: scale(0.97);
 }
 
-@keyframes pulse-soft {
-  0%,
-  100% {
-    opacity: 1;
+/* Ombra morbida riservata a elementi flottanti (dropdown, toast, header
+   sticky) — mai su semplici card di contenuto, che si elevano solo con
+   superficie più chiara + bordo 1px. */
+.shadow-float {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  opacity: 1;
+}
+:focus-visible:not(:focus-visible) {
+  outline: none;
+}
+
+/* Scrollbar sottile solo desktop (i touch device usano quella di sistema). */
+@media (min-width: 1024px) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-3) transparent;
   }
-  50% {
-    opacity: 0.55;
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--surface-3);
+    border-radius: 999px;
   }
 }
 
+/* Scroll interno con fade-out ai bordi, per contenitori che scrollano in
+   orizzontale (tabelle classifica, tab bar) invece della pagina intera. */
+.fade-scroll-x {
+  overflow-x: auto;
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 16px, black calc(100% - 16px), transparent);
+  mask-image: linear-gradient(90deg, transparent, black 16px, black calc(100% - 16px), transparent);
+}
+
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-surface) 25%,
-    var(--color-surface-2) 37%,
-    var(--color-surface) 63%
-  );
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 37%, var(--surface) 63%);
   background-size: 400% 100%;
-  animation: skeleton-shimmer 1.6s ease infinite;
+  animation: skeleton-shimmer 1.2s ease infinite;
 }
 
 @keyframes skeleton-shimmer {
@@ -124,6 +251,6 @@ body {
 @supports (view-transition-name: none) {
   ::view-transition-old(root),
   ::view-transition-new(root) {
-    animation-duration: 0.22s;
+    animation-duration: 0.2s;
   }
 }

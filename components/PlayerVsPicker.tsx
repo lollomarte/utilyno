@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from "next/navigation";
 import { PlayerSearchSelect } from "@/components/PlayerSearchSelect";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { PitchLines } from "@/components/PitchLines";
 import { playerName } from "@/lib/format";
 import type { Player } from "@/lib/types";
 
@@ -32,8 +33,9 @@ export function PlayerVsPicker({
   }
 
   return (
-    <div className="rounded-3xl border border-line-strong bg-surface p-5 sm:p-6">
-      <div className="flex items-center justify-center gap-2 sm:gap-6">
+    <div className="rounded-2xl border border-line-strong bg-surface p-5 sm:p-6 relative overflow-hidden">
+      <PitchLines />
+      <div className="relative flex items-center justify-center gap-2 sm:gap-6">
         <PickerSlot
           player={playerA}
           players={players.filter((p) => p.id !== idB)}
@@ -67,7 +69,7 @@ function PickerSlot({
 }) {
   return (
     <div className="flex-1 flex flex-col items-center gap-2 min-w-0 max-w-[9.5rem] sm:max-w-none">
-      <PlayerAvatar player={player ?? { nome: "?", cognome: "", foto_url: null }} size={56} />
+      <PlayerAvatar player={player ?? { nome: "?", cognome: "", foto_url: null }} size={64} />
       {player && <span className="text-sm font-semibold truncate max-w-full">{playerName(player)}</span>}
       <PlayerSearchSelect
         players={players}

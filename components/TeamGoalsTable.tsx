@@ -86,7 +86,7 @@ export function TeamGoalsTable({ data }: { data: TeamGoalsRow[] }) {
                     href={`/giocatori/${p.player_id}`}
                     className="tap flex items-center gap-2 font-medium hover:underline"
                   >
-                    <PlayerAvatar player={p} size={28} rank={showRankInfo ? i + 1 : undefined} />
+                    <PlayerAvatar player={p} size={32} rank={showRankInfo ? i + 1 : undefined} />
                     <span className={p.attivo ? "" : "text-muted"}>{playerName(p)}</span>
                   </Link>
                 </td>

@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { StaggerList, StaggerItem } from "@/components/StaggerList";
 import { TeamScore } from "@/components/TeamScore";
 import { GoleadaChip } from "@/components/GoleadaChip";
+import { PitchLines } from "@/components/PitchLines";
 
 export default async function HomePage() {
   const [latest, scorers, attendance, mediaGolPartita, goleadeStats, nextMatchInfo] = await Promise.all([
@@ -50,7 +51,7 @@ export default async function HomePage() {
         {latest ? (
           <Link
             href={`/risultati/${latest.match.id}`}
-            className="tap block rounded-3xl border border-line-strong bg-surface p-6 relative overflow-hidden"
+            className="tap block rounded-2xl border border-line-strong bg-surface p-6 relative overflow-hidden"
           >
             <div
               className="absolute inset-0 opacity-[0.06] pointer-events-none"
@@ -59,6 +60,7 @@ export default async function HomePage() {
                   "linear-gradient(90deg, #ffffff 0%, transparent 48%, transparent 52%, #000000 100%)",
               }}
             />
+            <PitchLines />
             <div className="relative flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-widest text-accent font-semibold mb-1">
@@ -75,7 +77,7 @@ export default async function HomePage() {
             {latest.match.risultato_modificato_manualmente && (
               <div className="relative flex justify-center mt-2">
                 <span
-                  className="inline-flex items-center gap-1.5 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-2.5 py-1"
+                  className="inline-flex items-center gap-1.5 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-2.5 py-1"
                   title="Risultato corretto manualmente"
                 >
                   ✏️ Risultato modificato manualmente
@@ -87,11 +89,25 @@ export default async function HomePage() {
               <div className="relative flex items-center gap-3 justify-center mt-5 pt-4 border-t border-line">
                 <PlayerAvatar player={capocannonieri[0].player} size={40} />
                 <div className="text-left">
-                  <p className="text-[11px] uppercase tracking-wide text-muted">Capocannoniere di giornata</p>
+                  <p className="text-xs uppercase tracking-wide text-muted">Capocannoniere di giornata</p>
                   <p className="font-semibold text-sm">
                     {capocannonieri.map((p) => playerName(p.player)).join(", ")}{" "}
                     <span className="text-accent font-display">({capocannonieri[0].gol} gol)</span>
                   </p>
+                </div>
+              </div>
+            )}
+
+            {latest.mvp && (
+              <div
+                className={`relative flex items-center gap-3 justify-center mt-3 ${capocannonieri.length === 0 ? "pt-4 border-t border-line" : ""}`}
+              >
+                <PlayerAvatar player={latest.mvp} size={40} />
+                <div className="text-left">
+                  <p className="text-xs uppercase tracking-wide text-muted flex items-center gap-1">
+                    <span className="text-gold">⭐</span> MVP di giornata
+                  </p>
+                  <p className="font-semibold text-sm">{playerName(latest.mvp)}</p>
                 </div>
               </div>
             )}
@@ -141,10 +157,10 @@ export default async function HomePage() {
               <StaggerItem key={p.player.id}>
                 <Link
                   href={`/giocatori/${p.player.id}`}
-                  className="tap flex items-center gap-3 rounded-xl border border-line bg-surface p-3 hover:border-line-strong transition-colors"
+                  className="tap flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 hover:border-line-strong transition-colors"
                 >
                   <RankBadge rank={i + 1} />
-                  <PlayerAvatar player={p.player} size={36} rank={i + 1} />
+                  <PlayerAvatar player={p.player} size={40} rank={i + 1} />
                   <span className="flex-1 font-medium">{playerName(p.player)}</span>
                   <span className="font-display font-bold tabular-nums">
                     <CountUp value={p.presenze} /> <span className="text-muted font-sans text-xs">pres.</span>
@@ -173,7 +189,7 @@ export default async function HomePage() {
 
 function StatTile({ label, value, decimals = 0 }: { label: string; value: number; decimals?: number }) {
   return (
-    <div className="rounded-xl border border-line bg-surface p-4 text-center">
+    <div className="rounded-2xl border border-line bg-surface p-4 text-center">
       <p className="font-display text-2xl font-bold tabular-nums">
         <CountUp value={value} decimals={decimals} />
       </p>

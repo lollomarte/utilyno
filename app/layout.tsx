@@ -23,6 +23,11 @@ const SITE_NAME = "Calciotto di Pippi";
 const SITE_DESCRIPTION = "Statistiche del gruppo di calciotto amatoriale";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "http://localhost:3000"
+  ),
   title: SITE_NAME,
   description: SITE_DESCRIPTION,
   manifest: "/manifest.webmanifest",
@@ -39,14 +44,14 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0b",
+  themeColor: "#09090b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

@@ -18,7 +18,7 @@ export function RecordsBanner({
   const showYearComparison = currentYearLeaders.length > 0 || !!recordYear;
 
   return (
-    <div className="rounded-3xl border border-line-strong bg-surface p-6 relative overflow-hidden">
+    <div className="rounded-2xl border border-line-strong bg-surface p-6 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,197,94,0.10),transparent_60%)] pointer-events-none" />
       <div className="relative flex flex-col gap-6">
         <div>
@@ -59,10 +59,10 @@ export function RecordsBanner({
 function BigStat({ label, value, decimals = 0 }: { label: string; value: number; decimals?: number }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <span className="font-display text-3xl sm:text-4xl font-bold tabular-nums leading-none">
+      <span className="font-display text-2xl sm:text-4xl font-bold tabular-nums leading-none">
         <CountUp value={value} decimals={decimals} />
       </span>
-      <span className="text-[11px] uppercase tracking-widest text-muted mt-1.5">{label}</span>
+      <span className="text-xs uppercase tracking-widest text-muted mt-1.5">{label}</span>
     </div>
   );
 }
@@ -91,7 +91,7 @@ function YearBlock({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-widest text-muted mb-2">{label}</p>
+          <p className="text-xs uppercase tracking-widest text-muted mb-2">{label}</p>
           <div className="flex flex-col gap-1.5">
             {visible.map((l) => (
               <Link
@@ -99,7 +99,7 @@ function YearBlock({
                 href={`/giocatori/${l.player.id}`}
                 className="tap flex items-center gap-2 hover:underline"
               >
-                <PlayerAvatar player={l.player} size={28} />
+                <PlayerAvatar player={l.player} size={32} />
                 <span className="text-sm font-medium">{playerName(l.player)}</span>
               </Link>
             ))}

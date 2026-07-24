@@ -68,7 +68,7 @@ export function RisultatiList({
             onClick={() => setWinner(f.value)}
             className={`tap px-3 py-1.5 text-sm rounded-full border transition-colors ${
               winner === f.value
-                ? "bg-accent text-[#06210f] border-accent"
+                ? "bg-accent text-on-accent border-accent"
                 : "border-line text-muted hover:text-ink hover:border-line-strong"
             }`}
           >

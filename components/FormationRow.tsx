@@ -16,7 +16,7 @@ export function FormationRow({
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-center text-[11px] uppercase tracking-widest text-muted font-semibold">{label}</p>
+      <p className="text-center text-xs uppercase tracking-widest text-muted font-semibold">{label}</p>
       <div className="flex items-start justify-center gap-4 sm:gap-10 flex-wrap">
         {items.map((item, i) =>
           item ? (

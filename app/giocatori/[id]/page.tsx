@@ -5,6 +5,7 @@ import { getPlayerBadges } from "@/lib/data/badges";
 import { getAttendanceStanding, getMatchesAsc, getScorersStanding, getWinsStanding } from "@/lib/data/stats";
 import { computeAttackStats, computeContinuitaStats, computeRendimentoStats, findRank } from "@/lib/playerProfileStats";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { PitchLines } from "@/components/PitchLines";
 import { CountUp } from "@/components/CountUp";
 import { Sparkline } from "@/components/Sparkline";
 import { PlayerBadgeList } from "@/components/PlayerBadges";
@@ -20,7 +21,7 @@ const esitoLabel: Record<Esito, string> = {
 };
 
 const esitoStyle: Record<Esito, string> = {
-  vittoria: "bg-accent text-[#06210f]",
+  vittoria: "bg-accent text-on-accent",
   pareggio: "bg-surface-2 text-ink border border-line-strong",
   sconfitta: "border border-line text-muted",
 };
@@ -60,10 +61,24 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-3xl border border-line-strong bg-surface p-6 relative overflow-hidden">
+      <div className="rounded-2xl border border-line-strong bg-surface p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,197,94,0.10),transparent_60%)] pointer-events-none" />
+        <PitchLines />
+        {rankMarcatori && (
+          <span
+            className="absolute left-1/2 top-2 -translate-x-1/2 font-display font-bold leading-none select-none pointer-events-none"
+            style={{
+              fontSize: "clamp(5rem, 22vw, 8rem)",
+              color: "transparent",
+              WebkitTextStroke: "1px var(--border-strong)",
+            }}
+            aria-hidden
+          >
+            {rankMarcatori}
+          </span>
+        )}
         <div className="relative flex flex-col items-center text-center gap-3">
-          <PlayerAvatar player={player} size={92} />
+          <PlayerAvatar player={player} size={96} />
           <div>
             <h1 className="font-display text-2xl font-bold">{playerName(player)}</h1>
             <p className="text-sm text-muted">
@@ -112,7 +127,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                 <li key={h.id}>
                   <Link
                     href={`/risultati/${h.match_id}`}
-                    className="tap flex items-center gap-3 rounded-lg border border-line bg-surface px-3 py-2 hover:border-line-strong"
+                    className="tap flex items-center gap-3 rounded-md border border-line bg-surface px-3 py-2 hover:border-line-strong"
                   >
                     <span
                       className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 ${esitoStyle[h.esito]}`}
@@ -145,7 +160,7 @@ function BigStat({ label, value, decimals = 0 }: { label: string; value: number;
       <span className="font-display text-4xl sm:text-5xl font-bold text-accent tabular-nums leading-none">
         <CountUp value={value} decimals={decimals} />
       </span>
-      <span className="text-[11px] uppercase tracking-widest text-muted mt-1">{label}</span>
+      <span className="text-xs uppercase tracking-widest text-muted mt-1">{label}</span>
     </div>
   );
 }

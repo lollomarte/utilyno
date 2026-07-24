@@ -40,7 +40,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
         />
       </div>
 
-      <div className="rounded-3xl border border-line-strong bg-surface p-6 relative overflow-hidden">
+      <div className="rounded-2xl border border-line-strong bg-surface p-6 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.06] pointer-events-none"
           style={{
@@ -53,7 +53,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
         {match.risultato_modificato_manualmente && (
           <div className="relative flex justify-center mt-3">
             <span
-              className="inline-flex items-center gap-1.5 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-2.5 py-1"
+              className="inline-flex items-center gap-1.5 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-2.5 py-1"
               title="Il risultato finale è stato corretto a mano e può non coincidere con la somma dei gol dei marcatori elencati"
             >
               ✏️ Risultato modificato manualmente
@@ -110,7 +110,7 @@ function TeamList({
               href={`/giocatori/${p.player.id}`}
               className="tap flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-surface-2"
             >
-              <PlayerAvatar player={p.player} size={28} />
+              <PlayerAvatar player={p.player} size={32} />
               <span className="flex-1 text-sm truncate">{playerName(p.player)}</span>
               {p.gol > 0 && (
                 <span className="text-xs tracking-tight shrink-0" title={`${p.gol} gol`}>

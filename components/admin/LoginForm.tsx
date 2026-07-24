@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { login } from "@/lib/actions/auth";
+import { Button } from "@/components/Button";
 
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [state, formAction, pending] = useActionState(login, undefined);
@@ -19,7 +20,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
           type="text"
           required
           autoComplete="username"
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface-2 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
       <div>
@@ -32,17 +33,13 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
           type="password"
           required
           autoComplete="current-password"
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface-2 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
       {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
-      <button
-        type="submit"
-        disabled={pending}
-        className="tap mt-2 bg-accent text-[#06210f] rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50"
-      >
+      <Button type="submit" disabled={pending} className="mt-2 w-full">
         {pending ? "Accesso..." : "Accedi"}
-      </button>
+      </Button>
     </form>
   );
 }

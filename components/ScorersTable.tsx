@@ -10,7 +10,7 @@ import { CountUp } from "@/components/CountUp";
 import { ProgressBar } from "@/components/ProgressBar";
 import { RuoloFilter, type RuoloFilterValue } from "@/components/RuoloFilter";
 import { YearFilter, type YearFilterValue } from "@/components/YearFilter";
-import { playerName } from "@/lib/format";
+import { formatDecimal, playerName } from "@/lib/format";
 import type { PlayerCareerStats } from "@/lib/types";
 import type { WithRankDelta } from "@/lib/data/stats";
 import { computeScorersByYear, type ScorerDisplayRow, type YearTaggedParticipant } from "@/lib/yearStats";
@@ -103,11 +103,11 @@ export function ScorersTable({
                   href={`/giocatori/${p.player_id}`}
                   className="tap flex items-center gap-2 font-medium hover:underline"
                 >
-                  <PlayerAvatar player={p} size={28} rank={showRankInfo ? i + 1 : undefined} />
+                  <PlayerAvatar player={p} size={32} rank={showRankInfo ? i + 1 : undefined} />
                   <span className={p.attivo ? "" : "text-muted"}>{playerName(p)}</span>
                   {showRankInfo && <RankArrow delta={p.isNew ? null : p.rankDelta} />}
                   {showRankInfo && p.isNew && (
-                    <span className="text-[10px] font-semibold text-accent bg-accent-dim px-1.5 py-0.5 rounded-full">
+                    <span className="text-xs font-semibold text-accent bg-accent-dim px-1.5 py-0.5 rounded-full">
                       NEW
                     </span>
                   )}
@@ -120,7 +120,7 @@ export function ScorersTable({
                 </span>
               </td>
               <td className="py-2 px-2 text-right tabular-nums">{p.presenze}</td>
-              <td className="py-2 px-2 text-right tabular-nums">{p.media_gol}</td>
+              <td className="py-2 px-2 text-right tabular-nums">{formatDecimal(p.media_gol, 2)}</td>
             </motion.tr>
           ))}
         </tbody>

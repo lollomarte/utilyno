@@ -28,7 +28,7 @@ export function ComparisonRow({ stat }: { stat: StatComparison }) {
       >
         {fmt(valueA)}
       </span>
-      <span className="text-[10px] sm:text-[11px] uppercase tracking-wide text-muted text-center px-1 sm:px-2 whitespace-nowrap">
+      <span className="text-xs sm:text-xs uppercase tracking-wide text-muted text-center px-1 sm:px-2 whitespace-nowrap">
         {label}
       </span>
       <span

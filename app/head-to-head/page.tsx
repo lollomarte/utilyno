@@ -5,7 +5,7 @@ import { PlayerVsPicker } from "@/components/PlayerVsPicker";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { ComparisonRow, compareValues, type StatComparison } from "@/components/ComparisonRow";
 import { EmptyState } from "@/components/EmptyState";
-import { formatMarketValue, playerName } from "@/lib/format";
+import { formatDecimal, formatMarketValue, playerName } from "@/lib/format";
 import type { Player } from "@/lib/types";
 
 export default async function HeadToHeadPage({
@@ -60,7 +60,7 @@ function ComparisonContent({
           label: "Media gol/partita",
           valueA: playerA.mediaGol,
           valueB: playerB.mediaGol,
-          format: (v) => v.toFixed(2),
+          format: (v) => formatDecimal(v, 2),
         },
       ],
     },
@@ -72,7 +72,7 @@ function ComparisonContent({
           label: "% presenza",
           valueA: playerA.percentualePresenza,
           valueB: playerB.percentualePresenza,
-          format: (v) => `${v}%`,
+          format: (v) => `${formatDecimal(v, 1)}%`,
         },
       ],
     },
@@ -86,7 +86,7 @@ function ComparisonContent({
           label: "% vittorie",
           valueA: playerA.percentualeVittorie,
           valueB: playerB.percentualeVittorie,
-          format: (v) => `${v}%`,
+          format: (v) => `${formatDecimal(v, 1)}%`,
         },
       ],
     },
@@ -155,7 +155,7 @@ function ComparisonContent({
         <div className="flex flex-col">
           {sections.map((section) => (
             <div key={section.title}>
-              <p className="text-[11px] uppercase tracking-widest text-muted font-semibold pt-3 pb-1 first:pt-0">
+              <p className="text-xs uppercase tracking-widest text-muted font-semibold pt-3 pb-1 first:pt-0">
                 {section.title}
               </p>
               {section.stats.map((stat) => (
@@ -201,7 +201,7 @@ function PlayerHeader({ player, align = "left" }: { player: Player; align?: "lef
       href={`/giocatori/${player.id}`}
       className={`tap flex items-center gap-2 min-w-0 ${align === "right" ? "flex-row-reverse text-right" : ""}`}
     >
-      <PlayerAvatar player={player} size={36} />
+      <PlayerAvatar player={player} size={40} />
       <span className="font-semibold text-sm truncate">{playerName(player)}</span>
     </Link>
   );

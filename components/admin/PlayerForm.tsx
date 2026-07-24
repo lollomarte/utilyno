@@ -3,6 +3,7 @@
 import { useActionState, useState, type ChangeEvent } from "react";
 import { savePlayer } from "@/lib/actions/players";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { Button } from "@/components/Button";
 import { ruoloLabel } from "@/lib/format";
 import type { Player, Ruolo } from "@/lib/types";
 
@@ -46,7 +47,7 @@ export function PlayerForm({ player }: { player?: Player }) {
             cognome: player?.cognome ?? "?",
             foto_url: player?.foto_url ?? null,
           }}
-          size={56}
+          size={64}
         />
         <div className="flex-1">
           <label className="text-sm font-medium block mb-1" htmlFor="foto">
@@ -73,7 +74,7 @@ export function PlayerForm({ player }: { player?: Player }) {
           name="nome"
           required
           defaultValue={player?.nome}
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface-2 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
 
@@ -86,7 +87,7 @@ export function PlayerForm({ player }: { player?: Player }) {
           name="cognome"
           required
           defaultValue={player?.cognome}
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface-2 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
 
@@ -99,7 +100,7 @@ export function PlayerForm({ player }: { player?: Player }) {
           name="data_nascita"
           type="date"
           defaultValue={player?.data_nascita ?? ""}
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface-2 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
 
@@ -111,7 +112,7 @@ export function PlayerForm({ player }: { player?: Player }) {
           id="ruolo"
           name="ruolo"
           defaultValue={player?.ruolo ?? ""}
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface-2 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         >
           <option value="">Non impostato</option>
           {ruoloOptions.map((r) => (
@@ -134,13 +135,9 @@ export function PlayerForm({ player }: { player?: Player }) {
 
       {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="tap bg-accent text-[#06210f] rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50"
-      >
+      <Button type="submit" disabled={pending} className="w-full">
         {pending ? "Salvataggio…" : "Salva"}
-      </button>
+      </Button>
     </form>
   );
 }

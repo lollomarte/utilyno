@@ -19,7 +19,7 @@ export default async function Top8Page() {
         </p>
       </div>
 
-      <div className="relative rounded-3xl border border-line-strong bg-surface overflow-hidden p-5 sm:p-8">
+      <div className="relative rounded-2xl border border-line-strong bg-surface overflow-hidden p-5 sm:p-8">
         <div className="pointer-events-none absolute inset-0 opacity-[0.08]">
           <div className="absolute inset-4 border border-ink rounded-2xl" />
           <div className="absolute left-1/2 top-1/2 w-28 h-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-ink" />

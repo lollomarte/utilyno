@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateNextMatchInfoAction } from "@/lib/actions/nextMatch";
+import { Button } from "@/components/Button";
 
 export function NextMatchForm({
   initialData,
@@ -25,7 +26,7 @@ export function NextMatchForm({
           name="data"
           type="date"
           defaultValue={initialData ?? ""}
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface-2 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
 
@@ -38,7 +39,7 @@ export function NextMatchForm({
           name="orario"
           type="time"
           defaultValue={initialOrario?.slice(0, 5) ?? ""}
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface-2 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
 
@@ -52,7 +53,7 @@ export function NextMatchForm({
           type="text"
           placeholder="Es. Centro Sportivo Roma Sud"
           defaultValue={initialCampo ?? ""}
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface-2 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </div>
 
@@ -62,13 +63,9 @@ export function NextMatchForm({
 
       {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="tap mt-1 bg-accent text-[#06210f] rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50"
-      >
+      <Button type="submit" disabled={pending} className="mt-1 w-full">
         {pending ? "Salvataggio..." : "Salva"}
-      </button>
+      </Button>
     </form>
   );
 }

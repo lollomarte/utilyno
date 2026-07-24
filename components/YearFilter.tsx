@@ -25,7 +25,7 @@ export function YearFilter({
           onClick={() => onChange(o.value)}
           className={`tap min-h-11 inline-flex items-center px-3 text-sm rounded-full border transition-colors ${
             value === o.value
-              ? "bg-accent text-[#06210f] border-accent"
+              ? "bg-accent text-on-accent border-accent"
               : "border-line text-muted hover:text-ink hover:border-line-strong"
           }`}
         >

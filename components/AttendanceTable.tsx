@@ -10,7 +10,7 @@ import { CountUp } from "@/components/CountUp";
 import { ProgressBar } from "@/components/ProgressBar";
 import { RuoloFilter, type RuoloFilterValue } from "@/components/RuoloFilter";
 import { YearFilter, type YearFilterValue } from "@/components/YearFilter";
-import { playerName } from "@/lib/format";
+import { formatDecimal, playerName } from "@/lib/format";
 import type { AttendanceRow } from "@/lib/data/stats";
 import { computeAttendanceByYear, type AttendanceDisplayRow, type YearTaggedParticipant } from "@/lib/yearStats";
 
@@ -79,11 +79,11 @@ export function AttendanceTable({
                     href={`/giocatori/${row.player.id}`}
                     className="tap flex items-center gap-2 font-medium hover:underline"
                   >
-                    <PlayerAvatar player={row.player} size={28} rank={showRank ? i + 1 : undefined} />
+                    <PlayerAvatar player={row.player} size={32} rank={showRank ? i + 1 : undefined} />
                     <span className={row.player.attivo ? "" : "text-muted"}>{playerName(row.player)}</span>
                     {showRank && <RankArrow delta={row.isNew ? null : row.rankDelta} />}
                     {showRank && row.isNew && (
-                      <span className="text-[10px] font-semibold text-accent bg-accent-dim px-1.5 py-0.5 rounded-full">
+                      <span className="text-xs font-semibold text-accent bg-accent-dim px-1.5 py-0.5 rounded-full">
                         NEW
                       </span>
                     )}
@@ -95,7 +95,7 @@ export function AttendanceTable({
                     <CountUp value={row.presenze} />
                   </span>
                 </td>
-                <td className="py-2 px-2 text-right tabular-nums">{row.percentuale}%</td>
+                <td className="py-2 px-2 text-right tabular-nums">{formatDecimal(row.percentuale, 1)}%</td>
               </motion.tr>
             ))}
           </tbody>

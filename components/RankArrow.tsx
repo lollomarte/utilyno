@@ -4,13 +4,13 @@ export function RankArrow({ delta }: { delta: number | null }) {
   }
   if (delta > 0) {
     return (
-      <span className="text-accent text-xs font-semibold w-5 text-center flex items-center justify-center gap-0.5">
+      <span className="text-win text-xs font-semibold w-5 text-center flex items-center justify-center gap-0.5">
         ▲{delta > 1 ? delta : ""}
       </span>
     );
   }
   return (
-    <span className="text-red-400 text-xs font-semibold w-5 text-center flex items-center justify-center gap-0.5">
+    <span className="text-loss text-xs font-semibold w-5 text-center flex items-center justify-center gap-0.5">
       ▼{-delta > 1 ? -delta : ""}
     </span>
   );

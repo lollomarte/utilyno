@@ -20,10 +20,10 @@ export default async function MvpPage() {
         <StaggerItem key={p.player_id}>
           <Link
             href={`/giocatori/${p.player_id}`}
-            className="tap flex items-center gap-3 rounded-xl border border-line bg-surface p-3 hover:border-line-strong transition-colors"
+            className="tap flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 hover:border-line-strong transition-colors"
           >
             <RankBadge rank={i + 1} />
-            <PlayerAvatar player={p} size={36} rank={i + 1} />
+            <PlayerAvatar player={p} size={40} rank={i + 1} />
             <span className="flex-1 font-medium">{playerName(p)}</span>
             <span className="font-display font-bold text-accent tabular-nums">
               <CountUp value={p.mvp_count} /> MVP

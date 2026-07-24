@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { formatDateShort, monthLabel } from "@/lib/format";
+import { formatDateShort, formatDecimal, monthLabel } from "@/lib/format";
 import type { AttackStats, RendimentoStats, ContinuitaStats } from "@/lib/playerProfileStats";
 
 type TabKey = "attacco" | "squadra" | "continuita";
@@ -33,7 +33,7 @@ export function PlayerStatsTabs({
             type="button"
             onClick={() => setTab(t.key)}
             className={`tap min-h-11 inline-flex items-center px-3 text-xs font-medium rounded-full transition-colors ${
-              tab === t.key ? "bg-accent text-[#06210f]" : "text-muted hover:text-ink"
+              tab === t.key ? "bg-accent text-on-accent" : "text-muted hover:text-ink"
             }`}
           >
             {t.label}
@@ -111,7 +111,7 @@ export function PlayerStatsTabs({
             />
           </div>
           {continuita.migliorMese && (
-            <div className="rounded-xl border border-line bg-surface-2 p-3 text-center">
+            <div className="rounded-2xl border border-line bg-surface-2 p-3 text-center">
               <p className="font-display text-lg font-bold tabular-nums">{continuita.migliorMese.presenze}</p>
               <p className="text-xs text-muted capitalize">
                 presenze in {monthLabel(continuita.migliorMese.meseKey)}
@@ -137,34 +137,34 @@ function MiniStat({
   suffix?: string;
   signed?: boolean;
 }) {
-  const formatted = value.toFixed(decimals);
+  const formatted = formatDecimal(value, decimals);
   const display = signed && value > 0 ? `+${formatted}` : formatted;
   return (
-    <div className="rounded-xl border border-line bg-surface-2 p-3 text-center">
+    <div className="rounded-2xl border border-line bg-surface-2 p-3 text-center">
       <p className="font-display text-lg font-bold tabular-nums">
         {display}
         {suffix}
       </p>
-      <p className="text-[11px] text-muted">{label}</p>
+      <p className="text-xs text-muted">{label}</p>
     </div>
   );
 }
 
 function StreakStat({ label, current, record }: { label: string; current: number; record: number }) {
   return (
-    <div className="rounded-xl border border-line bg-surface-2 p-3 text-center">
+    <div className="rounded-2xl border border-line bg-surface-2 p-3 text-center">
       <div className="flex items-center justify-center gap-3">
         <div>
           <p className="font-display text-lg font-bold tabular-nums">{current}</p>
-          <p className="text-[10px] text-muted">attuale</p>
+          <p className="text-xs text-muted">attuale</p>
         </div>
         <div className="w-px h-6 bg-line" />
         <div>
           <p className="font-display text-lg font-bold tabular-nums text-accent">{record}</p>
-          <p className="text-[10px] text-muted">record</p>
+          <p className="text-xs text-muted">record</p>
         </div>
       </div>
-      <p className="text-[11px] text-muted mt-1.5">{label}</p>
+      <p className="text-xs text-muted mt-1.5">{label}</p>
     </div>
   );
 }

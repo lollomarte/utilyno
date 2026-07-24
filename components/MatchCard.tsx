@@ -19,10 +19,10 @@ export function MatchCard({ match }: { match: MatchResultWithParticipants }) {
       <span
         className={`absolute -left-[21px] top-4 w-2 h-2 rounded-full ${isPareggio ? "bg-muted" : "bg-accent"}`}
       />
-      <div className="relative rounded-xl border border-line bg-surface p-4 hover:border-line-strong transition-colors flex flex-col gap-2.5">
+      <div className="relative rounded-2xl border border-line bg-surface p-4 hover:border-line-strong transition-colors flex flex-col gap-2.5">
         <Link
           href={`/risultati/${match.match_id}`}
-          className="absolute inset-0 rounded-xl"
+          className="absolute inset-0 rounded-2xl"
           aria-label={`Dettaglio partita del ${formatDateShort(match.data)}`}
         />
 

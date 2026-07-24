@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getAllPlayers } from "@/lib/data/players";
 import { toggleActiveAction } from "@/lib/actions/players";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { ButtonLink } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { ToastOnQuery } from "@/components/ToastOnQuery";
 import { playerName } from "@/lib/format";
@@ -22,12 +23,7 @@ export default async function AdminGiocatoriPage({
       </Suspense>
       <div className="flex items-center justify-between gap-3 mb-4">
         <h1 className="font-display text-xl font-bold">Giocatori</h1>
-        <Link
-          href="/admin/giocatori/nuovo"
-          className="tap bg-accent text-[#06210f] rounded-full px-4 py-2 text-sm font-semibold"
-        >
-          + Nuovo
-        </Link>
+        <ButtonLink href="/admin/giocatori/nuovo">+ Nuovo</ButtonLink>
       </div>
 
       <form className="mb-4">
@@ -36,7 +32,7 @@ export default async function AdminGiocatoriPage({
           name="q"
           defaultValue={q ?? ""}
           placeholder="Cerca per nome o cognome…"
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface-2 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         />
       </form>
 
@@ -47,9 +43,9 @@ export default async function AdminGiocatoriPage({
           {players.map((p) => (
             <li
               key={p.id}
-              className="flex items-center gap-3 rounded-xl border border-line bg-surface p-3"
+              className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3"
             >
-              <PlayerAvatar player={p} size={36} />
+              <PlayerAvatar player={p} size={40} />
               <Link href={`/admin/giocatori/${p.id}`} className="flex-1 font-medium hover:underline">
                 {playerName(p)}
               </Link>

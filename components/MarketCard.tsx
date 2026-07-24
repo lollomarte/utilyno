@@ -4,7 +4,7 @@ import { Sparkline } from "@/components/Sparkline";
 import { playerName, formatMarketValue, marketTier, ruoloLabel } from "@/lib/format";
 import type { MarketPlayerRow } from "@/lib/data/market";
 
-const TREND_DOWN_COLOR = "#f87171"; // tailwind red-400, coerente con il resto del sito
+const TREND_DOWN_COLOR = "var(--color-loss)";
 
 export function MarketCard({ row }: { row: MarketPlayerRow }) {
   const tier = marketTier(row.valore);
@@ -17,14 +17,14 @@ export function MarketCard({ row }: { row: MarketPlayerRow }) {
       className="tap flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 hover:border-line-strong transition-colors"
     >
       <div className="flex items-center gap-3">
-        <PlayerAvatar player={row.player} size={48} />
+        <PlayerAvatar player={row.player} size={40} />
         <div className="flex-1 min-w-0">
           <p className={`font-medium truncate ${row.player.attivo ? "" : "text-muted"}`}>
             {playerName(row.player)}
           </p>
           {row.player.ruolo && <p className="text-xs text-muted">{ruoloLabel[row.player.ruolo]}</p>}
         </div>
-        <span className={`shrink-0 text-[10px] font-semibold px-2 py-1 rounded-full border ${tier.className}`}>
+        <span className={`shrink-0 text-xs font-semibold px-2 py-1 rounded-full border ${tier.className}`}>
           {tier.label}
         </span>
       </div>
@@ -34,7 +34,7 @@ export function MarketCard({ row }: { row: MarketPlayerRow }) {
         {row.trend !== null ? (
           <p
             className={`text-xs font-semibold flex items-center gap-1 shrink-0 ${
-              trendUp ? "text-accent" : trendDown ? "text-red-400" : "text-muted"
+              trendUp ? "text-win" : trendDown ? "text-loss" : "text-muted"
             }`}
           >
             {trendUp && "▲"}

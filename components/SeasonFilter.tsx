@@ -22,7 +22,7 @@ export function SeasonFilter({ seasons }: { seasons: string[] }) {
     <select
       value={current}
       onChange={(e) => onChange(e.target.value)}
-      className="min-h-11 border border-line rounded-full px-3 text-sm bg-surface text-ink"
+      className="min-h-11 border border-line rounded-full px-3 text-sm bg-surface-2 text-ink"
     >
       <option value="">Tutte le stagioni</option>
       {seasons.map((s) => (

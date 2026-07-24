@@ -23,13 +23,13 @@ function MoverList({
             <li key={row.player.id}>
               <Link
                 href={`/giocatori/${row.player.id}`}
-                className="tap flex items-center gap-2 rounded-lg px-1.5 py-1.5 hover:bg-surface-2"
+                className="tap flex items-center gap-2 rounded-md px-1.5 py-1.5 hover:bg-surface-3"
               >
-                <PlayerAvatar player={row.player} size={28} />
+                <PlayerAvatar player={row.player} size={32} />
                 <span className="flex-1 text-sm truncate">{playerName(row.player)}</span>
                 <span
                   className={`text-sm font-display font-bold tabular-nums shrink-0 ${
-                    positive ? "text-accent" : "text-red-400"
+                    positive ? "text-win" : "text-loss"
                   }`}
                 >
                   {positive ? "▲" : "▼"} {formatMarketValue(Math.abs(row.trend ?? 0))}

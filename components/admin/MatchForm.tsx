@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { PlayerSlotSelect } from "@/components/admin/PlayerSlotSelect";
+import { Button } from "@/components/Button";
 import type { Player, Squadra } from "@/lib/types";
 
 const SLOT_COUNT = 8;
@@ -113,9 +114,12 @@ export function MatchForm({
       <input type="hidden" name="gol_bianca_finale" value={risultatoManuale ? golBiancaManuale : ""} />
       <input type="hidden" name="gol_nera_finale" value={risultatoManuale ? golNeraManuale : ""} />
 
-      <div className="sticky top-2 z-10 rounded-2xl border border-line-strong bg-surface/95 backdrop-blur p-4 flex flex-col gap-3 shadow-lg">
+      <div className="sticky top-2 z-10 rounded-2xl border border-line-strong bg-surface/95 backdrop-blur p-4 flex flex-col gap-3 shadow-float">
         <div className="flex items-center justify-center gap-4">
-          <span className="font-display text-sm text-muted">BIANCA</span>
+          <span className="flex items-center gap-1.5 font-display text-sm text-muted">
+            <span className="w-2 h-2 rounded-full bg-bianca border border-line-strong" />
+            BIANCA
+          </span>
           {risultatoManuale ? (
             <div className="flex items-center gap-2">
               <input
@@ -123,7 +127,7 @@ export function MatchForm({
                 min={0}
                 value={golBiancaManuale}
                 onChange={(e) => setGolBiancaManuale(Math.max(0, Number(e.target.value) || 0))}
-                className="w-14 text-center font-display text-2xl font-bold bg-surface-2 border border-line rounded-lg py-1 focus:outline-none focus:border-accent"
+                className="w-14 text-center font-display text-2xl font-bold bg-surface-2 border border-line rounded-md py-1 focus:outline-none focus:border-accent"
               />
               <span className="font-display text-2xl font-bold text-muted">–</span>
               <input
@@ -131,7 +135,7 @@ export function MatchForm({
                 min={0}
                 value={golNeraManuale}
                 onChange={(e) => setGolNeraManuale(Math.max(0, Number(e.target.value) || 0))}
-                className="w-14 text-center font-display text-2xl font-bold bg-surface-2 border border-line rounded-lg py-1 focus:outline-none focus:border-accent"
+                className="w-14 text-center font-display text-2xl font-bold bg-surface-2 border border-line rounded-md py-1 focus:outline-none focus:border-accent"
               />
             </div>
           ) : (
@@ -139,7 +143,10 @@ export function MatchForm({
               {golBianca} – {golNera}
             </span>
           )}
-          <span className="font-display text-sm text-muted">NERA</span>
+          <span className="flex items-center gap-1.5 font-display text-sm text-muted">
+            NERA
+            <span className="w-2 h-2 rounded-full bg-nera" />
+          </span>
         </div>
 
         <label className="flex items-center justify-center gap-2 text-xs text-muted cursor-pointer">
@@ -160,7 +167,7 @@ export function MatchForm({
         </label>
 
         {risultatoManuale && (
-          <p className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 py-1 mx-auto flex items-center gap-1.5">
+          <p className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 py-1 mx-auto flex items-center gap-1.5">
             <span>✏️ Risultato modificato manualmente</span>
             {(golBiancaManuale !== golBianca || golNeraManuale !== golNera) && (
               <span className="text-muted">· somma marcatori: {golBianca}–{golNera}</span>
@@ -181,7 +188,7 @@ export function MatchForm({
             required
             value={data}
             onChange={(e) => setData(e.target.value)}
-            className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+            className="w-full border border-line bg-surface rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
           />
         </div>
         <div>
@@ -193,20 +200,20 @@ export function MatchForm({
             name="note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+            className="w-full border border-line bg-surface rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
           />
         </div>
       </div>
 
       {countWarning && (
-        <p className="text-sm text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+        <p className="text-sm text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-md px-3 py-2">
           ⚠️ {countWarning}
         </p>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-2">
-          <h2 className="font-display text-xs font-bold text-center py-1.5 rounded-lg bg-bianca-dim border border-line-strong">
+          <h2 className="font-display text-xs font-bold text-center py-1.5 rounded-md bg-bianca-dim border border-line-strong">
             SQUADRA BIANCA
           </h2>
           {biancaSlots.map((slot, i) => (
@@ -223,7 +230,7 @@ export function MatchForm({
         </div>
 
         <div className="flex flex-col gap-2">
-          <h2 className="font-display text-xs font-bold text-center py-1.5 rounded-lg bg-nera border border-nera-line">
+          <h2 className="font-display text-xs font-bold text-center py-1.5 rounded-md bg-nera border border-nera-line">
             SQUADRA NERA
           </h2>
           {neraSlots.map((slot, i) => (
@@ -249,7 +256,7 @@ export function MatchForm({
           name="mvp_player_id"
           value={mvpValue}
           onChange={(e) => setMvp(e.target.value)}
-          className="w-full border border-line bg-surface rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
+          className="w-full border border-line bg-surface rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
         >
           <option value="">Nessuno</option>
           {validParticipants.map((p) => {
@@ -265,13 +272,9 @@ export function MatchForm({
 
       {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="tap bg-accent text-[#06210f] rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50"
-      >
+      <Button type="submit" disabled={pending} className="w-full">
         {pending ? "Salvataggio…" : submitLabel}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -294,7 +297,7 @@ function SlotRow({
   const filled = Boolean(slot.player_id);
 
   return (
-    <div className={`rounded-xl border p-2.5 flex items-center gap-2 ${squadraStyle}`}>
+    <div className={`rounded-md border p-2.5 flex items-center gap-2 ${squadraStyle}`}>
       <PlayerSlotSelect
         players={players}
         value={slot.player_id}

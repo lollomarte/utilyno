@@ -5,7 +5,7 @@ import { useInView, useReducedMotion } from "framer-motion";
 
 export function CountUp({
   value,
-  duration = 1,
+  duration = 0.8,
   decimals = 0,
   className,
 }: {

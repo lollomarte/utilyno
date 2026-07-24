@@ -2,7 +2,7 @@ import Image from "next/image";
 import { initials } from "@/lib/format";
 
 const ringByRank: Record<number, string> = {
-  1: "ring-2 ring-gold shadow-[0_0_14px_rgba(232,185,35,0.45)]",
+  1: "ring-2 ring-gold shadow-[0_0_14px_rgba(234,179,8,0.45)]",
   2: "ring-2 ring-silver",
   3: "ring-2 ring-bronze",
 };
@@ -33,7 +33,7 @@ export function PlayerAvatar({
 
   return (
     <div
-      className={`rounded-full bg-surface-2 text-ink flex items-center justify-center font-display font-semibold shrink-0 border border-line ${ringClass}`}
+      className={`rounded-full bg-surface-3 text-ink flex items-center justify-center font-display font-semibold shrink-0 border border-line ${ringClass}`}
       style={{ width: size, height: size, fontSize: size * 0.38 }}
     >
       {initials(player)}

@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Statistiche del gruppo di calciotto amatoriale",
     start_url: "/",
     display: "standalone",
-    background_color: "#0a0a0b",
-    theme_color: "#0a0a0b",
+    background_color: "#09090b",
+    theme_color: "#09090b",
     orientation: "portrait",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

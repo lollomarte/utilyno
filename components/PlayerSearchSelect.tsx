@@ -58,28 +58,28 @@ export function PlayerSearchSelect({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="tap flex items-center gap-2 border border-line rounded-full px-3 py-1.5 text-sm bg-surface text-ink hover:border-line-strong min-w-[9rem] max-w-[12rem]"
+        className="tap flex items-center gap-2 border border-line rounded-full px-3 py-1.5 text-sm bg-surface-2 text-ink hover:border-line-strong min-w-[9rem] max-w-[12rem]"
       >
-        {showAvatar && selected && <PlayerAvatar player={selected} size={22} />}
+        {showAvatar && selected && <PlayerAvatar player={selected} size={24} />}
         <span className={`flex-1 text-left truncate ${selected ? "" : "text-muted"}`}>
           {selected ? playerName(selected) : (allLabel ?? placeholder)}
         </span>
         <span className="text-muted text-xs shrink-0">▾</span>
       </button>
       {open && (
-        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-1 w-56 max-w-[calc(100vw-2rem)] max-h-64 overflow-y-auto rounded-lg border border-line-strong bg-surface shadow-lg">
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-1 w-56 max-w-[calc(100vw-2rem)] max-h-64 overflow-y-auto rounded-md border border-line-strong bg-surface-2 shadow-float">
           <input
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={placeholder}
-            className="w-full px-3 py-2 text-sm bg-transparent border-b border-line outline-none sticky top-0 bg-surface"
+            className="w-full px-3 py-2 text-sm border-b border-line outline-none sticky top-0 bg-surface-2"
           />
           {allLabel && (
             <button
               type="button"
               onClick={() => select("")}
-              className="tap w-full text-left px-3 py-2 text-sm hover:bg-surface-2 text-muted"
+              className="tap w-full text-left px-3 py-2 text-sm hover:bg-surface-3 text-muted"
             >
               {allLabel}
             </button>
@@ -92,9 +92,9 @@ export function PlayerSearchSelect({
                 key={p.id}
                 type="button"
                 onClick={() => select(p.id)}
-                className="tap w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-surface-2"
+                className="tap w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-surface-3"
               >
-                {showAvatar && <PlayerAvatar player={p} size={22} />}
+                {showAvatar && <PlayerAvatar player={p} size={24} />}
                 {playerName(p)}
               </button>
             ))

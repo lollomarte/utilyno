@@ -41,9 +41,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               initial={{ opacity: 0, y: 16, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.95 }}
-              className={`pointer-events-auto flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-lg border backdrop-blur ${
+              className={`pointer-events-auto flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-float border backdrop-blur ${
                 t.kind === "success"
-                  ? "bg-accent text-[#06210f] border-accent-strong"
+                  ? "bg-accent text-on-accent border-accent"
                   : "bg-surface-2 text-ink border-line-strong"
               }`}
             >

@@ -27,7 +27,7 @@ export default async function MercatoPage() {
         <p className="text-xs uppercase tracking-widest text-muted font-semibold">
           Valore complessivo del gruppo
         </p>
-        <p className="font-display text-3xl font-bold tabular-nums mt-1">{formatMarketValue(marketCap)}</p>
+        <p className="font-display text-4xl font-bold tabular-nums mt-1">{formatMarketValue(marketCap)}</p>
         {groupTrend.length >= 2 && (
           <div className="mt-3">
             <Sparkline values={groupTrend} width={520} height={56} gradientId="market-group-trend" />

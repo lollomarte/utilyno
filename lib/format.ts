@@ -10,8 +10,13 @@ export const ruoloLabel: Record<Ruolo, string> = {
   attaccante: "Attaccante",
 };
 
+/** Decimali con la virgola, come da convenzione italiana (21,17 non 21.17). */
+export function formatDecimal(value: number, decimals = 1): string {
+  return value.toLocaleString("it-IT", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
 export function formatMarketValue(valore: number): string {
-  return `€${valore.toFixed(1)}M`;
+  return `€${formatDecimal(valore, 1)}M`;
 }
 
 export interface MarketTier {
@@ -60,7 +65,7 @@ const MARKET_TIERS: MarketTierDef[] = [
 
 const PALLONE_DORO: MarketTier = {
   label: "Pallone d'Oro",
-  className: "text-gold bg-gold/10 border-gold/40 shadow-[0_0_10px_rgba(232,185,35,0.35)]",
+  className: "text-gold bg-gold/10 border-gold/40 shadow-[0_0_10px_rgba(234,179,8,0.35)]",
 };
 
 export function marketTier(valore: number): MarketTier {
@@ -77,13 +82,20 @@ export function formatDate(dateStr: string): string {
   });
 }
 
+function capitalizeWords(str: string): string {
+  return str.replace(/\p{L}+/gu, (word) => word.charAt(0).toUpperCase() + word.slice(1));
+}
+
+/** Formato italiano compatto stile "Lun 4 Ago 2026", usato in liste e card. */
 export function formatDateShort(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("it-IT", {
-    day: "2-digit",
-    month: "2-digit",
+  const formatted = new Date(dateStr).toLocaleDateString("it-IT", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
     year: "numeric",
     timeZone: "UTC",
   });
+  return capitalizeWords(formatted.replace(/\./g, ""));
 }
 
 export function initials(p: { nome: string; cognome: string }): string {

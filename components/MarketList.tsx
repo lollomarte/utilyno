@@ -39,7 +39,7 @@ export function MarketList({ players }: { players: MarketPlayerRow[] }) {
               type="button"
               onClick={() => setSortKey(o.key)}
               className={`tap px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                sortKey === o.key ? "bg-accent text-[#06210f]" : "text-muted hover:text-ink"
+                sortKey === o.key ? "bg-accent text-on-accent" : "text-muted hover:text-ink"
               }`}
             >
               {o.label}

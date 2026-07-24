@@ -47,7 +47,7 @@ export function RecordCard({
           {title}
         </p>
         <p
-          className={`font-display text-3xl font-bold tabular-nums shrink-0 leading-none ${accent ? "text-accent" : ""}`}
+          className={`font-display text-4xl font-bold tabular-nums shrink-0 leading-none ${accent ? "text-accent" : ""}`}
         >
           <CountUp value={value} decimals={decimals} />
           {suffix}

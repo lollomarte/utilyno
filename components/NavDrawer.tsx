@@ -58,12 +58,12 @@ export function NavDrawer({
             role="dialog"
             aria-modal="true"
             aria-label="Menu di navigazione"
-            className="fixed right-0 top-0 bottom-0 z-50 w-72 max-w-[80vw] bg-surface border-l border-line-strong flex flex-col lg:hidden"
+            className="fixed right-0 top-0 bottom-0 z-50 w-72 max-w-[80vw] bg-surface-2 border-l border-line-strong shadow-float flex flex-col lg:hidden"
             style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={{ left: 0, right: 0.5 }}
@@ -79,8 +79,8 @@ export function NavDrawer({
                     key={item.href}
                     href={item.href}
                     onClick={onClose}
-                    className={`tap min-h-11 flex items-center gap-3 px-5 text-sm font-medium transition-colors ${
-                      active ? "text-accent" : "text-ink hover:text-accent"
+                    className={`tap min-h-12 flex items-center gap-3 mx-2 px-3.5 rounded-md text-sm font-medium transition-colors ${
+                      active ? "text-accent bg-accent-dim" : "text-ink hover:bg-surface-3"
                     }`}
                   >
                     <svg width="22" height="22" viewBox="0 0 24 24" className="shrink-0">
@@ -96,7 +96,7 @@ export function NavDrawer({
               <Link
                 href="/admin"
                 onClick={onClose}
-                className="tap min-h-11 flex items-center gap-3 px-5 text-sm text-muted hover:text-ink transition-colors"
+                className="tap min-h-12 flex items-center gap-3 mx-2 px-3.5 rounded-md text-sm text-muted hover:text-ink hover:bg-surface-3 transition-colors"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" className="shrink-0">
                   <path

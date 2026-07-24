@@ -93,7 +93,7 @@ export function PlayerSlotSelect({
         </button>
       )}
       {open && (
-        <div className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto rounded-lg border border-line-strong bg-surface shadow-lg">
+        <div className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto rounded-md border border-line-strong bg-surface-2 shadow-float">
           {options.length === 0 ? (
             <div className="px-3 py-2 text-sm text-muted">Nessun giocatore trovato</div>
           ) : (
@@ -102,7 +102,7 @@ export function PlayerSlotSelect({
                 key={p.id}
                 type="button"
                 onClick={() => selectPlayer(p)}
-                className="tap w-full text-left px-3 py-2 text-sm hover:bg-surface-2"
+                className="tap w-full text-left px-3 py-2 text-sm hover:bg-surface-3"
               >
                 {playerName(p)}
               </button>
