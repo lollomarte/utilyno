@@ -8,7 +8,7 @@ export function Footer() {
 
   return (
     <footer className="mx-auto max-w-3xl px-4 py-10 text-center text-sm text-muted hidden sm:block">
-      Calciotto del lunedì — ogni lunedì alle 21:00
+      Calciotto di Pippi — ogni lunedì alle 21:00
     </footer>
   );
 }

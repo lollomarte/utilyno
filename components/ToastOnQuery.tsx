@@ -8,6 +8,7 @@ const messages: Record<string, string> = {
   "player-saved": "Giocatore salvato",
   "match-saved": "Partita salvata",
   "match-deleted": "Partita eliminata",
+  "next-match-saved": "Prossima partita aggiornata",
 };
 
 export function ToastOnQuery() {

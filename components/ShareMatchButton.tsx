@@ -17,7 +17,7 @@ function buildShareText(match: ShareableMatch): string {
     .slice(0, 5);
 
   const lines = [
-    `⚽ Calciotto del Lunedì – ${formatDate(match.data)}`,
+    `⚽ Calciotto di Pippi – ${formatDate(match.data)}`,
     `Bianchi ${match.gol_bianca} – ${match.gol_nera} Neri`,
   ];
 

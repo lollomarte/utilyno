@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { getLatestMatchFull, getMediaGolPerPartita } from "@/lib/data/matches";
+import { getNextMatchInfo } from "@/lib/data/nextMatch";
 import { topScorersOf } from "@/lib/data/matchHelpers";
 import { getScorersStanding, getAttendanceStanding } from "@/lib/data/stats";
 import { getGoleadeStats } from "@/lib/data/records";
 import { formatDate, playerName } from "@/lib/format";
+import { resolveNextMatchTarget } from "@/lib/season";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { RankBadge } from "@/components/RankBadge";
 import { CountUp } from "@/components/CountUp";
@@ -15,17 +17,32 @@ import { TeamScore } from "@/components/TeamScore";
 import { GoleadaChip } from "@/components/GoleadaChip";
 
 export default async function HomePage() {
-  const [latest, scorers, attendance, mediaGolPartita, goleadeStats] = await Promise.all([
+  const [latest, scorers, attendance, mediaGolPartita, goleadeStats, nextMatchInfo] = await Promise.all([
     getLatestMatchFull(),
     getScorersStanding(),
     getAttendanceStanding(),
     getMediaGolPerPartita(),
     getGoleadeStats(),
+    getNextMatchInfo(),
   ]);
 
   const topScorers = scorers.slice(0, 3);
   const topAttendance = attendance.standing.slice(0, 3);
   const capocannonieri = latest ? topScorersOf(latest.participants) : [];
+
+  const nextMatchTarget = resolveNextMatchTarget(nextMatchInfo?.data ?? null, nextMatchInfo?.orario ?? null);
+  const isCustomSchedule = !!nextMatchInfo?.data;
+  const isOffSchedule = isCustomSchedule && nextMatchTarget.getDay() !== 1;
+  const nextMatchDateLabel = nextMatchTarget.toLocaleDateString("it-IT", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const nextMatchTimeLabel = nextMatchTarget.toLocaleTimeString("it-IT", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const nextMatchCampo = nextMatchInfo?.campo ?? null;
 
   return (
     <div className="flex flex-col gap-10">
@@ -83,8 +100,17 @@ export default async function HomePage() {
           <EmptyState>Nessun calciotto ancora giocato: si comincia lunedì prossimo 📅⚽</EmptyState>
         )}
 
-        <div className="mt-4 flex justify-center">
-          <CountdownTimer />
+        <div className="mt-4 flex flex-col items-center gap-2 text-center">
+          <CountdownTimer target={nextMatchTarget} />
+          {isOffSchedule && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-2.5 py-1">
+              ⚠️ Cambio di programma questa settimana
+            </span>
+          )}
+          <p className="text-sm text-muted">
+            <span className="capitalize">{nextMatchDateLabel}</span> — {nextMatchTimeLabel}
+            {nextMatchCampo && <> — {nextMatchCampo}</>}
+          </p>
         </div>
       </section>
 

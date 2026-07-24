@@ -44,3 +44,15 @@ export function nextMondayNight(from = new Date()): Date {
   }
   return target;
 }
+
+/**
+ * Data/ora della prossima partita: usa quanto impostato dall'admin in
+ * next_match_info se presente, altrimenti il default (prossimo lunedì alle
+ * 21:00). L'orario da Supabase arriva come "HH:MM:SS".
+ */
+export function resolveNextMatchTarget(data: string | null, orario: string | null): Date {
+  if (!data) return nextMondayNight();
+  const [y, m, day] = data.split("-").map(Number);
+  const [h, min] = (orario ?? "21:00").split(":").map(Number);
+  return new Date(y, m - 1, day, h, min, 0, 0);
+}

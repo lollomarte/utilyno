@@ -19,14 +19,29 @@ const inter = Inter({
   display: "swap",
 });
 
+const SITE_NAME = "Calciotto di Pippi";
+const SITE_DESCRIPTION = "Statistiche del gruppo di calciotto amatoriale";
+
 export const metadata: Metadata = {
-  title: "Calciotto del Lunedì",
-  description: "Statistiche del gruppo di calciotto amatoriale",
+  title: SITE_NAME,
+  description: SITE_DESCRIPTION,
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Calciotto",
+    title: SITE_NAME,
+  },
+  openGraph: {
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    siteName: SITE_NAME,
+    locale: "it_IT",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
   },
 };
 

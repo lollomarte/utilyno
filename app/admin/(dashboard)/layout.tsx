@@ -25,6 +25,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           >
             Partite
           </Link>
+          <Link
+            href="/admin/prossima-partita"
+            className="tap px-3 py-1.5 text-sm rounded-full border border-line hover:border-line-strong"
+          >
+            Prossima partita
+          </Link>
         </nav>
         <form action={logout}>
           <button type="submit" className="tap text-sm text-muted hover:text-ink">

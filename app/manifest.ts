@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Calciotto del Lunedì",
-    short_name: "Calciotto",
+    name: "Calciotto di Pippi",
+    short_name: "Calciotto di Pippi",
     description: "Statistiche del gruppo di calciotto amatoriale",
     start_url: "/",
     display: "standalone",

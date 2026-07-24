@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { nextMondayNight } from "@/lib/season";
 
 function diffParts(target: Date) {
   const ms = Math.max(0, target.getTime() - Date.now());
@@ -12,11 +11,11 @@ function diffParts(target: Date) {
   return { days, hours, minutes, done: ms <= 0 };
 }
 
-export function CountdownTimer() {
-  const [target] = useState(() => nextMondayNight());
+export function CountdownTimer({ target }: { target: Date }) {
   const [parts, setParts] = useState(() => diffParts(target));
 
   useEffect(() => {
+    setParts(diffParts(target));
     const id = setInterval(() => setParts(diffParts(target)), 30_000);
     return () => clearInterval(id);
   }, [target]);
