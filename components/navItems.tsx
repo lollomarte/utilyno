@@ -103,6 +103,20 @@ export const NAV_ITEMS: NavItem[] = [
       />
     ),
   },
+  {
+    href: "/gioco",
+    label: "Gioco",
+    icon: (active) => (
+      <path
+        d="M8 4l4 4-4 4M16 20l-4-4 4-4"
+        stroke="currentColor"
+        strokeWidth={active ? 2.4 : 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    ),
+  },
 ];
 
 export function isNavItemActive(pathname: string, href: string): boolean {
