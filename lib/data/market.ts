@@ -17,8 +17,8 @@ const BASE_VALUE = 1.0;
 // neutro per chi non ha un ruolo assegnato.
 const GOL_WEIGHT_BY_RUOLO: Record<Ruolo, number> = {
   attaccante: 0.3,
-  centrocampista: 0.6,
-  difensore: 0.9,
+  centrocampista: 0.5,
+  difensore: 0.8,
 };
 const DEFAULT_GOL_WEIGHT = GOL_WEIGHT_BY_RUOLO.centrocampista;
 const MEDIA_GOL_WEIGHT = 2;

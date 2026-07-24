@@ -1,6 +1,5 @@
 // Ricalcola gli snapshot in market_values con la formula del valore di mercato
-// aggiornata (senza il termine mvp_totali * 1.5, rimosso perché l'MVP è una
-// valutazione soggettiva e non un dato oggettivo di gioco).
+// aggiornata (i pesi qui sotto devono restare in sync con lib/data/market.ts).
 //
 // Nota sui dati reali di questo progetto: al momento in cui questo script è
 // stato scritto, market_values conteneva un solo mese (quello corrente) e sia
@@ -47,7 +46,7 @@ const supabase = createClient(url, serviceKey, {
 
 // --- Stessa formula di lib/data/market.ts, SENZA il termine MVP -------------
 const BASE_VALUE = 1.0;
-const GOL_WEIGHT_BY_RUOLO = { attaccante: 0.3, centrocampista: 0.6, difensore: 0.9 };
+const GOL_WEIGHT_BY_RUOLO = { attaccante: 0.3, centrocampista: 0.5, difensore: 0.8 };
 const DEFAULT_GOL_WEIGHT = GOL_WEIGHT_BY_RUOLO.centrocampista;
 const MEDIA_GOL_WEIGHT = 2;
 const VITTORIE_WEIGHT = 0.2;
