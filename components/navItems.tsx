@@ -137,6 +137,21 @@ export const NAV_ITEMS: NavItem[] = [
       />
     ),
   },
+  {
+    href: "/confronta-formazione",
+    label: "Confronta formazione",
+    group: "extra",
+    icon: (active) => (
+      <path
+        d="M12 3v18M7 7h10M7 7l-3 6a3 3 0 0 0 6 0L7 7ZM17 7l-3 6a3 3 0 0 0 6 0L17 7Z"
+        stroke="currentColor"
+        strokeWidth={active ? 2.4 : 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    ),
+  },
 ];
 
 export function isNavItemActive(pathname: string, href: string): boolean {
