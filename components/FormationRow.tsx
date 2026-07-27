@@ -7,10 +7,13 @@ export function FormationRow({
   label,
   players,
   slots,
+  valueClassName = "text-accent",
 }: {
   label: string;
   players: MarketValue[];
   slots: number;
+  /** Colore del valore di mercato: verde accent per la Top 8 principale, più spento per la Serie B. */
+  valueClassName?: string;
 }) {
   const items = Array.from({ length: slots }, (_, i) => players[i] ?? null);
 
@@ -29,7 +32,7 @@ export function FormationRow({
               <span className={`text-xs font-medium text-center truncate w-full ${item.player.attivo ? "" : "text-muted"}`}>
                 {playerName(item.player)}
               </span>
-              <span className="font-display text-sm font-bold text-accent tabular-nums">
+              <span className={`font-display text-sm font-bold tabular-nums ${valueClassName}`}>
                 {formatMarketValue(item.valore)}
               </span>
             </Link>

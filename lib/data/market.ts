@@ -243,6 +243,12 @@ export interface Top8Formation {
   attaccanti: MarketValue[];
 }
 
+export interface Top8Formations {
+  principale: Top8Formation;
+  /** I giocatori immediatamente successivi alla Top 8 principale per ogni ruolo. */
+  serieB: Top8Formation;
+}
+
 const TOP8_SLOTS: Record<Ruolo, number> = {
   difensore: 3,
   centrocampista: 3,
@@ -250,22 +256,28 @@ const TOP8_SLOTS: Record<Ruolo, number> = {
 };
 
 /**
- * Top 8 per ruolo, calcolato dal vivo sulle stesse quotazioni della pagina
- * Mercato (nessuna tabella dedicata): si aggiorna da solo ogni volta che
+ * Top 8 principale + "Serie B" (i successivi in classifica per ruolo, senza
+ * sovrapposizioni), calcolate dal vivo sulle stesse quotazioni della pagina
+ * Mercato (nessuna tabella dedicata): si aggiornano da sole ogni volta che
  * cambiano le statistiche del gruppo.
  */
-export async function getTop8Formation(): Promise<Top8Formation> {
+export async function getTop8Formation(): Promise<Top8Formations> {
   const values = await computeMarketValues();
 
-  const byRuolo = (ruolo: Ruolo) =>
-    values
-      .filter((v) => v.player.ruolo === ruolo)
-      .sort((a, b) => b.valore - a.valore)
-      .slice(0, TOP8_SLOTS[ruolo]);
+  const sortedByRuolo = (ruolo: Ruolo) =>
+    values.filter((v) => v.player.ruolo === ruolo).sort((a, b) => b.valore - a.valore);
+
+  const byRuolo = (ruolo: Ruolo, start: number) =>
+    sortedByRuolo(ruolo).slice(start, start + TOP8_SLOTS[ruolo]);
+
+  const buildFrom = (offset: (ruolo: Ruolo) => number): Top8Formation => ({
+    difensori: byRuolo("difensore", offset("difensore")),
+    centrocampisti: byRuolo("centrocampista", offset("centrocampista")),
+    attaccanti: byRuolo("attaccante", offset("attaccante")),
+  });
 
   return {
-    difensori: byRuolo("difensore"),
-    centrocampisti: byRuolo("centrocampista"),
-    attaccanti: byRuolo("attaccante"),
+    principale: buildFrom(() => 0),
+    serieB: buildFrom((ruolo) => TOP8_SLOTS[ruolo]),
   };
 }
