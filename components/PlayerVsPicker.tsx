@@ -33,7 +33,7 @@ export function PlayerVsPicker({
   }
 
   return (
-    <div className="rounded-2xl border border-line-strong bg-surface p-5 sm:p-6 relative overflow-hidden">
+    <div className="rounded-2xl border border-line-strong bg-surface p-5 sm:p-6 relative">
       <PitchLines />
       <div className="relative flex items-center justify-center gap-2 sm:gap-6">
         <PickerSlot
