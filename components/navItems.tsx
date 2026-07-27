@@ -2,6 +2,8 @@ export interface NavItem {
   href: string;
   label: string;
   icon: (active: boolean) => React.ReactNode;
+  /** Voci "extra": su desktop vengono accorpate nel menu a tendina "Extra" nella top bar. */
+  group?: "extra";
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -64,6 +66,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     href: "/top8",
     label: "Top 8",
+    group: "extra",
     icon: (active) => (
       <path
         d="M12 3.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.8l-4.8 2.6.9-5.4-3.9-3.8 5.4-.8L12 3.5Z"
@@ -92,6 +95,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     href: "/head-to-head",
     label: "H2H",
+    group: "extra",
     icon: (active) => (
       <path
         d="M9 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8ZM15 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 20c0-3 2.4-5 5-5s5 2 5 5M10 20c0-3 2.4-5 5-5s5 2 5 5"
@@ -106,9 +110,25 @@ export const NAV_ITEMS: NavItem[] = [
   {
     href: "/gioco",
     label: "Gioco",
+    group: "extra",
     icon: (active) => (
       <path
         d="M8 4l4 4-4 4M16 20l-4-4 4-4"
+        stroke="currentColor"
+        strokeWidth={active ? 2.4 : 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    ),
+  },
+  {
+    href: "/generatore-formazione",
+    label: "Genera formazione",
+    group: "extra",
+    icon: (active) => (
+      <path
+        d="M12 3v18M7 7l-4 5a4 4 0 0 0 8 0L7 7ZM21 7l-4 5a4 4 0 0 0 8 0L21 7ZM7 7h10"
         stroke="currentColor"
         strokeWidth={active ? 2.4 : 2}
         strokeLinecap="round"

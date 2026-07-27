@@ -222,6 +222,21 @@ export async function getMarketPageData(): Promise<MarketPageData> {
   };
 }
 
+/**
+ * Pool di giocatori attivi con il loro valore di mercato attuale, usato dal
+ * generatore di formazione bilanciata. Nessuna tabella dedicata: i valori
+ * sono quelli calcolati dal vivo dalle statistiche esistenti.
+ */
+export async function getFormationGeneratorPool(): Promise<MarketValue[]> {
+  const values = await computeMarketValues();
+  return values
+    .filter((v) => v.player.attivo)
+    .sort(
+      (a, b) =>
+        a.player.cognome.localeCompare(b.player.cognome) || a.player.nome.localeCompare(b.player.nome)
+    );
+}
+
 export interface Top8Formation {
   difensori: MarketValue[];
   centrocampisti: MarketValue[];

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS, isNavItemActive } from "@/components/navItems";
 import { NavDrawer } from "@/components/NavDrawer";
+import { NavExtraMenu } from "@/components/NavExtraMenu";
 
 export function NavBar() {
   const pathname = usePathname();
@@ -25,7 +26,7 @@ export function NavBar() {
         </Link>
 
         <nav className="hidden lg:flex items-center gap-1">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => item.group !== "extra").map((item) => {
             const active = isNavItemActive(pathname, item.href);
             return (
               <Link
@@ -39,6 +40,7 @@ export function NavBar() {
               </Link>
             );
           })}
+          <NavExtraMenu pathname={pathname} />
           <Link
             href="/admin"
             title="Area amministrazione"
