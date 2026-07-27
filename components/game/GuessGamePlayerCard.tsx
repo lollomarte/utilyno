@@ -2,16 +2,21 @@
 
 import { motion } from "framer-motion";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
-import { playerName, formatMarketValue, ruoloLabel } from "@/lib/format";
+import { playerName, ruoloLabel } from "@/lib/format";
+import { questionTypeConfig, type QuestionType } from "@/lib/gameQuestions";
 import type { GuessGamePlayer } from "@/lib/data/game";
 
 export function GuessGamePlayerCard({
   player,
   revealed,
+  questionType,
 }: {
   player: GuessGamePlayer;
   revealed: boolean;
+  questionType: QuestionType;
 }) {
+  const question = questionTypeConfig(questionType);
+
   return (
     <motion.div
       layout
@@ -33,7 +38,7 @@ export function GuessGamePlayerCard({
             animate={{ opacity: 1, scale: 1 }}
             className="font-display text-xl sm:text-2xl font-bold tabular-nums"
           >
-            {formatMarketValue(player.valore)}
+            {question.formatValue(question.getValue(player))}
           </motion.p>
         ) : (
           <p className="font-display text-xl sm:text-2xl font-bold tabular-nums text-faint">???</p>

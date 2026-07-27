@@ -1,11 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { computeMarketValues } from "@/lib/data/market";
-import { getAllParticipantsWithPlayers } from "@/lib/data/stats";
-import type { Ruolo } from "@/lib/types";
+import type { PlayerCareerStats, Ruolo } from "@/lib/types";
 
-// Sotto questa soglia il giocatore ha giocato troppo poco perché il suo
-// valore di mercato sia un confronto significativo per il gioco.
+// Sotto questa soglia il giocatore ha giocato troppo poco perché le sue
+// statistiche siano un confronto significativo per il gioco.
 const MIN_PRESENZE = 5;
+
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
+}
 
 export interface GuessGamePlayer {
   id: string;
@@ -14,30 +17,45 @@ export interface GuessGamePlayer {
   foto_url: string | null;
   ruolo: Ruolo | null;
   valore: number;
+  presenze: number;
+  golTotali: number;
+  mediaGol: number;
+  percentualeVittorie: number;
 }
 
-/** Pool di giocatori idonei al gioco: stessa formula di /mercato, filtrata a chi ha almeno MIN_PRESENZE presenze. */
+/**
+ * Pool di giocatori idonei al gioco, filtrata a chi ha almeno MIN_PRESENZE
+ * presenze. Legge le statistiche già calcolate altrove nel sito (quotazioni
+ * di /mercato + la vista player_career_stats usata da classifiche/profilo),
+ * nessun nuovo calcolo dedicato al gioco.
+ */
 export async function getGuessGamePool(): Promise<GuessGamePlayer[]> {
-  const [values, participants] = await Promise.all([
+  const supabase = await createClient();
+  const [values, { data: careerRows, error }] = await Promise.all([
     computeMarketValues(),
-    getAllParticipantsWithPlayers(),
+    supabase.from("player_career_stats").select("*"),
   ]);
+  if (error) throw error;
 
-  const presenzeByPlayer = new Map<string, number>();
-  for (const row of participants) {
-    presenzeByPlayer.set(row.players.id, (presenzeByPlayer.get(row.players.id) ?? 0) + 1);
-  }
+  const careerByPlayer = new Map((careerRows as PlayerCareerStats[] | null ?? []).map((r) => [r.player_id, r]));
 
   return values
-    .filter((v) => (presenzeByPlayer.get(v.player.id) ?? 0) >= MIN_PRESENZE)
-    .map((v) => ({
-      id: v.player.id,
-      nome: v.player.nome,
-      cognome: v.player.cognome,
-      foto_url: v.player.foto_url,
-      ruolo: v.player.ruolo,
-      valore: v.valore,
-    }));
+    .filter((v) => (careerByPlayer.get(v.player.id)?.presenze ?? 0) >= MIN_PRESENZE)
+    .map((v) => {
+      const career = careerByPlayer.get(v.player.id)!;
+      return {
+        id: v.player.id,
+        nome: v.player.nome,
+        cognome: v.player.cognome,
+        foto_url: v.player.foto_url,
+        ruolo: v.player.ruolo,
+        valore: v.valore,
+        presenze: career.presenze,
+        golTotali: career.gol_totali,
+        mediaGol: career.media_gol,
+        percentualeVittorie: career.presenze > 0 ? round1((career.vittorie / career.presenze) * 100) : 0,
+      };
+    });
 }
 
 export interface GuessGameLeaderboardRow {

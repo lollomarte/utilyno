@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import { GuessGamePlayerCard } from "@/components/game/GuessGamePlayerCard";
 import { CountUp } from "@/components/CountUp";
 import { submitGuessGameScore } from "@/lib/actions/game";
+import { pickRandomQuestionType, questionTypeConfig, type QuestionType } from "@/lib/gameQuestions";
 import type { GuessGamePlayer } from "@/lib/data/game";
 
 const REVEAL_DELAY_MS = 900;
@@ -23,6 +24,7 @@ export function GuessGame({ pool }: { pool: GuessGamePlayer[] }) {
   const [nickname, setNickname] = useState("");
   const [left, setLeft] = useState<GuessGamePlayer | null>(null);
   const [right, setRight] = useState<GuessGamePlayer | null>(null);
+  const [questionType, setQuestionType] = useState<QuestionType>("valore");
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -33,6 +35,7 @@ export function GuessGame({ pool }: { pool: GuessGamePlayer[] }) {
     const b = pickRandom(pool, a.id);
     setLeft(a);
     setRight(b);
+    setQuestionType(pickRandomQuestionType());
     setRevealed(false);
     setScore(0);
     setSubmitError(null);
@@ -43,7 +46,8 @@ export function GuessGame({ pool }: { pool: GuessGamePlayer[] }) {
   function handleGuess(direction: Direction) {
     if (!left || !right || busy) return;
     setBusy(true);
-    const correct = direction === "alto" ? right.valore >= left.valore : right.valore <= left.valore;
+    const getValue = questionTypeConfig(questionType).getValue;
+    const correct = direction === "alto" ? getValue(right) >= getValue(left) : getValue(right) <= getValue(left);
     setRevealed(true);
 
     if (correct) {
@@ -53,6 +57,7 @@ export function GuessGame({ pool }: { pool: GuessGamePlayer[] }) {
         setScore((s) => s + 1);
         setLeft(newLeft);
         setRight(newRight);
+        setQuestionType(pickRandomQuestionType());
         setRevealed(false);
         setBusy(false);
       }, REVEAL_DELAY_MS);
@@ -102,19 +107,32 @@ export function GuessGame({ pool }: { pool: GuessGamePlayer[] }) {
 
   if (!left || !right) return null;
 
+  const question = questionTypeConfig(questionType);
+
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
         <span className="font-display text-xs font-bold uppercase tracking-widest text-muted">
           Punteggio{" "}
           <CountUp value={score} className="text-accent text-lg align-middle ml-1" duration={0.4} />
         </span>
+        <div className="flex items-center gap-2 rounded-full border border-line-strong bg-surface-2 px-4 py-2 max-w-full">
+          <span className="text-lg shrink-0" aria-hidden>
+            {question.icon}
+          </span>
+          <span className="font-display text-sm sm:text-base font-bold text-center">{question.title}</span>
+        </div>
       </div>
 
       <div className="relative grid grid-cols-2 items-stretch gap-3 sm:gap-4">
         <AnimatePresence mode="popLayout" initial={false}>
           {[left, right].map((p, i) => (
-            <GuessGamePlayerCard key={p.id} player={p} revealed={i === 0 ? true : revealed} />
+            <GuessGamePlayerCard
+              key={p.id}
+              player={p}
+              revealed={i === 0 ? true : revealed}
+              questionType={questionType}
+            />
           ))}
         </AnimatePresence>
 

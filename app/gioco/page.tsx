@@ -17,8 +17,9 @@ export default async function GiocoPage() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted -mt-2">
-        Indovina se il valore di mercato del giocatore a destra è più alto o più basso di quello a
-        sinistra. Quante coppie indovini di fila?
+        Ogni round pesca una statistica diversa (valore, presenze, gol, % vittorie o media gol):
+        indovina se il giocatore a destra ha un valore più alto o più basso di quello a sinistra.
+        Quante coppie indovini di fila?
       </p>
       <GuessGame pool={pool} />
     </div>
