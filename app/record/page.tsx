@@ -5,6 +5,8 @@ import { RecordCard } from "@/components/RecordCard";
 import { EmptyState } from "@/components/EmptyState";
 import { formatDateShort } from "@/lib/format";
 
+const squadraLabel = { bianca: "Bianca", nera: "Nera" } as const;
+
 export default async function RecordPage() {
   const data = await getRecordsPageData();
 
@@ -26,12 +28,22 @@ export default async function RecordPage() {
     decano,
     fedele,
     biggestTotalGoalsMatch,
+    smallestTotalGoalsMatch,
     biggestBlowout,
+    mostBalancedMatch,
+    bestTeamScore,
     goleadaWinners,
     goleadaLosers,
     bestGoalMonth,
     mostFrequentTeammates,
     mostFrequentOpponents,
+    lossStreak,
+    digiuno,
+    fantasma,
+    mostUsedGoalkeeper,
+    muroInvalicabile,
+    marketRiser,
+    marketFaller,
   } = data;
 
   return (
@@ -81,6 +93,35 @@ export default async function RecordPage() {
             rows={[{ holders: unbeatenStreak.holders }]}
           />
         )}
+        {lossStreak && (
+          <RecordCard
+            icon="😩"
+            title="Striscia di sconfitte consecutive più lunga"
+            value={lossStreak.value}
+            accent={false}
+            rows={[{ holders: lossStreak.holders }]}
+          />
+        )}
+        {digiuno && (
+          <RecordCard
+            icon="🍽️"
+            title="Il digiuno più lungo"
+            value={digiuno.value}
+            accent={false}
+            rows={[{ holders: digiuno.holders }]}
+            note={`Solo tra chi ha almeno ${digiuno.minGolCarriera} gol in carriera.`}
+          />
+        )}
+        {fantasma && (
+          <RecordCard
+            icon="👻"
+            title="Il fantasma — pausa più lunga tra due presenze"
+            value={fantasma.value}
+            suffix=" partite"
+            accent={false}
+            rows={[{ holders: fantasma.holders }]}
+          />
+        )}
         {decano && (
           <RecordCard
             icon="👴"
@@ -114,6 +155,18 @@ export default async function RecordPage() {
             }))}
           />
         )}
+        {smallestTotalGoalsMatch && (
+          <RecordCard
+            icon="🔒"
+            title="Partita con meno gol totali di sempre"
+            value={smallestTotalGoalsMatch.value}
+            accent={false}
+            rows={smallestTotalGoalsMatch.matches.map((m) => ({
+              href: `/risultati/${m.matchId}`,
+              label: `${formatDateShort(m.data)} · ${m.golBianca}–${m.golNera}`,
+            }))}
+          />
+        )}
         {biggestBlowout && (
           <RecordCard
             icon="💥"
@@ -122,6 +175,29 @@ export default async function RecordPage() {
             rows={biggestBlowout.matches.map((m) => ({
               href: `/risultati/${m.matchId}`,
               label: `${formatDateShort(m.data)} · ${m.golBianca}–${m.golNera}`,
+            }))}
+          />
+        )}
+        {mostBalancedMatch && (
+          <RecordCard
+            icon="⚖️"
+            title="Partita più equilibrata"
+            value={mostBalancedMatch.value}
+            rows={mostBalancedMatch.matches.map((m) => ({
+              href: `/risultati/${m.matchId}`,
+              label: `${formatDateShort(m.data)} · ${m.golBianca}–${m.golNera}`,
+            }))}
+          />
+        )}
+        {bestTeamScore && (
+          <RecordCard
+            icon="⚡"
+            title="Punteggio più alto segnato da una squadra"
+            value={bestTeamScore.value}
+            rows={bestTeamScore.entries.map((e) => ({
+              holders: e.holders,
+              href: `/risultati/${e.matchId}`,
+              label: `${squadraLabel[e.squadra]} · ${formatDateShort(e.data)} · ${e.golBianca}–${e.golNera}`,
             }))}
           />
         )}
@@ -140,6 +216,51 @@ export default async function RecordPage() {
             value={goleadaLosers.value}
             accent={false}
             rows={[{ holders: goleadaLosers.holders }]}
+          />
+        )}
+      </Section>
+
+      <Section title="Portiere">
+        {mostUsedGoalkeeper && (
+          <RecordCard
+            icon="🧤"
+            title="Il portiere più utilizzato"
+            value={mostUsedGoalkeeper.value}
+            rows={[{ holders: mostUsedGoalkeeper.holders }]}
+          />
+        )}
+        {muroInvalicabile && (
+          <RecordCard
+            icon="🧱"
+            title="Muro invalicabile — media gol subiti più bassa"
+            value={muroInvalicabile.value}
+            decimals={2}
+            rows={[{ holders: muroInvalicabile.holders }]}
+            note={`Solo tra chi ha giocato almeno ${muroInvalicabile.minPartite} partite in porta.`}
+          />
+        )}
+      </Section>
+
+      <Section title="Mercato">
+        {marketRiser && (
+          <RecordCard
+            icon="📈"
+            title="Il rialzo del mese"
+            value={marketRiser.trend}
+            decimals={1}
+            suffix=" M€"
+            rows={[{ holders: [marketRiser.player] }]}
+          />
+        )}
+        {marketFaller && (
+          <RecordCard
+            icon="📉"
+            title="Il ribasso del mese"
+            value={marketFaller.trend}
+            decimals={1}
+            suffix=" M€"
+            accent={false}
+            rows={[{ holders: [marketFaller.player] }]}
           />
         )}
       </Section>

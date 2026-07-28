@@ -196,6 +196,165 @@ export function computeUnbeatenStreakRecord(
   );
 }
 
+export function computeLossStreakRecord(
+  participants: ParticipantRow[],
+  resultsById: Map<string, { gol_bianca: number; gol_nera: number }>,
+  matchIndexById: Map<string, number>
+): PlayerHolderRecord | null {
+  return streakRecordAcrossPlayers(
+    participants,
+    matchIndexById,
+    (row) => outcomeOf(row as { match_id: string; squadra: Squadra }, resultsById) === "loss"
+  );
+}
+
+const DIGIUNO_MIN_GOL_CARRIERA = 10;
+
+interface GoalParticipantRow {
+  match_id: string;
+  gol: number;
+  players: PlayerLite;
+}
+
+/** Striscia di partite consecutive senza segnare, calcolata solo su chi ha
+ *  almeno DIGIUNO_MIN_GOL_CARRIERA gol in carriera: altrimenti il record
+ *  coinciderebbe semplicemente con "chi non segna mai", non un vero digiuno. */
+export function computeDigiunoRecord(
+  participants: GoalParticipantRow[],
+  matchIndexById: Map<string, number>
+): (PlayerHolderRecord & { minGolCarriera: number }) | null {
+  const careerGoals = new Map<string, number>();
+  for (const row of participants) {
+    careerGoals.set(row.players.id, (careerGoals.get(row.players.id) ?? 0) + row.gol);
+  }
+
+  const byPlayer = new Map<string, { player: PlayerLite; rows: { index: number; gol: number }[] }>();
+  for (const row of participants) {
+    const entry = byPlayer.get(row.players.id) ?? { player: row.players, rows: [] };
+    entry.rows.push({ index: matchIndexById.get(row.match_id) ?? -1, gol: row.gol });
+    byPlayer.set(row.players.id, entry);
+  }
+
+  let best = 0;
+  let holders = new Map<string, PlayerLite>();
+  for (const [id, { player, rows }] of byPlayer) {
+    if ((careerGoals.get(id) ?? 0) < DIGIUNO_MIN_GOL_CARRIERA) continue;
+    const asc = [...rows].sort((a, b) => a.index - b.index);
+    const streak = longestStreak(asc, (r) => r.gol === 0);
+    if (streak > best) {
+      best = streak;
+      holders = new Map([[id, player]]);
+    } else if (streak === best && streak > 0) {
+      holders.set(id, player);
+    }
+  }
+
+  if (best === 0) return null;
+  return { value: best, holders: Array.from(holders.values()), minGolCarriera: DIGIUNO_MIN_GOL_CARRIERA };
+}
+
+/** Pausa più lunga (in partite del gruppo, non tempo solare) tra due presenze
+ *  consecutive dello stesso giocatore. Serve almeno 2 presenze per avere un gap. */
+export function computeFantasmaRecord(
+  participants: { match_id: string; players: PlayerLite }[],
+  matchIndexById: Map<string, number>
+): PlayerHolderRecord | null {
+  const byPlayer = new Map<string, { player: PlayerLite; indices: number[] }>();
+  for (const row of participants) {
+    const entry = byPlayer.get(row.players.id) ?? { player: row.players, indices: [] };
+    entry.indices.push(matchIndexById.get(row.match_id) ?? -1);
+    byPlayer.set(row.players.id, entry);
+  }
+
+  let best = 0;
+  let holders = new Map<string, PlayerLite>();
+  for (const { player, indices } of byPlayer.values()) {
+    if (indices.length < 2) continue;
+    const sorted = [...indices].sort((a, b) => a - b);
+    let maxGap = 0;
+    for (let i = 1; i < sorted.length; i++) {
+      const gap = sorted[i] - sorted[i - 1] - 1;
+      if (gap > maxGap) maxGap = gap;
+    }
+    if (maxGap > best) {
+      best = maxGap;
+      holders = new Map([[player.id, player]]);
+    } else if (maxGap === best && maxGap > 0) {
+      holders.set(player.id, player);
+    }
+  }
+
+  if (best === 0) return null;
+  return { value: best, holders: Array.from(holders.values()) };
+}
+
+// --- Portiere ------------------------------------------------------------------
+
+interface GoalkeeperParticipantRow {
+  match_id: string;
+  squadra: Squadra;
+  portiere: boolean;
+  players: PlayerLite;
+}
+
+export function computeMostUsedGoalkeeper(
+  participants: GoalkeeperParticipantRow[]
+): PlayerHolderRecord | null {
+  const counts = new Map<string, { player: PlayerLite; count: number }>();
+  for (const row of participants) {
+    if (!row.portiere) continue;
+    const entry = counts.get(row.players.id) ?? { player: row.players, count: 0 };
+    entry.count += 1;
+    counts.set(row.players.id, entry);
+  }
+  if (counts.size === 0) return null;
+  const max = Math.max(...Array.from(counts.values()).map((e) => e.count));
+  if (max <= 0) return null;
+  return {
+    value: max,
+    holders: Array.from(counts.values())
+      .filter((e) => e.count === max)
+      .map((e) => e.player),
+  };
+}
+
+const MURO_MIN_PARTITE_PORTIERE = 2;
+
+/** Media gol subiti più bassa tra i giocatori con almeno MURO_MIN_PARTITE_PORTIERE
+ *  partite giocate in porta: qui "meglio" è il valore più basso, non il più alto. */
+export function computeMuroInvalicabile(
+  participants: GoalkeeperParticipantRow[],
+  resultsById: Map<string, { gol_bianca: number; gol_nera: number }>
+): (PlayerHolderRecord & { minPartite: number }) | null {
+  const byPlayer = new Map<string, { player: PlayerLite; golSubiti: number; partite: number }>();
+  for (const row of participants) {
+    if (!row.portiere) continue;
+    const r = resultsById.get(row.match_id);
+    if (!r) continue;
+    const subiti = row.squadra === "bianca" ? r.gol_nera : r.gol_bianca;
+    const entry = byPlayer.get(row.players.id) ?? { player: row.players, golSubiti: 0, partite: 0 };
+    entry.golSubiti += subiti;
+    entry.partite += 1;
+    byPlayer.set(row.players.id, entry);
+  }
+
+  let best = Infinity;
+  let holders = new Map<string, PlayerLite>();
+  for (const { player, golSubiti, partite } of byPlayer.values()) {
+    if (partite < MURO_MIN_PARTITE_PORTIERE) continue;
+    const media = round2(golSubiti / partite);
+    if (media < best) {
+      best = media;
+      holders = new Map([[player.id, player]]);
+    } else if (media === best) {
+      holders.set(player.id, player);
+    }
+  }
+
+  if (!isFinite(best)) return null;
+  return { value: best, holders: Array.from(holders.values()), minPartite: MURO_MIN_PARTITE_PORTIERE };
+}
+
 export function computeAttendanceStreakRecord(
   matchOrder: string[],
   participants: { match_id: string; players: PlayerLite }[]
@@ -297,6 +456,79 @@ export function computeBiggestBlowout(results: MatchResult[]): MatchRecord | nul
     .filter((r) => Math.abs(r.gol_bianca - r.gol_nera) === max)
     .map((r) => ({ matchId: r.match_id, data: r.data, golBianca: r.gol_bianca, golNera: r.gol_nera }));
   return { value: max, matches };
+}
+
+export function computeSmallestTotalGoalsMatch(results: MatchResult[]): MatchRecord | null {
+  if (results.length === 0) return null;
+  const min = Math.min(...results.map((r) => r.gol_bianca + r.gol_nera));
+  const matches = results
+    .filter((r) => r.gol_bianca + r.gol_nera === min)
+    .map((r) => ({ matchId: r.match_id, data: r.data, golBianca: r.gol_bianca, golNera: r.gol_nera }));
+  return { value: min, matches };
+}
+
+// A differenza di computeBiggestBlowout, uno scarto di 0 (pareggio perfetto) è
+// il caso migliore possibile per "partita più equilibrata", non va escluso.
+export function computeMostBalancedMatch(results: MatchResult[]): MatchRecord | null {
+  if (results.length === 0) return null;
+  const min = Math.min(...results.map((r) => Math.abs(r.gol_bianca - r.gol_nera)));
+  const matches = results
+    .filter((r) => Math.abs(r.gol_bianca - r.gol_nera) === min)
+    .map((r) => ({ matchId: r.match_id, data: r.data, golBianca: r.gol_bianca, golNera: r.gol_nera }));
+  return { value: min, matches };
+}
+
+export interface TeamScoreEntry {
+  matchId: string;
+  data: string;
+  squadra: Squadra;
+  golBianca: number;
+  golNera: number;
+  holders: PlayerLite[];
+}
+
+export interface TeamScoreRecord {
+  value: number;
+  entries: TeamScoreEntry[];
+}
+
+/** Miglior prestazione offensiva di una singola squadra in una partita, a
+ *  prescindere da quanto ha subito (indipendente da computeBiggestTotalGoalsMatch,
+ *  che guarda invece alla somma dei due punteggi). */
+export function computeBestTeamScore(
+  results: MatchResult[],
+  participants: ParticipantRow[]
+): TeamScoreRecord | null {
+  if (results.length === 0) return null;
+  const max = Math.max(...results.flatMap((r) => [r.gol_bianca, r.gol_nera]));
+  if (max <= 0) return null;
+
+  const byMatchSquadra = new Map<string, PlayerLite[]>();
+  for (const row of participants) {
+    const key = `${row.match_id}|${row.squadra}`;
+    const arr = byMatchSquadra.get(key) ?? [];
+    arr.push(row.players);
+    byMatchSquadra.set(key, arr);
+  }
+
+  const entries: TeamScoreEntry[] = [];
+  for (const r of results) {
+    const squadre: Squadra[] = [];
+    if (r.gol_bianca === max) squadre.push("bianca");
+    if (r.gol_nera === max) squadre.push("nera");
+    for (const squadra of squadre) {
+      entries.push({
+        matchId: r.match_id,
+        data: r.data,
+        squadra,
+        golBianca: r.gol_bianca,
+        golNera: r.gol_nera,
+        holders: byMatchSquadra.get(`${r.match_id}|${squadra}`) ?? [],
+      });
+    }
+  }
+
+  return { value: max, entries };
 }
 
 export const GOLEADA_THRESHOLD = 5;

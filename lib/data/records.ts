@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAllMatchResults } from "@/lib/data/matches";
+import { getMarketPageData } from "@/lib/data/market";
 import { fetchAllPages } from "@/lib/data/pagination";
 import {
   getAllParticipantsWithPlayers,
@@ -12,16 +13,24 @@ import type { Player } from "@/lib/types";
 import {
   computeAttendanceStreakRecord,
   computeBestGoalMonth,
+  computeBestTeamScore,
   computeBiggestBlowout,
   computeBiggestTotalGoalsMatch,
   computeCurrentYearVsRecordYear,
   computeDecano,
+  computeDigiunoRecord,
+  computeFantasmaRecord,
   computeFedele,
   computeGoleadaLeaders,
   computeGroupTotals,
+  computeLossStreakRecord,
+  computeMostBalancedMatch,
   computeMostFrequentOpponents,
   computeMostFrequentPair,
+  computeMostUsedGoalkeeper,
+  computeMuroInvalicabile,
   computeRecordGoliPartita,
+  computeSmallestTotalGoalsMatch,
   computeUnbeatenStreakRecord,
   computeWinStreakRecord,
   goleadaWinnerByMatch,
@@ -33,6 +42,7 @@ import {
   type PlayerHolderRecord,
   type PlayerLite,
   type SingleMatchGoalEntry,
+  type TeamScoreRecord,
 } from "@/lib/recordStats";
 
 export interface GoleadaStanding {
@@ -88,6 +98,11 @@ export async function getGoleadeStats(): Promise<GoleadeStats> {
   };
 }
 
+export interface MarketMoveRecord {
+  player: Pick<Player, "id" | "nome" | "cognome" | "foto_url">;
+  trend: number;
+}
+
 export interface RecordsPageData {
   groupTotals: GroupTotals;
   currentYearVsRecord: CurrentYearVsRecord;
@@ -98,21 +113,32 @@ export interface RecordsPageData {
   decano: PlayerHolderRecord | null;
   fedele: (PlayerHolderRecord & { minPresenze: number }) | null;
   biggestTotalGoalsMatch: MatchRecord | null;
+  smallestTotalGoalsMatch: MatchRecord | null;
   biggestBlowout: MatchRecord | null;
+  mostBalancedMatch: MatchRecord | null;
+  bestTeamScore: TeamScoreRecord | null;
   goleadaWinners: PlayerHolderRecord | null;
   goleadaLosers: PlayerHolderRecord | null;
   bestGoalMonth: MonthGoalsRecord | null;
   mostFrequentTeammates: PairRecord | null;
   mostFrequentOpponents: PairRecord | null;
+  lossStreak: PlayerHolderRecord | null;
+  digiuno: (PlayerHolderRecord & { minGolCarriera: number }) | null;
+  fantasma: PlayerHolderRecord | null;
+  mostUsedGoalkeeper: PlayerHolderRecord | null;
+  muroInvalicabile: (PlayerHolderRecord & { minPartite: number }) | null;
+  marketRiser: MarketMoveRecord | null;
+  marketFaller: MarketMoveRecord | null;
 }
 
 export async function getRecordsPageData(): Promise<RecordsPageData> {
-  const [matches, participants, matchResults, resultsById, yearTagged] = await Promise.all([
+  const [matches, participants, matchResults, resultsById, yearTagged, marketPageData] = await Promise.all([
     getMatchesAsc(),
     getAllParticipantsWithPlayers(),
     getAllMatchResults(),
     getMatchResultsById(),
     getYearTaggedParticipants(),
+    getMarketPageData(),
   ]);
 
   const matchOrder = matches.map((m) => m.id);
@@ -120,6 +146,9 @@ export async function getRecordsPageData(): Promise<RecordsPageData> {
   const matchDateById = new Map(matches.map((m) => [m.id, m.data]));
   const winnerByMatch = goleadaWinnerByMatch(matchResults);
   const goleadaLeaders = computeGoleadaLeaders(participants, winnerByMatch);
+
+  const topRiser = marketPageData.topRisers[0];
+  const topFaller = marketPageData.topFallers[0];
 
   return {
     groupTotals: computeGroupTotals(matchOrder.length, matchResults),
@@ -131,12 +160,22 @@ export async function getRecordsPageData(): Promise<RecordsPageData> {
     decano: computeDecano(participants),
     fedele: computeFedele(matchOrder, participants),
     biggestTotalGoalsMatch: computeBiggestTotalGoalsMatch(matchResults),
+    smallestTotalGoalsMatch: computeSmallestTotalGoalsMatch(matchResults),
     biggestBlowout: computeBiggestBlowout(matchResults),
+    mostBalancedMatch: computeMostBalancedMatch(matchResults),
+    bestTeamScore: computeBestTeamScore(matchResults, participants),
     goleadaWinners: goleadaLeaders.winners,
     goleadaLosers: goleadaLeaders.losers,
     bestGoalMonth: computeBestGoalMonth(matchResults),
     mostFrequentTeammates: computeMostFrequentPair(participants),
     mostFrequentOpponents: computeMostFrequentOpponents(participants),
+    lossStreak: computeLossStreakRecord(participants, resultsById, matchIndexById),
+    digiuno: computeDigiunoRecord(participants, matchIndexById),
+    fantasma: computeFantasmaRecord(participants, matchIndexById),
+    mostUsedGoalkeeper: computeMostUsedGoalkeeper(participants),
+    muroInvalicabile: computeMuroInvalicabile(participants, resultsById),
+    marketRiser: topRiser ? { player: topRiser.player, trend: topRiser.trend! } : null,
+    marketFaller: topFaller ? { player: topFaller.player, trend: topFaller.trend! } : null,
   };
 }
 
