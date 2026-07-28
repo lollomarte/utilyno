@@ -30,6 +30,11 @@ const PRESENZA_PCT_BASELINE = 50; // % presenza sopra cui il contributo è posit
 const FORMA_MULTIPLIER = 1.2;
 const RECENT_WINDOW = 5;
 const MIN_VALUE = 0.1;
+// Bonus/penalità portiere: termine indipendente, uguale per tutti i ruoli,
+// sommato in fondo alla formula (vedi bonusPortiereTotale in computeMarketValues).
+// La penalità è la metà del bonus per non scoraggiare chi si offre volontario in porta.
+const PORTIERE_BONUS_WEIGHT = 0.8;
+const PORTIERE_PENALTY_WEIGHT = 0.4;
 
 export interface MarketValue {
   player: Player;
@@ -60,13 +65,49 @@ export async function computeMarketValues(): Promise<MarketValue[]> {
   const totalMatches = matches.length;
   const matchIndex = new Map(matches.map((m, i) => [m.id, i]));
 
+  // Media gol subiti per squadra a partita nel gruppo = media gol totali a
+  // partita / 2 (ogni partita ha due squadre). Base per il bonus/penalità portiere.
+  let totalGoalsSum = 0;
+  let matchesWithResult = 0;
+  for (const m of matches) {
+    const r = resultsById.get(m.id);
+    if (!r) continue;
+    totalGoalsSum += r.gol_bianca + r.gol_nera;
+    matchesWithResult++;
+  }
+  const groupAvgConcededPerTeam = matchesWithResult > 0 ? totalGoalsSum / matchesWithResult / 2 : 0;
+
   const byPlayer = new Map<string, { gol: number; won: boolean; index: number }[]>();
+  const portiereGolSubitiByPlayer = new Map<string, number[]>();
   for (const row of participants) {
     const index = matchIndex.get(row.match_id) ?? -1;
     const won = participantWon(row, resultsById);
     const arr = byPlayer.get(row.players.id) ?? [];
     arr.push({ gol: row.gol, won, index });
     byPlayer.set(row.players.id, arr);
+
+    if (row.portiere) {
+      const result = resultsById.get(row.match_id);
+      if (result) {
+        const golSubiti = row.squadra === "bianca" ? result.gol_nera : result.gol_bianca;
+        const arr2 = portiereGolSubitiByPlayer.get(row.players.id) ?? [];
+        arr2.push(golSubiti);
+        portiereGolSubitiByPlayer.set(row.players.id, arr2);
+      }
+    }
+  }
+
+  function bonusPortiereTotale(playerId: string): number {
+    const golSubitiRows = portiereGolSubitiByPlayer.get(playerId) ?? [];
+    return golSubitiRows.reduce((sum, golSubiti) => {
+      if (golSubiti < groupAvgConcededPerTeam) {
+        return sum + (groupAvgConcededPerTeam - golSubiti) * PORTIERE_BONUS_WEIGHT;
+      }
+      if (golSubiti > groupAvgConcededPerTeam) {
+        return sum - (golSubiti - groupAvgConcededPerTeam) * PORTIERE_PENALTY_WEIGHT;
+      }
+      return sum;
+    }, 0);
   }
 
   return allPlayers.map((player) => {
@@ -101,7 +142,8 @@ export async function computeMarketValues(): Promise<MarketValue[]> {
       presenze * PRESENZE_WEIGHT +
       curvaPresenza;
 
-    const valore = Math.max(MIN_VALUE, round1(raw * formaMultiplier));
+    const valorePerRuolo = Math.max(MIN_VALUE, round1(raw * formaMultiplier));
+    const valore = Math.max(MIN_VALUE, round1(valorePerRuolo + bonusPortiereTotale(player.id)));
 
     return { player, valore };
   });

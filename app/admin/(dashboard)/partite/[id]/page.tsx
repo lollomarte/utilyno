@@ -18,6 +18,7 @@ export default async function ModificaPartitaPage({
     player_id: p.player.id,
     squadra: p.squadra,
     gol: p.gol,
+    portiere: p.portiere,
   }));
 
   return (

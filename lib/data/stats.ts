@@ -113,13 +113,14 @@ export async function getAllParticipantsWithPlayers() {
   const { data, error } = await supabase
     .from("match_participants")
     .select(
-      "match_id, gol, squadra, players(id, nome, cognome, foto_url, attivo, ruolo, data_nascita, created_at)"
+      "match_id, gol, squadra, portiere, players(id, nome, cognome, foto_url, attivo, ruolo, data_nascita, created_at)"
     );
   if (error) throw error;
   return (data ?? []) as unknown as {
     match_id: string;
     gol: number;
     squadra: Squadra;
+    portiere: boolean;
     players: Player;
   }[];
 }

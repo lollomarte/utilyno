@@ -12,11 +12,13 @@ interface Row {
   player_id: string;
   squadra: Squadra;
   gol: number;
+  portiere: boolean;
 }
 
 interface Slot {
   player_id: string;
   gol: number;
+  portiere: boolean;
 }
 
 type FormActionResult = { error?: string } | undefined;
@@ -37,9 +39,9 @@ interface MatchFormProps {
 function buildSlots(rows: Row[] | undefined, squadra: Squadra): Slot[] {
   const filtered = (rows ?? [])
     .filter((r) => r.squadra === squadra)
-    .map((r) => ({ player_id: r.player_id, gol: r.gol }));
+    .map((r) => ({ player_id: r.player_id, gol: r.gol, portiere: r.portiere }));
   const slots = [...filtered];
-  while (slots.length < SLOT_COUNT) slots.push({ player_id: "", gol: 0 });
+  while (slots.length < SLOT_COUNT) slots.push({ player_id: "", gol: 0, portiere: false });
   return slots;
 }
 
@@ -79,10 +81,20 @@ export function MatchForm({
   const validParticipants = [
     ...biancaSlots
       .filter((s) => s.player_id)
-      .map((s) => ({ player_id: s.player_id, squadra: "bianca" as const, gol: Number(s.gol) || 0 })),
+      .map((s) => ({
+        player_id: s.player_id,
+        squadra: "bianca" as const,
+        gol: Number(s.gol) || 0,
+        portiere: s.portiere,
+      })),
     ...neraSlots
       .filter((s) => s.player_id)
-      .map((s) => ({ player_id: s.player_id, squadra: "nera" as const, gol: Number(s.gol) || 0 })),
+      .map((s) => ({
+        player_id: s.player_id,
+        squadra: "nera" as const,
+        gol: Number(s.gol) || 0,
+        portiere: s.portiere,
+      })),
   ];
   const chosenIds = new Set(validParticipants.map((p) => p.player_id));
   const participantsJson = JSON.stringify(validParticipants);
@@ -219,8 +231,11 @@ export function MatchForm({
               players={players}
               excludeIds={excludeIdsFor(slot.player_id)}
               squadraStyle="border-line-strong bg-bianca-dim"
-              onPlayerChange={(player_id) => updateSlot("bianca", i, { player_id })}
+              onPlayerChange={(player_id) =>
+                updateSlot("bianca", i, { player_id, portiere: player_id ? slot.portiere : false })
+              }
               onGolChange={(gol) => updateSlot("bianca", i, { gol })}
+              onPortiereChange={(portiere) => updateSlot("bianca", i, { portiere })}
             />
           ))}
         </div>
@@ -236,8 +251,11 @@ export function MatchForm({
               players={players}
               excludeIds={excludeIdsFor(slot.player_id)}
               squadraStyle="border-nera-line bg-nera"
-              onPlayerChange={(player_id) => updateSlot("nera", i, { player_id })}
+              onPlayerChange={(player_id) =>
+                updateSlot("nera", i, { player_id, portiere: player_id ? slot.portiere : false })
+              }
               onGolChange={(gol) => updateSlot("nera", i, { gol })}
+              onPortiereChange={(portiere) => updateSlot("nera", i, { portiere })}
             />
           ))}
         </div>
@@ -259,6 +277,7 @@ function SlotRow({
   squadraStyle,
   onPlayerChange,
   onGolChange,
+  onPortiereChange,
 }: {
   slot: Slot;
   players: Player[];
@@ -266,39 +285,55 @@ function SlotRow({
   squadraStyle: string;
   onPlayerChange: (playerId: string) => void;
   onGolChange: (gol: number) => void;
+  onPortiereChange: (portiere: boolean) => void;
 }) {
   const filled = Boolean(slot.player_id);
 
   return (
-    <div className={`rounded-md border p-2.5 flex items-center gap-2 ${squadraStyle}`}>
-      <PlayerSlotSelect
-        players={players}
-        value={slot.player_id}
-        onChange={onPlayerChange}
-        excludeIds={excludeIds}
-      />
+    <div className={`rounded-md border p-2.5 flex flex-col gap-1.5 ${squadraStyle}`}>
+      <div className="flex items-center gap-2">
+        <PlayerSlotSelect
+          players={players}
+          value={slot.player_id}
+          onChange={onPlayerChange}
+          excludeIds={excludeIds}
+        />
 
-      <div className={`flex items-center gap-1 shrink-0 ${filled ? "" : "opacity-40"}`}>
-        <button
-          type="button"
-          disabled={!filled}
-          onClick={() => onGolChange(Math.max(0, slot.gol - 1))}
-          className="tap w-7 h-7 rounded-full border border-line-strong flex items-center justify-center text-sm disabled:cursor-not-allowed"
-          aria-label="Meno un gol"
-        >
-          −
-        </button>
-        <span className="w-5 text-center font-display font-bold tabular-nums text-sm">{slot.gol}</span>
-        <button
-          type="button"
-          disabled={!filled}
-          onClick={() => onGolChange(slot.gol + 1)}
-          className="tap w-7 h-7 rounded-full border border-line-strong flex items-center justify-center text-sm text-accent disabled:cursor-not-allowed"
-          aria-label="Più un gol"
-        >
-          +
-        </button>
+        <div className={`flex items-center gap-1 shrink-0 ${filled ? "" : "opacity-40"}`}>
+          <button
+            type="button"
+            disabled={!filled}
+            onClick={() => onGolChange(Math.max(0, slot.gol - 1))}
+            className="tap w-7 h-7 rounded-full border border-line-strong flex items-center justify-center text-sm disabled:cursor-not-allowed"
+            aria-label="Meno un gol"
+          >
+            −
+          </button>
+          <span className="w-5 text-center font-display font-bold tabular-nums text-sm">{slot.gol}</span>
+          <button
+            type="button"
+            disabled={!filled}
+            onClick={() => onGolChange(slot.gol + 1)}
+            className="tap w-7 h-7 rounded-full border border-line-strong flex items-center justify-center text-sm text-accent disabled:cursor-not-allowed"
+            aria-label="Più un gol"
+          >
+            +
+          </button>
+        </div>
       </div>
+
+      <label
+        className={`flex items-center gap-1.5 text-xs pl-1 ${filled ? "cursor-pointer text-muted" : "opacity-40 cursor-not-allowed"}`}
+      >
+        <input
+          type="checkbox"
+          disabled={!filled}
+          checked={slot.portiere}
+          onChange={(e) => onPortiereChange(e.target.checked)}
+          className="accent-accent"
+        />
+        🧤 Portiere
+      </label>
     </div>
   );
 }

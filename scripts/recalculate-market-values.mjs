@@ -57,6 +57,8 @@ const PRESENZA_PCT_BASELINE = 50;
 const FORMA_MULTIPLIER = 1.2;
 const RECENT_WINDOW = 5;
 const MIN_VALUE = 0.1;
+const PORTIERE_BONUS_WEIGHT = 0.8;
+const PORTIERE_PENALTY_WEIGHT = 0.4;
 
 function round1(n) {
   return Math.round(n * 10) / 10;
@@ -71,7 +73,7 @@ async function main() {
     { data: snapshots, error: snapshotsError },
   ] = await Promise.all([
     supabase.from("matches").select("id, data").order("data", { ascending: true }),
-    supabase.from("match_participants").select("match_id, player_id, gol, squadra"),
+    supabase.from("match_participants").select("match_id, player_id, gol, squadra, portiere"),
     supabase.from("match_results").select("match_id, gol_bianca, gol_nera"),
     supabase.from("players").select("id, ruolo"),
     supabase.from("market_values").select("player_id, data_calcolo, valore"),
@@ -106,14 +108,48 @@ async function main() {
     );
   }
 
+  let totalGoalsSum = 0;
+  let matchesWithResult = 0;
+  for (const m of matches) {
+    const r = resultsById.get(m.id);
+    if (!r) continue;
+    totalGoalsSum += r.gol_bianca + r.gol_nera;
+    matchesWithResult++;
+  }
+  const groupAvgConcededPerTeam = matchesWithResult > 0 ? totalGoalsSum / matchesWithResult / 2 : 0;
+
   const rowsByPlayer = new Map();
+  const portiereGolSubitiByPlayer = new Map();
   for (const row of participants) {
     const index = matchIndexById.get(row.match_id) ?? -1;
     const arr = rowsByPlayer.get(row.player_id) ?? [];
     arr.push({ gol: row.gol, won: participantWon(row), index });
     rowsByPlayer.set(row.player_id, arr);
+
+    if (row.portiere) {
+      const result = resultsById.get(row.match_id);
+      if (result) {
+        const golSubiti = row.squadra === "bianca" ? result.gol_nera : result.gol_bianca;
+        const arr2 = portiereGolSubitiByPlayer.get(row.player_id) ?? [];
+        arr2.push(golSubiti);
+        portiereGolSubitiByPlayer.set(row.player_id, arr2);
+      }
+    }
   }
   for (const arr of rowsByPlayer.values()) arr.sort((a, b) => a.index - b.index);
+
+  function bonusPortiereTotale(playerId) {
+    const golSubitiRows = portiereGolSubitiByPlayer.get(playerId) ?? [];
+    return golSubitiRows.reduce((sum, golSubiti) => {
+      if (golSubiti < groupAvgConcededPerTeam) {
+        return sum + (groupAvgConcededPerTeam - golSubiti) * PORTIERE_BONUS_WEIGHT;
+      }
+      if (golSubiti > groupAvgConcededPerTeam) {
+        return sum - (golSubiti - groupAvgConcededPerTeam) * PORTIERE_PENALTY_WEIGHT;
+      }
+      return sum;
+    }, 0);
+  }
 
   function computeValore(playerId) {
     const rows = rowsByPlayer.get(playerId) ?? [];
@@ -149,7 +185,8 @@ async function main() {
       presenze * PRESENZE_WEIGHT +
       curvaPresenza;
 
-    return Math.max(MIN_VALUE, round1(raw * formaMultiplier));
+    const valorePerRuolo = Math.max(MIN_VALUE, round1(raw * formaMultiplier));
+    return Math.max(MIN_VALUE, round1(valorePerRuolo + bonusPortiereTotale(playerId)));
   }
 
   const dataCalcoloList = Array.from(new Set(snapshots.map((s) => s.data_calcolo))).sort();

@@ -3,7 +3,13 @@ import { notFound } from "next/navigation";
 import { getPlayer, getPlayerCareerStats, getPlayerMatchHistory } from "@/lib/data/players";
 import { getPlayerBadges } from "@/lib/data/badges";
 import { getAttendanceStanding, getMatchesAsc, getScorersStanding, getWinsStanding } from "@/lib/data/stats";
-import { computeAttackStats, computeContinuitaStats, computeRendimentoStats, findRank } from "@/lib/playerProfileStats";
+import {
+  computeAttackStats,
+  computeContinuitaStats,
+  computePortiereStats,
+  computeRendimentoStats,
+  findRank,
+} from "@/lib/playerProfileStats";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PitchLines } from "@/components/PitchLines";
 import { CountUp } from "@/components/CountUp";
@@ -11,7 +17,7 @@ import { Sparkline } from "@/components/Sparkline";
 import { PlayerBadgeList } from "@/components/PlayerBadges";
 import { PlayerStatsTabs } from "@/components/PlayerStatsTabs";
 import { EmptyState } from "@/components/EmptyState";
-import { age, formatDateShort, playerName, ruoloLabel } from "@/lib/format";
+import { age, formatDateShort, formatDecimal, playerName, ruoloLabel } from "@/lib/format";
 import type { Esito } from "@/lib/types";
 
 const esitoLabel: Record<Esito, string> = {
@@ -57,6 +63,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const attacco = computeAttackStats(fullHistory);
   const squadra = computeRendimentoStats(fullHistory);
   const continuita = computeContinuitaStats(fullHistory, allMatches, attendance.totalMatches);
+  const portiere = computePortiereStats(fullHistory);
 
   return (
     <div className="flex flex-col gap-6">
@@ -119,6 +126,22 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
           <PlayerStatsTabs attacco={attacco} squadra={squadra} continuita={continuita} />
 
+          {portiere.partiteInPorta > 0 && (
+            <div className="rounded-2xl border border-line bg-surface p-4">
+              <p className="text-xs uppercase tracking-widest text-muted font-semibold mb-3">
+                🧤 In porta
+              </p>
+              <div className="grid grid-cols-2 gap-2.5">
+                <MiniStatCard label="Partite in porta" value={portiere.partiteInPorta} />
+                <MiniStatCard
+                  label="Media gol subiti in porta"
+                  value={portiere.mediaGolSubitiInPorta ?? 0}
+                  decimals={2}
+                />
+              </div>
+            </div>
+          )}
+
           <div>
             <h2 className="font-display font-semibold mb-2">Ultime 5 partite</h2>
             <ul className="flex flex-col gap-1.5">
@@ -160,6 +183,23 @@ function BigStat({ label, value, decimals = 0 }: { label: string; value: number;
         <CountUp value={value} decimals={decimals} />
       </span>
       <span className="text-xs uppercase tracking-widest text-muted mt-1">{label}</span>
+    </div>
+  );
+}
+
+function MiniStatCard({
+  label,
+  value,
+  decimals = 0,
+}: {
+  label: string;
+  value: number;
+  decimals?: number;
+}) {
+  return (
+    <div className="rounded-2xl border border-line bg-surface-2 p-3 text-center">
+      <p className="font-display text-lg font-bold tabular-nums">{formatDecimal(value, decimals)}</p>
+      <p className="text-xs text-muted">{label}</p>
     </div>
   );
 }

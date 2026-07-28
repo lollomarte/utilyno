@@ -162,6 +162,20 @@ export function computeContinuitaStats(
   };
 }
 
+export interface PortiereStats {
+  partiteInPorta: number;
+  mediaGolSubitiInPorta: number | null;
+}
+
+export function computePortiereStats(history: PlayerMatchResult[]): PortiereStats {
+  const rows = history.filter((h) => h.portiere);
+  const partiteInPorta = rows.length;
+  if (partiteInPorta === 0) return { partiteInPorta: 0, mediaGolSubitiInPorta: null };
+
+  const golSubitiTotali = rows.reduce((s, r) => s + teamGoals(r).subiti, 0);
+  return { partiteInPorta, mediaGolSubitiInPorta: round2(golSubitiTotali / partiteInPorta) };
+}
+
 export function findRank<T>(rankedList: T[], predicate: (item: T) => boolean): number | null {
   const idx = rankedList.findIndex(predicate);
   return idx === -1 ? null : idx + 1;

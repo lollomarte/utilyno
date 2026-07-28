@@ -8,6 +8,7 @@ interface ParticipantInput {
   player_id: string;
   squadra: "bianca" | "nera";
   gol: number;
+  portiere: boolean;
 }
 
 function parseParticipants(raw: string): ParticipantInput[] {
@@ -19,7 +20,12 @@ function parseParticipants(raw: string): ParticipantInput[] {
   }
   return parsed
     .filter((p) => p.player_id)
-    .map((p) => ({ player_id: p.player_id, squadra: p.squadra, gol: Number(p.gol) || 0 }));
+    .map((p) => ({
+      player_id: p.player_id,
+      squadra: p.squadra,
+      gol: Number(p.gol) || 0,
+      portiere: Boolean(p.portiere),
+    }));
 }
 
 function validateParticipants(participants: ParticipantInput[]): string | null {

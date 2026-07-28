@@ -85,6 +85,7 @@ function TeamList({
   players: {
     id: string;
     gol: number;
+    portiere: boolean;
     player: { id: string; nome: string; cognome: string; foto_url: string | null };
   }[];
 }) {
@@ -99,7 +100,10 @@ function TeamList({
               className="tap flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-surface-2"
             >
               <PlayerAvatar player={p.player} size={32} />
-              <span className="flex-1 text-sm truncate">{playerName(p.player)}</span>
+              <span className="flex-1 text-sm truncate flex items-center gap-1">
+                {playerName(p.player)}
+                {p.portiere && <span title="Portiere">🧤</span>}
+              </span>
               {p.gol > 0 && (
                 <span className="text-xs tracking-tight shrink-0" title={`${p.gol} gol`}>
                   {"⚽".repeat(Math.min(p.gol, 5))}

@@ -6,6 +6,7 @@ export interface PlayerBadges {
   hatTrick: boolean;
   everPresent: boolean;
   decano: boolean;
+  portiere: boolean;
 }
 
 export async function getPlayerBadges(
@@ -33,6 +34,7 @@ export async function getPlayerBadges(
   const everPresent = seasonMatchCount > 0 && seasonPresences === seasonMatchCount;
 
   const decano = !!oldest && oldest.id === player.id;
+  const portiere = fullHistory.some((h) => h.portiere);
 
-  return { hatTrick, everPresent, decano };
+  return { hatTrick, everPresent, decano, portiere };
 }

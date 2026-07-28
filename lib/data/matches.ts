@@ -5,6 +5,7 @@ export interface ParticipantWithPlayer {
   id: string;
   squadra: Squadra;
   gol: number;
+  portiere: boolean;
   player: Pick<Player, "id" | "nome" | "cognome" | "foto_url" | "attivo">;
 }
 
@@ -41,7 +42,9 @@ export async function getAllMatchResultsWithParticipants(): Promise<MatchResultW
       supabase.from("match_results").select("*").order("data", { ascending: false }),
       supabase
         .from("match_participants")
-        .select("id, match_id, player_id, squadra, gol, player:players(id, nome, cognome, foto_url, attivo)"),
+        .select(
+          "id, match_id, player_id, squadra, gol, portiere, player:players(id, nome, cognome, foto_url, attivo)"
+        ),
     ]);
 
   if (resultsError) throw resultsError;
@@ -157,7 +160,7 @@ export async function getMatchFull(matchId: string): Promise<MatchFull | null> {
       supabase.from("matches").select("*").eq("id", matchId).maybeSingle(),
       supabase
         .from("match_participants")
-        .select("id, squadra, gol, player:players(id, nome, cognome, foto_url, attivo)")
+        .select("id, squadra, gol, portiere, player:players(id, nome, cognome, foto_url, attivo)")
         .eq("match_id", matchId),
     ]);
 

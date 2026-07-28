@@ -31,6 +31,8 @@ export interface MatchParticipant {
   player_id: string;
   squadra: Squadra;
   gol: number;
+  /** Flag per singola partita: il giocatore ha giocato in porta in questa partita. Non è il ruolo anagrafico. */
+  portiere: boolean;
 }
 
 export interface MatchResult {
@@ -73,4 +75,5 @@ export interface PlayerMatchResult {
   esito: Esito;
   note: string | null;
   num_partecipanti: number;
+  portiere: boolean;
 }

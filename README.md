@@ -35,7 +35,7 @@ node scripts/create-admin.mjs email@esempio.it
 
 - `players`: id, nome, cognome, data_nascita, foto_url, attivo, created_at
 - `matches`: id, data, note, mvp_player_id (non più in uso: funzionalità MVP rimossa, colonna mantenuta solo per non perdere lo storico), created_at
-- `match_participants`: id, match_id, player_id, squadra (`bianca`|`nera`), gol
+- `match_participants`: id, match_id, player_id, squadra (`bianca`|`nera`), gol, portiere (flag per singola partita, non è il ruolo anagrafico: incide solo sul bonus/penalità nel valore di mercato)
 - `next_match_info`: riga singola con data/orario/campo della prossima partita in programma (non è una partita giocata, resta fuori dallo storico)
 
 Il risultato di ogni partita è sempre calcolato come somma di `match_participants.gol` per squadra (vista `match_results`), non è un campo salvato a parte.
