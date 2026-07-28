@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAllMatchResults } from "@/lib/data/matches";
+import { fetchAllPages } from "@/lib/data/pagination";
 import {
   getAllParticipantsWithPlayers,
   getMatchesAsc,
@@ -47,20 +48,23 @@ export interface GoleadeStats {
 
 export async function getGoleadeStats(): Promise<GoleadeStats> {
   const supabase = await createClient();
-  const [{ data: results, error: resultsError }, { data: participants, error: partError }] =
-    await Promise.all([
-      supabase.from("match_results").select("match_id, gol_bianca, gol_nera"),
-      supabase.from("match_participants").select("match_id, squadra, players(id, nome, cognome, foto_url)"),
-    ]);
+  const [{ data: results, error: resultsError }, participants] = await Promise.all([
+    supabase.from("match_results").select("match_id, gol_bianca, gol_nera"),
+    fetchAllPages<unknown>((from, to) =>
+      supabase
+        .from("match_participants")
+        .select("match_id, squadra, players(id, nome, cognome, foto_url)")
+        .range(from, to)
+    ),
+  ]);
   if (resultsError) throw resultsError;
-  if (partError) throw partError;
 
   const winnerByMatch = goleadaWinnerByMatch(results ?? []);
 
   const winCounts = new Map<string, GoleadaStanding>();
   const loseCounts = new Map<string, GoleadaStanding>();
 
-  for (const row of (participants ?? []) as unknown as {
+  for (const row of participants as {
     match_id: string;
     squadra: "bianca" | "nera";
     players: Pick<Player, "id" | "nome" | "cognome" | "foto_url">;

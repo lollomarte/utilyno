@@ -4,7 +4,7 @@ const definitions: { key: keyof PlayerBadges; icon: string; label: string }[] = 
   { key: "hatTrick", icon: "🎩", label: "Hat-trick" },
   { key: "everPresent", icon: "🛡️", label: "Ever-present" },
   { key: "decano", icon: "🧓", label: "Decano" },
-  { key: "portiere", icon: "🧤", label: "Portiere" },
+  { key: "portiere", icon: "🧤", label: "Anche portiere" },
 ];
 
 export function PlayerBadgeList({ badges }: { badges: PlayerBadges }) {

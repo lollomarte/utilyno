@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { fetchAllPages } from "@/lib/data/pagination";
 import type { Match, MatchResult, Player, Squadra } from "@/lib/types";
 
 export interface ParticipantWithPlayer {
@@ -37,21 +38,22 @@ export async function getAllMatchResults(): Promise<MatchResult[]> {
 export async function getAllMatchResultsWithParticipants(): Promise<MatchResultWithParticipants[]> {
   const supabase = await createClient();
 
-  const [{ data: results, error: resultsError }, { data: participants, error: partError }] =
-    await Promise.all([
-      supabase.from("match_results").select("*").order("data", { ascending: false }),
+  const [{ data: results, error: resultsError }, participants] = await Promise.all([
+    supabase.from("match_results").select("*").order("data", { ascending: false }),
+    fetchAllPages<unknown>((from, to) =>
       supabase
         .from("match_participants")
         .select(
           "id, match_id, player_id, squadra, gol, portiere, player:players(id, nome, cognome, foto_url, attivo)"
-        ),
-    ]);
+        )
+        .range(from, to)
+    ),
+  ]);
 
   if (resultsError) throw resultsError;
-  if (partError) throw partError;
 
   const byMatch = new Map<string, ParticipantWithPlayerId[]>();
-  for (const row of (participants ?? []) as unknown as (ParticipantWithPlayerId & {
+  for (const row of participants as (ParticipantWithPlayerId & {
     match_id: string;
   })[]) {
     const arr = byMatch.get(row.match_id) ?? [];

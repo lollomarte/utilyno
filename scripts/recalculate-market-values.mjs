@@ -64,16 +64,38 @@ function round1(n) {
   return Math.round(n * 10) / 10;
 }
 
+// Supabase/PostgREST tronca ogni risposta a un massimo di righe (in questo
+// progetto 1000) anche senza .limit() esplicito: match_participants ha superato
+// quella soglia, quindi va paginata con .range() per non perdere in silenzio le
+// righe più recenti (con effetti a cascata su tutto il ricalcolo).
+const PAGE_SIZE = 1000;
+
+async function fetchAllPages(fetchPage) {
+  const all = [];
+  let from = 0;
+  for (;;) {
+    const { data, error } = await fetchPage(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    const rows = data ?? [];
+    all.push(...rows);
+    if (rows.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+  return all;
+}
+
 async function main() {
   const [
     { data: matches, error: matchesError },
-    { data: participants, error: participantsError },
+    participants,
     { data: results, error: resultsError },
     { data: players, error: playersError },
     { data: snapshots, error: snapshotsError },
   ] = await Promise.all([
     supabase.from("matches").select("id, data").order("data", { ascending: true }),
-    supabase.from("match_participants").select("match_id, player_id, gol, squadra, portiere"),
+    fetchAllPages((from, to) =>
+      supabase.from("match_participants").select("match_id, player_id, gol, squadra, portiere").range(from, to)
+    ),
     supabase.from("match_results").select("match_id, gol_bianca, gol_nera"),
     supabase.from("players").select("id, ruolo"),
     supabase.from("market_values").select("player_id, data_calcolo, valore"),
@@ -81,7 +103,6 @@ async function main() {
 
   for (const [name, error] of [
     ["matches", matchesError],
-    ["match_participants", participantsError],
     ["match_results", resultsError],
     ["players", playersError],
     ["market_values", snapshotsError],

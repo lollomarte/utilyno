@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { fetchAllPages } from "@/lib/data/pagination";
 import { seasonOf, seasonsFromDates, yearOf, yearsFromDates } from "@/lib/season";
 import type { Player, PlayerCareerStats, Ruolo, Squadra } from "@/lib/types";
 import type { YearTaggedParticipant } from "@/lib/yearStats";
@@ -71,13 +72,15 @@ export async function getAttendanceStanding(
   );
   const totalMatches = filteredMatchIds.size;
 
-  const { data: participants, error: partError } = await supabase
-    .from("match_participants")
-    .select("match_id, players(id, nome, cognome, foto_url, attivo, ruolo, data_nascita, created_at)");
-  if (partError) throw partError;
+  const participants = await fetchAllPages<unknown>((from, to) =>
+    supabase
+      .from("match_participants")
+      .select("match_id, players(id, nome, cognome, foto_url, attivo, ruolo, data_nascita, created_at)")
+      .range(from, to)
+  );
 
   const counts = new Map<string, { player: Player; presenze: number }>();
-  for (const row of (participants ?? []) as unknown as {
+  for (const row of participants as {
     match_id: string;
     players: Player;
   }[]) {
@@ -110,13 +113,15 @@ export async function getMatchesAsc() {
 
 export async function getAllParticipantsWithPlayers() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("match_participants")
-    .select(
-      "match_id, gol, squadra, portiere, players(id, nome, cognome, foto_url, attivo, ruolo, data_nascita, created_at)"
-    );
-  if (error) throw error;
-  return (data ?? []) as unknown as {
+  const data = await fetchAllPages<unknown>((from, to) =>
+    supabase
+      .from("match_participants")
+      .select(
+        "match_id, gol, squadra, portiere, players(id, nome, cognome, foto_url, attivo, ruolo, data_nascita, created_at)"
+      )
+      .range(from, to)
+  );
+  return data as {
     match_id: string;
     gol: number;
     squadra: Squadra;
