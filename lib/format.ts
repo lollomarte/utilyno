@@ -68,7 +68,17 @@ const PALLONE_DORO: MarketTier = {
   className: "text-gold bg-gold/10 border-gold/40 shadow-[0_0_10px_rgba(234,179,8,0.35)]",
 };
 
-export function marketTier(valore: number): MarketTier {
+// Etichetta scherzosa che sovrascrive la fascia normale quando il giocatore
+// ha il flag is_clown: cambia solo il badge, il valore numerico e la
+// posizione in classifica restano quelli calcolati dalla formula.
+const CLOWN_TIER: MarketTier = {
+  label: "🤡 Clown",
+  className:
+    "text-white bg-gradient-to-r from-fuchsia-500 via-purple-500 to-amber-400 border-dashed border-white/50",
+};
+
+export function marketTier(valore: number, isClown = false): MarketTier {
+  if (isClown) return CLOWN_TIER;
   return MARKET_TIERS.find((t) => valore < t.max) ?? PALLONE_DORO;
 }
 

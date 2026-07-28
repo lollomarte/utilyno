@@ -7,7 +7,7 @@ import type { MarketPlayerRow } from "@/lib/data/market";
 const TREND_DOWN_COLOR = "var(--color-loss)";
 
 export function MarketCard({ row }: { row: MarketPlayerRow }) {
-  const tier = marketTier(row.valore);
+  const tier = marketTier(row.valore, row.player.is_clown);
   const trendUp = row.trend !== null && row.trend > 0;
   const trendDown = row.trend !== null && row.trend < 0;
 

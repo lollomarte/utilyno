@@ -10,6 +10,7 @@ export interface Player {
   foto_url: string | null;
   attivo: boolean;
   ruolo: Ruolo | null;
+  is_clown: boolean;
   created_at: string;
 }
 

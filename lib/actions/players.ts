@@ -18,6 +18,7 @@ export async function savePlayer(_prevState: unknown, formData: FormData) {
   const cognome = String(formData.get("cognome") ?? "").trim();
   const data_nascita = String(formData.get("data_nascita") ?? "") || null;
   const attivo = formData.get("attivo") === "on";
+  const is_clown = formData.get("is_clown") === "on";
   const photo = formData.get("foto") as File | null;
 
   const ruoloRaw = String(formData.get("ruolo") ?? "");
@@ -52,7 +53,7 @@ export async function savePlayer(_prevState: unknown, formData: FormData) {
     foto_url = pub.publicUrl;
   }
 
-  const payload = { nome, cognome, data_nascita, attivo, foto_url, ruolo };
+  const payload = { nome, cognome, data_nascita, attivo, foto_url, ruolo, is_clown };
 
   const { error } = id
     ? await supabase.from("players").update(payload).eq("id", id)

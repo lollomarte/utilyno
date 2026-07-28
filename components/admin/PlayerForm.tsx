@@ -133,6 +133,19 @@ export function PlayerForm({ player }: { player?: Player }) {
         Attivo
       </label>
 
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          name="is_clown"
+          defaultChecked={player?.is_clown ?? false}
+          className="w-4 h-4 accent-[var(--color-accent)]"
+        />
+        🤡 Clown
+        <span className="text-xs text-muted">
+          (sostituisce l&apos;etichetta della fascia di mercato con &quot;🤡 Clown&quot;, il valore non cambia)
+        </span>
+      </label>
+
       {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
 
       <Button type="submit" disabled={pending} className="w-full">
