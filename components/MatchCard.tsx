@@ -31,7 +31,7 @@ export function MatchCard({ match }: { match: MatchResultWithParticipants }) {
             <p className="text-sm font-medium flex items-center gap-1.5">
               {formatDateShort(match.data)}
               {match.risultato_modificato_manualmente && (
-                <span title="Risultato modificato manualmente" className="text-amber-300 text-xs">
+                <span title="Risultato modificato manualmente" className="text-warn text-xs">
                   ✏️
                 </span>
               )}

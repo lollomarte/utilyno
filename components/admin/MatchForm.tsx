@@ -153,7 +153,7 @@ export function MatchForm({
           )}
           <span className="flex items-center gap-1.5 font-display text-sm text-muted">
             NERA
-            <span className="w-2 h-2 rounded-full bg-nera" />
+            <span className="w-2 h-2 rounded-full bg-nera-line" />
           </span>
         </div>
 
@@ -175,7 +175,7 @@ export function MatchForm({
         </label>
 
         {risultatoManuale && (
-          <p className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 py-1 mx-auto flex items-center gap-1.5">
+          <p className="text-xs text-warn bg-warn-dim border border-warn/30 rounded-full px-3 py-1 mx-auto flex items-center gap-1.5">
             <span>✏️ Risultato modificato manualmente</span>
             {(golBiancaManuale !== golBianca || golNeraManuale !== golNera) && (
               <span className="text-muted">· somma marcatori: {golBianca}–{golNera}</span>
@@ -214,7 +214,7 @@ export function MatchForm({
       </div>
 
       {countWarning && (
-        <p className="text-sm text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-md px-3 py-2">
+        <p className="text-sm text-warn bg-warn-dim border border-warn/30 rounded-md px-3 py-2">
           ⚠️ {countWarning}
         </p>
       )}
@@ -261,7 +261,7 @@ export function MatchForm({
         </div>
       </div>
 
-      {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state?.error && <p className="text-sm text-loss">{state.error}</p>}
 
       <Button type="submit" disabled={pending} className="w-full">
         {pending ? "Salvataggio…" : submitLabel}

@@ -14,8 +14,8 @@ export default function OpengraphImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#09090b",
-          backgroundImage: "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(34,197,94,0.16), transparent 60%)",
+          background: "#efe5cf",
+          
           position: "relative",
         }}
       >
@@ -26,18 +26,18 @@ export default function OpengraphImage() {
             gap: 28,
             fontSize: 120,
             fontWeight: 700,
-            color: "#fafafa",
+            color: "#231a12",
             letterSpacing: -2,
           }}
         >
-          <span style={{ display: "flex", color: "#fafafa" }}>4</span>
-          <span style={{ display: "flex", color: "#6b6b74" }}>–</span>
-          <span style={{ display: "flex", color: "#86868f" }}>2</span>
+          <span style={{ display: "flex", color: "#231a12" }}>4</span>
+          <span style={{ display: "flex", color: "#6f5c47" }}>–</span>
+          <span style={{ display: "flex", color: "#6f5c47" }}>2</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 20 }}>
-          <span style={{ display: "flex", width: 14, height: 14, borderRadius: 999, background: "#ffffff" }} />
-          <span style={{ display: "flex", color: "#a1a1aa", fontSize: 28 }}>Bianchi vs Neri</span>
-          <span style={{ display: "flex", width: 14, height: 14, borderRadius: 999, background: "#52525b" }} />
+          <span style={{ display: "flex", width: 14, height: 14, borderRadius: 999, background: "#ffffff", border: "2px solid #231a12" }} />
+          <span style={{ display: "flex", color: "#5b4a39", fontSize: 28 }}>Bianchi vs Neri</span>
+          <span style={{ display: "flex", width: 14, height: 14, borderRadius: 999, background: "#231a12" }} />
         </div>
         <div
           style={{
@@ -47,12 +47,12 @@ export default function OpengraphImage() {
             marginTop: 56,
             padding: "14px 32px",
             borderRadius: 999,
-            border: "1px solid rgba(255,255,255,0.14)",
-            background: "#111114",
+            border: "3px solid #1d4f91",
+            background: "#d1291c",
           }}
         >
-          <span style={{ display: "flex", width: 16, height: 16, borderRadius: 999, background: "#22c55e" }} />
-          <span style={{ display: "flex", color: "#fafafa", fontSize: 36, fontWeight: 700 }}>
+          <span style={{ display: "flex", width: 16, height: 16, borderRadius: 999, background: "#f2b705" }} />
+          <span style={{ display: "flex", color: "#f2b705", fontSize: 36, fontWeight: 700 }}>
             Calciotto di Pippi
           </span>
         </div>

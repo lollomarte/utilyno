@@ -19,7 +19,7 @@ export function RecordsBanner({
 
   return (
     <div className="rounded-2xl border border-line-strong bg-surface p-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,197,94,0.10),transparent_60%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(31,110,59,0.10),transparent_60%)] pointer-events-none" />
       <div className="relative flex flex-col gap-6">
         <div>
           <p className="text-xs uppercase tracking-widest text-accent font-semibold mb-1">

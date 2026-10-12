@@ -18,11 +18,18 @@ export function NavBar() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <header className="sticky top-0 z-30 bg-bg/90 backdrop-blur border-b border-line">
+    <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur shadow-float">
       <div className="mx-auto max-w-3xl px-4 flex items-center justify-between h-14">
-        <Link href="/" className="font-display font-bold tracking-tight text-lg flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-accent shadow-[0_0_8px_var(--color-accent)]" />
-          Calciotto
+        <Link href="/" className="tap flex items-center gap-2" aria-label="Calciotto di Pippi, home">
+          {/* Testata da album: scudetto rosso inclinato con il nome in giallo. */}
+          <span className="-skew-x-12 rounded-md bg-album-red px-2.5 py-0.5 shadow-[2px_2px_0_var(--color-album-blue)]">
+            <span className="block skew-x-12 font-display font-bold uppercase tracking-wide text-lg leading-tight text-album-yellow">
+              Calciotto
+            </span>
+          </span>
+          <span className="font-display text-xs uppercase tracking-widest text-muted leading-none">
+            di Pippi
+          </span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-1">
@@ -77,6 +84,7 @@ export function NavBar() {
           </svg>
         </button>
       </div>
+      <div className="album-stripe" aria-hidden />
 
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} pathname={pathname} />
     </header>

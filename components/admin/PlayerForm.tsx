@@ -61,7 +61,7 @@ export function PlayerForm({ player }: { player?: Player }) {
             onChange={handlePhotoChange}
             className="w-full text-sm"
           />
-          {photoError && <p className="text-sm text-red-400 mt-1">{photoError}</p>}
+          {photoError && <p className="text-sm text-loss mt-1">{photoError}</p>}
         </div>
       </div>
 
@@ -146,7 +146,7 @@ export function PlayerForm({ player }: { player?: Player }) {
         </span>
       </label>
 
-      {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state?.error && <p className="text-sm text-loss">{state.error}</p>}
 
       <Button type="submit" disabled={pending} className="w-full">
         {pending ? "Salvataggio…" : "Salva"}

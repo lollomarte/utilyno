@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
-const colors = ["var(--color-accent)", "#ffffff", "var(--color-gold)"];
+const colors = ["var(--color-album-red)", "var(--color-album-yellow)", "var(--color-album-blue)", "var(--color-accent)"];
 
 export function Confetti({ pieces = 40 }: { pieces?: number }) {
   const reduceMotion = useReducedMotion();

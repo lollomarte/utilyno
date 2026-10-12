@@ -61,7 +61,7 @@ export function NextMatchForm({
         Lascia data e orario vuoti per tornare al default: prossimo lunedì alle 21:00.
       </p>
 
-      {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state?.error && <p className="text-sm text-loss">{state.error}</p>}
 
       <Button type="submit" disabled={pending} className="mt-1 w-full">
         {pending ? "Salvataggio..." : "Salva"}

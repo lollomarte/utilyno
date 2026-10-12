@@ -7,35 +7,44 @@
    ========================================================================== */
 
 @theme {
-  /* ---- Colore: token concettuali (dark only) --------------------------- */
-  --bg: #09090b;
-  --surface: #111114;
-  --surface-2: #18181c;
-  --surface-3: #1f1f24;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --text-1: #fafafa;
-  --text-2: #a1a1aa;
-  /* --text-3 è leggermente più chiaro dell'#6B6B74 di partenza: quel valore
-     scende a 3.77:1 su --bg con testo 12px e non supera l'AA (4.5:1) — qui
-     resta la tinta più spenta della scala ma resta leggibile (5.5:1). */
-  --text-3: #86868f;
-  --on-accent: #062b12;
+  /* ---- Colore: token concettuali ("Album Panini retrò") -----------------
+     Carta crema dell'album, inchiostro di stampa marrone-nero, verde campo
+     come colore d'azione e le tre fasce rosso/giallo/blu dell'album anni '90
+     solo come decorazione. Testi verificati AA (4.5:1) su --bg e --surface. */
+  --bg: #efe5cf;
+  --surface: #fbf6ea;
+  --surface-2: #f3e9d4;
+  --surface-3: #e7d9bb;
+  --border: rgba(60, 40, 20, 0.16);
+  --border-strong: rgba(45, 30, 15, 0.38);
+  --text-1: #231a12;
+  --text-2: #5b4a39;
+  --text-3: #6f5c47;
+  --on-accent: #fbf6ea;
 
-  --accent: #22c55e;
-  --accent-bright: #4ade80;
-  --accent-dim: rgba(34, 197, 94, 0.12);
+  --accent: #1f6e3b;
+  --accent-bright: #268a49;
+  --accent-dim: rgba(31, 110, 59, 0.12);
 
-  --win: #22c55e;
-  --loss: #f87171;
-  --draw: #a1a1aa;
+  --win: #2e7d32;
+  --loss: #b8321f;
+  --draw: #7d6c58;
 
-  --gold: #eab308;
-  --silver: #cbd5e1;
-  --bronze: #d97706;
+  --gold: #8f6400;
+  --silver: #66717e;
+  --bronze: #9a4f1c;
+
+  --warn: #8a5300;
+  --warn-dim: rgba(214, 140, 20, 0.14);
+  --hot: #b93a0c;
+  --hot-dim: rgba(234, 88, 12, 0.12);
+
+  --album-red: #d1291c;
+  --album-yellow: #f2b705;
+  --album-blue: #1d4f91;
 
   --bianchi: #ffffff;
-  --neri: #52525b;
+  --neri: #231a12;
 
   /* ---- Colore: utility Tailwind (bg-, text-, border-) ------------------- */
   --color-bg: var(--bg);
@@ -61,18 +70,31 @@
   --color-silver: var(--silver);
   --color-bronze: var(--bronze);
 
+  --color-warn: var(--warn);
+  --color-warn-dim: var(--warn-dim);
+  --color-hot: var(--hot);
+  --color-hot-dim: var(--hot-dim);
+
+  --color-album-red: var(--album-red);
+  --color-album-yellow: var(--album-yellow);
+  --color-album-blue: var(--album-blue);
+
+  /* Pannelli squadra: i Bianchi su cartoncino bianco, i Neri su un velo
+     d'inchiostro (il testo resta --text-1 in entrambi). Pallini e maglie
+     usano il colore pieno: bg-bianca / bg-nera-line. */
   --color-bianca: var(--bianchi);
-  --color-bianca-dim: rgba(255, 255, 255, 0.12);
-  --color-nera: var(--neri);
+  --color-bianca-dim: #ffffff;
+  --color-nera: rgba(35, 26, 18, 0.13);
   --color-nera-line: var(--neri);
 
   /* ---- Tipografia -------------------------------------------------------
      Scala fissa 12/14/16/18/22/28/36/48px: riallinea la scala Tailwind di
      default (xs/sm/base/lg restano identici, xl e 2xl vengono riportati sui
      valori di sistema). Nessun'altra dimensione ammessa oltre queste 8 +
-     il formato hero fluido. */
-  --font-display: var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, sans-serif;
-  --font-sans: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+     il formato hero fluido. Display condensato da testata d'album (Oswald),
+     testo in Barlow, sportivo ma leggibile. */
+  --font-display: var(--font-oswald), "Oswald", "Arial Narrow", ui-sans-serif, sans-serif;
+  --font-sans: var(--font-barlow), Barlow, ui-sans-serif, system-ui, sans-serif;
 
   --text-xs: 12px;
   --text-xs--line-height: 1.4;
@@ -100,11 +122,11 @@
   --spacing: 4px;
 
   /* ---- Raggi -------------------------------------------------------------
-     Solo tre raggi in tutto il sito: 16px per le card (rounded-2xl, già il
-     default Tailwind), 10px per gli elementi interni (rounded-md, ridefinito
-     qui) e pill 999px (rounded-full, già default). */
-  --radius-2xl: 16px;
-  --radius-md: 10px;
+     Solo tre raggi in tutto il sito: 12px per le card (rounded-2xl, angoli
+     da figurina fustellata), 8px per gli elementi interni (rounded-md) e
+     pill 999px (rounded-full, già default). */
+  --radius-2xl: 12px;
+  --radius-md: 8px;
 
   /* ---- Motion --------------------------------------------------------- */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -121,7 +143,7 @@
 
 html {
   -webkit-tap-highlight-color: transparent;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* Rete di sicurezza: la causa reale di eventuale scroll orizzontale va
@@ -136,24 +158,12 @@ body {
   background: var(--bg);
   color: var(--text-1);
   font-family: var(--font-sans);
-  /* "Luce da stadio": riflettore verde tenuissimo dall'alto, sempre presente
-     dietro ogni pagina, più il pattern a griglia del campo. */
+  /* Pagina d'album: grana della carta (rumore SVG) e leggera brunitura verso
+     i bordi, come la carta invecchiata. */
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34, 197, 94, 0.05), transparent 60%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.015) 0px,
-      rgba(255, 255, 255, 0.015) 1px,
-      transparent 1px,
-      transparent 64px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.015) 0px,
-      rgba(255, 255, 255, 0.015) 1px,
-      transparent 1px,
-      transparent 64px
-    );
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.24 0 0 0 0 0.16 0 0 0 0 0.08 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 120% 90% at 50% 30%, transparent 55%, rgba(120, 80, 30, 0.14) 100%);
+  background-size: 160px 160px, 100% 100%;
   background-attachment: fixed;
 }
 
@@ -183,7 +193,44 @@ body {
    sticky) — mai su semplici card di contenuto, che si elevano solo con
    superficie più chiara + bordo 1px. */
 .shadow-float {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(60, 40, 20, 0.22);
+}
+
+/* Effetto figurina: ogni card di contenuto (rounded-2xl su superficie) è un
+   cartoncino appena sollevato dalla pagina, con l'ombra netta della stampa. */
+.rounded-2xl.bg-surface,
+.rounded-2xl.bg-surface-2 {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    2px 3px 0 rgba(60, 40, 20, 0.1),
+    0 1px 3px rgba(60, 40, 20, 0.1);
+}
+
+/* Titoli in stile album: maiuscolo condensato, come le testate di sezione. */
+h1.font-display,
+h2.font-display,
+h3.font-display {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Fascia tricolore dell'album (rosso / giallo / blu), usata come filetto
+   sotto l'header e come bordo superiore delle card "speciali". */
+.album-stripe {
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--album-red) 0 33.33%,
+    var(--album-yellow) 33.33% 66.66%,
+    var(--album-blue) 66.66% 100%
+  );
+}
+
+/* Cornice da figurina: bordo bianco spesso e ombra netta, per foto e
+   avatar dei giocatori. */
+.sticker-frame {
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px var(--border-strong), 1px 2px 0 rgba(60, 40, 20, 0.18);
 }
 
 :focus-visible {

@@ -68,7 +68,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-2xl border border-line-strong bg-surface p-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,197,94,0.10),transparent_60%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(31,110,59,0.10),transparent_60%)] pointer-events-none" />
         <PitchLines />
         {rankMarcatori && (
           <span

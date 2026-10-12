@@ -268,7 +268,7 @@ function TeamValueHeader({ label, valore, isBianca }: { label: string; valore: n
   return (
     <div className={`flex items-center gap-2 ${isBianca ? "" : "flex-row-reverse text-right"}`}>
       <span
-        className={`w-2.5 h-2.5 rounded-full shrink-0 ${isBianca ? "bg-bianca border border-line-strong" : "bg-nera"}`}
+        className={`w-2.5 h-2.5 rounded-full shrink-0 ${isBianca ? "bg-bianca border border-line-strong" : "bg-nera-line"}`}
       />
       <div>
         <p className="font-semibold text-sm">{label}</p>

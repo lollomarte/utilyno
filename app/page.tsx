@@ -67,10 +67,13 @@ export default async function HomePage() {
               }}
             />
             <PitchLines />
+            <div className="album-stripe absolute inset-x-0 top-0" aria-hidden />
             <div className="relative flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-widest text-accent font-semibold mb-1">
-                  Ultima partita
+                <p className="inline-block -skew-x-12 bg-album-red px-2 py-0.5 mb-1.5 rounded-sm">
+                  <span className="block skew-x-12 font-display text-xs uppercase tracking-widest font-semibold text-on-accent">
+                    Ultima giornata
+                  </span>
                 </p>
                 <p className="text-sm text-muted capitalize">{formatDate(latest.match.data)}</p>
               </div>
@@ -83,7 +86,7 @@ export default async function HomePage() {
             {latest.match.risultato_modificato_manualmente && (
               <div className="relative flex justify-center mt-2">
                 <span
-                  className="inline-flex items-center gap-1.5 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-2.5 py-1"
+                  className="inline-flex items-center gap-1.5 text-xs text-warn bg-warn-dim border border-warn/30 rounded-full px-2.5 py-1"
                   title="Risultato corretto manualmente"
                 >
                   ✏️ Risultato modificato manualmente
@@ -111,7 +114,7 @@ export default async function HomePage() {
         <div className="mt-4 flex flex-col items-center gap-2 text-center">
           <CountdownTimer target={nextMatchTarget} />
           {isOffSchedule && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-2.5 py-1">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-warn bg-warn-dim border border-warn/30 rounded-full px-2.5 py-1">
               ⚠️ Cambio di programma questa settimana
             </span>
           )}

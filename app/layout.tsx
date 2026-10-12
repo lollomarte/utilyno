@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Inter } from "next/font/google";
+import { Oswald, Barlow } from "next/font/google";
 import { NavBar } from "@/components/NavBar";
 import { MotionProvider } from "@/components/MotionProvider";
 import { ToastProvider } from "@/components/Toast";
@@ -7,15 +7,17 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
+const oswald = Oswald({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-oswald",
   display: "swap",
 });
 
-const inter = Inter({
+const barlow = Barlow({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-barlow",
   display: "swap",
 });
 
@@ -33,7 +35,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: SITE_NAME,
   },
   openGraph: {
@@ -51,7 +53,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#09090b",
+  themeColor: "#efe5cf",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -60,7 +62,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="it" className={`${spaceGrotesk.variable} ${inter.variable}`}>
+    <html lang="it" className={`${oswald.variable} ${barlow.variable}`}>
       <body className="min-h-screen bg-bg text-ink antialiased">
         <MotionProvider>
           <ToastProvider>

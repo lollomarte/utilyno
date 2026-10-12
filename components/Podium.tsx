@@ -18,6 +18,12 @@ const order = [2, 1, 3];
 const heights: Record<number, string> = { 1: "h-28", 2: "h-20", 3: "h-16" };
 const avatarSize: Record<number, number> = { 1: 64, 2: 40, 3: 40 };
 const medal: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
+// Gradini nei colori delle fasce dell'album: giallo al 1°, blu al 2°, rosso al 3°.
+const stepStyle: Record<number, string> = {
+  1: "bg-album-yellow text-ink",
+  2: "bg-album-blue text-on-accent",
+  3: "bg-album-red text-on-accent",
+};
 
 export function Podium({ entries }: { entries: PodiumEntry[] }) {
   const byRank = new Map(entries.map((e, i) => [i + 1, e]));
@@ -47,8 +53,10 @@ export function Podium({ entries }: { entries: PodiumEntry[] }) {
               </span>
             </Link>
             <div
-              className={`mt-2 w-full rounded-t-md border border-b-0 border-line-strong bg-surface-2 ${heights[rank]}`}
-            />
+              className={`mt-2 w-full rounded-t-md border border-b-0 border-line-strong flex items-start justify-center pt-1.5 font-display font-bold text-2xl ${stepStyle[rank]} ${heights[rank]}`}
+            >
+              {rank}
+            </div>
           </motion.div>
         );
       })}
