@@ -5,7 +5,7 @@ import { topScorersOf } from "@/lib/data/matchHelpers";
 import { getScorersStanding, getAttendanceStanding } from "@/lib/data/stats";
 import { getGoleadeStats } from "@/lib/data/records";
 import { formatDate, playerName } from "@/lib/format";
-import { resolveNextMatchTarget } from "@/lib/season";
+import { MATCH_TIME_ZONE, resolveNextMatchTarget } from "@/lib/season";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { RankBadge } from "@/components/RankBadge";
 import { CountUp } from "@/components/CountUp";
@@ -31,15 +31,21 @@ export default async function HomePage() {
   const topAttendance = attendance.standing.slice(0, 3);
   const capocannonieri = latest ? topScorersOf(latest.participants) : [];
 
-  const nextMatchTarget = resolveNextMatchTarget(nextMatchInfo?.data ?? null, nextMatchInfo?.orario ?? null);
-  const isCustomSchedule = !!nextMatchInfo?.data;
-  const isOffSchedule = isCustomSchedule && nextMatchTarget.getDay() !== 1;
+  const { target: nextMatchTarget, isCustom: isCustomSchedule } = resolveNextMatchTarget(
+    nextMatchInfo?.data ?? null,
+    nextMatchInfo?.orario ?? null,
+  );
+  const isOffSchedule =
+    isCustomSchedule &&
+    nextMatchTarget.toLocaleDateString("en-US", { timeZone: MATCH_TIME_ZONE, weekday: "short" }) !== "Mon";
   const nextMatchDateLabel = nextMatchTarget.toLocaleDateString("it-IT", {
+    timeZone: MATCH_TIME_ZONE,
     weekday: "long",
     day: "numeric",
     month: "long",
   });
   const nextMatchTimeLabel = nextMatchTarget.toLocaleTimeString("it-IT", {
+    timeZone: MATCH_TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
   });
