@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { PaniniSticker } from "@/components/PaniniSticker";
 import { playerName, ruoloLabel } from "@/lib/format";
 import { questionTypeConfig, type QuestionType } from "@/lib/gameQuestions";
 import type { GuessGamePlayer } from "@/lib/data/game";
@@ -26,7 +26,7 @@ export function GuessGamePlayerCard({
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="flex flex-col items-center gap-3 rounded-2xl border border-line-strong bg-surface p-4 sm:p-5 min-w-0"
     >
-      <PlayerAvatar player={player} size={72} />
+      <PaniniSticker player={player} className="w-28 sm:w-36" sizes="144px" />
       <div className="text-center min-w-0 w-full">
         <p className="font-display font-bold truncate">{playerName(player)}</p>
         <p className="text-xs text-muted mt-0.5">{player.ruolo ? ruoloLabel[player.ruolo] : "—"}</p>

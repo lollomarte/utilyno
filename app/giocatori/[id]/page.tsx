@@ -10,7 +10,7 @@ import {
   computeRendimentoStats,
   findRank,
 } from "@/lib/playerProfileStats";
-import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { PaniniSticker } from "@/components/PaniniSticker";
 import { PitchLines } from "@/components/PitchLines";
 import { CountUp } from "@/components/CountUp";
 import { Sparkline } from "@/components/Sparkline";
@@ -70,21 +70,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
       <div className="rounded-2xl border border-line-strong bg-surface p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(31,110,59,0.10),transparent_60%)] pointer-events-none" />
         <PitchLines />
-        {rankMarcatori && (
-          <span
-            className="absolute left-1/2 top-2 -translate-x-1/2 font-display font-bold leading-none select-none pointer-events-none"
-            style={{
-              fontSize: "clamp(5rem, 22vw, 8rem)",
-              color: "transparent",
-              WebkitTextStroke: "1px var(--border-strong)",
-            }}
-            aria-hidden
-          >
-            {rankMarcatori}
-          </span>
-        )}
         <div className="relative flex flex-col items-center text-center gap-3">
-          <PlayerAvatar player={player} size={96} />
+          <PaniniSticker
+            player={player}
+            number={rankMarcatori}
+            foil={rankMarcatori === 1}
+            className="w-44 sm:w-52 -rotate-2"
+            sizes="208px"
+          />
           <div>
             <h1 className="font-display text-2xl font-bold">{playerName(player)}</h1>
             <p className="text-sm text-muted">

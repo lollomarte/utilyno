@@ -1,39 +1,34 @@
 import Link from "next/link";
-import { PlayerAvatar } from "@/components/PlayerAvatar";
-import { Sparkline } from "@/components/Sparkline";
-import { playerName, formatMarketValue, marketTier, ruoloLabel } from "@/lib/format";
+import { PaniniSticker } from "@/components/PaniniSticker";
+import { formatMarketValue, marketTier } from "@/lib/format";
 import type { MarketPlayerRow } from "@/lib/data/market";
 
-const TREND_DOWN_COLOR = "var(--color-loss)";
+// Soglia della fascia "Pallone d'Oro" (vedi marketTier): sopra questo valore
+// la figurina diventa quella speciale dorata.
+const FOIL_THRESHOLD = 100;
 
-export function MarketCard({ row }: { row: MarketPlayerRow }) {
+/** Casella d'album del mercato: la figurina del giocatore con sotto
+ * quotazione, andamento e fascia di mercato. */
+export function MarketCard({ row, rank }: { row: MarketPlayerRow; rank?: number }) {
   const tier = marketTier(row.valore, row.player.is_clown);
   const trendUp = row.trend !== null && row.trend > 0;
   const trendDown = row.trend !== null && row.trend < 0;
 
   return (
-    <Link
-      href={`/giocatori/${row.player.id}`}
-      className="tap flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 hover:border-line-strong transition-colors"
-    >
-      <div className="flex items-center gap-3">
-        <PlayerAvatar player={row.player} size={40} />
-        <div className="flex-1 min-w-0">
-          <p className={`font-medium truncate ${row.player.attivo ? "" : "text-muted"}`}>
-            {playerName(row.player)}
-          </p>
-          {row.player.ruolo && <p className="text-xs text-muted">{ruoloLabel[row.player.ruolo]}</p>}
-        </div>
-        <span className={`shrink-0 text-xs font-semibold px-2 py-1 rounded-full border ${tier.className}`}>
-          {tier.label}
-        </span>
-      </div>
+    <Link href={`/giocatori/${row.player.id}`} className="tap group flex flex-col items-center gap-2 min-w-0">
+      <PaniniSticker
+        player={row.player}
+        number={rank}
+        foil={!row.player.is_clown && row.valore >= FOIL_THRESHOLD}
+        className="w-full transition-transform duration-200 group-hover:-rotate-1 group-hover:-translate-y-0.5"
+        sizes="(max-width: 640px) 45vw, 200px"
+      />
 
-      <div className="flex items-center justify-between gap-2">
-        <p className="font-display text-2xl font-bold tabular-nums">{formatMarketValue(row.valore)}</p>
+      <div className="flex w-full items-baseline justify-between gap-2 px-0.5">
+        <p className="font-display text-xl font-bold tabular-nums">{formatMarketValue(row.valore)}</p>
         {row.trend !== null ? (
           <p
-            className={`text-xs font-semibold flex items-center gap-1 shrink-0 ${
+            className={`text-xs font-semibold flex items-center gap-0.5 shrink-0 ${
               trendUp ? "text-win" : trendDown ? "text-loss" : "text-muted"
             }`}
           >
@@ -47,15 +42,11 @@ export function MarketCard({ row }: { row: MarketPlayerRow }) {
         )}
       </div>
 
-      {row.sparkline.length >= 2 && (
-        <Sparkline
-          values={row.sparkline}
-          width={240}
-          height={36}
-          color={trendDown ? TREND_DOWN_COLOR : "var(--color-accent)"}
-          gradientId={`market-spark-${row.player.id}`}
-        />
-      )}
+      <span
+        className={`max-w-full text-center text-xs font-semibold px-2 py-0.5 rounded-full border leading-tight ${tier.className}`}
+      >
+        {tier.label}
+      </span>
     </Link>
   );
 }

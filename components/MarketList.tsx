@@ -18,6 +18,13 @@ export function MarketList({ players }: { players: MarketPlayerRow[] }) {
   const [sortKey, setSortKey] = useState<SortKey>("valore");
   const [ruolo, setRuolo] = useState<RuoloFilterValue>("");
 
+  // Numero sullo scudetto della figurina: posizione nella quotazione generale,
+  // indipendente da filtro e ordinamento scelti.
+  const rankById = useMemo(
+    () => new Map([...players].sort((a, b) => b.valore - a.valore).map((p, i) => [p.player.id, i + 1])),
+    [players]
+  );
+
   const filtered = ruolo ? players.filter((p) => p.player.ruolo === ruolo) : players;
 
   const sorted = useMemo(() => {
@@ -48,9 +55,9 @@ export function MarketList({ players }: { players: MarketPlayerRow[] }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-6">
         {sorted.map((row) => (
-          <MarketCard key={row.player.id} row={row} />
+          <MarketCard key={row.player.id} row={row} rank={rankById.get(row.player.id)} />
         ))}
       </div>
     </div>

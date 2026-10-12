@@ -34,38 +34,38 @@ interface MarketTierDef extends MarketTier {
 // fascia aperta oltre i 100M e trattata a parte con l'oro.
 const MARKET_TIERS: MarketTierDef[] = [
   { max: 5, label: "Raccattapalle", className: "text-muted bg-surface-2 border-line-strong" },
-  { max: 10, label: "Ultimo cambio", className: "text-zinc-300 bg-zinc-500/10 border-zinc-500/30" },
-  { max: 15, label: "Panchinaro", className: "text-stone-300 bg-stone-500/10 border-stone-500/30" },
-  { max: 20, label: "Jolly di squadra", className: "text-sky-300 bg-sky-500/10 border-sky-500/30" },
-  { max: 25, label: "Titolare precario", className: "text-cyan-300 bg-cyan-500/10 border-cyan-500/30" },
-  { max: 30, label: "Titolare", className: "text-teal-300 bg-teal-500/10 border-teal-500/30" },
+  { max: 10, label: "Ultimo cambio", className: "text-zinc-800 bg-zinc-500/15 border-zinc-600/40" },
+  { max: 15, label: "Panchinaro", className: "text-stone-800 bg-stone-500/15 border-stone-600/40" },
+  { max: 20, label: "Jolly di squadra", className: "text-sky-800 bg-sky-500/15 border-sky-600/40" },
+  { max: 25, label: "Titolare precario", className: "text-cyan-800 bg-cyan-500/15 border-cyan-600/40" },
+  { max: 30, label: "Titolare", className: "text-teal-800 bg-teal-500/15 border-teal-600/40" },
   {
     max: 35,
     label: "Titolare inamovibile",
-    className: "text-emerald-300 bg-emerald-500/10 border-emerald-500/30",
+    className: "text-emerald-800 bg-emerald-500/15 border-emerald-600/40",
   },
-  { max: 40, label: "Uomo squadra", className: "text-green-300 bg-green-500/10 border-green-500/30" },
-  { max: 45, label: "Trascinatore", className: "text-lime-300 bg-lime-500/10 border-lime-500/30" },
-  { max: 50, label: "Capitano", className: "text-yellow-300 bg-yellow-500/10 border-yellow-500/30" },
+  { max: 40, label: "Uomo squadra", className: "text-green-800 bg-green-500/15 border-green-600/40" },
+  { max: 45, label: "Trascinatore", className: "text-lime-800 bg-lime-500/15 border-lime-600/40" },
+  { max: 50, label: "Capitano", className: "text-yellow-800 bg-yellow-500/15 border-yellow-600/40" },
   {
     max: 55,
     label: "Fenomeno di quartiere",
-    className: "text-amber-300 bg-amber-500/10 border-amber-500/30",
+    className: "text-amber-800 bg-amber-500/15 border-amber-600/40",
   },
-  { max: 60, label: "Idolo di curva", className: "text-orange-300 bg-orange-500/10 border-orange-500/30" },
-  { max: 65, label: "Bandiera", className: "text-red-300 bg-red-500/10 border-red-500/30" },
-  { max: 70, label: "Top player", className: "text-rose-300 bg-rose-500/10 border-rose-500/30" },
-  { max: 75, label: "Fuoriclasse", className: "text-pink-300 bg-pink-500/10 border-pink-500/30" },
-  { max: 80, label: "Campione", className: "text-fuchsia-300 bg-fuchsia-500/10 border-fuchsia-500/30" },
-  { max: 85, label: "Stella", className: "text-purple-300 bg-purple-500/10 border-purple-500/30" },
-  { max: 90, label: "Superstar", className: "text-violet-300 bg-violet-500/10 border-violet-500/30" },
-  { max: 95, label: "Mito", className: "text-indigo-300 bg-indigo-500/10 border-indigo-500/30" },
-  { max: 100, label: "Leggenda", className: "text-blue-300 bg-blue-500/10 border-blue-500/30" },
+  { max: 60, label: "Idolo di curva", className: "text-orange-800 bg-orange-500/15 border-orange-600/40" },
+  { max: 65, label: "Bandiera", className: "text-red-800 bg-red-500/15 border-red-600/40" },
+  { max: 70, label: "Top player", className: "text-rose-800 bg-rose-500/15 border-rose-600/40" },
+  { max: 75, label: "Fuoriclasse", className: "text-pink-800 bg-pink-500/15 border-pink-600/40" },
+  { max: 80, label: "Campione", className: "text-fuchsia-800 bg-fuchsia-500/15 border-fuchsia-600/40" },
+  { max: 85, label: "Stella", className: "text-purple-800 bg-purple-500/15 border-purple-600/40" },
+  { max: 90, label: "Superstar", className: "text-violet-800 bg-violet-500/15 border-violet-600/40" },
+  { max: 95, label: "Mito", className: "text-indigo-800 bg-indigo-500/15 border-indigo-600/40" },
+  { max: 100, label: "Leggenda", className: "text-blue-800 bg-blue-500/15 border-blue-600/40" },
 ];
 
 const PALLONE_DORO: MarketTier = {
   label: "Pallone d'Oro",
-  className: "text-gold bg-gold/10 border-gold/40 shadow-[0_0_10px_rgba(234,179,8,0.35)]",
+  className: "text-gold bg-gold/10 border-gold/40 shadow-[0_0_8px_rgba(143,100,0,0.3)]",
 };
 
 // Etichetta scherzosa che sovrascrive la fascia normale quando il giocatore
@@ -74,7 +74,7 @@ const PALLONE_DORO: MarketTier = {
 const CLOWN_TIER: MarketTier = {
   label: "🤡 Clown",
   className:
-    "text-white bg-gradient-to-r from-fuchsia-500 via-purple-500 to-amber-400 border-dashed border-white/50",
+    "text-white bg-gradient-to-r from-fuchsia-500 via-purple-500 to-amber-400 border-dashed border-ink/40",
 };
 
 export function marketTier(valore: number, isClown = false): MarketTier {
